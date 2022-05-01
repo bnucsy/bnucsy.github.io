@@ -72,7 +72,11 @@
   </style>
 </noscript>
 
-</head>
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --></head>
 
 <body itemscope itemtype="http://schema.org/WebPage">
   <div class="container use-motion">
@@ -170,7 +174,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2022-05-01 12:44:30 / 修改时间：12:50:48" itemprop="dateCreated datePublished" datetime="2022-05-01T12:44:30+08:00">2022-05-01</time>
+              <time title="创建时间：2022-05-01 12:44:30 / 修改时间：14:30:48" itemprop="dateCreated datePublished" datetime="2022-05-01T12:44:30+08:00">2022-05-01</time>
             </span>
 
           
@@ -184,129 +188,28 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <center>北京师范大学</centercenter>
-<center>2019-2020学年第二学期  “算法设计与分析”实验报告</center>
-<center><b><font size=6 bold=true>实验01：推销员问题</font><b></center>
+          <h2 id="t1"><a href="#t1" class="headerlink" title="t1"></a>t1</h2><h3 id="t2"><a href="#t2" class="headerlink" title="t2"></a>t2</h3><h4 id="t3"><a href="#t3" class="headerlink" title="t3"></a>t3</h4><h2 id="type-test"><a href="#type-test" class="headerlink" title="type test"></a>type test</h2><h3 id="center"><a href="#center" class="headerlink" title="center"></a>center</h3><center> center </center>
 
-
-<table>
-<thead>
-<tr>
-<th align="center">姓    名</th>
-<th align="center">学    号</th>
-<th align="center">学    院</th>
-<th align="center">日    期</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="center">楚舒扬</td>
-<td align="center">201811210122</td>
-<td align="center">人工智能</td>
-<td align="center">2020.03.09</td>
-</tr>
-</tbody></table>
+<h3 id="html"><a href="#html" class="headerlink" title="html"></a>html</h3><p><a href = "www.baidu.com">baidu</a></p>
+<h3 id="black"><a href="#black" class="headerlink" title="black"></a>black</h3><p><strong>black</strong> not black <em>lticas</em> <strong><em>black and lticas</em></strong></p>
+<h3 id="picture"><a href="#picture" class="headerlink" title="picture"></a>picture</h3><p><img src="C:\Users\xjucsy\Pictures\图片1.png" alt="pic" title="light field"></p>
+<h3 id="code"><a href="#code" class="headerlink" title="code"></a>code</h3><p><code>import json</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">include &lt;iostream&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="url"><a href="#url" class="headerlink" title="url"></a>url</h3><p>link2baidu =&gt; <a href="www.baidu.com" title="baidu when click">link</a></p>
+<h3 id="math"><a href="#math" class="headerlink" title="math"></a>math</h3><script type="math/tex; mode=display">
+MultiLabelMarginLoss = \frac{\sum\limits_{i \in y,j \notin y} \max(0, 1-(x[i]-x[j]))}{x.size[0]}</script><p>$line~math ~ x=\frac{1}{2}$</p>
 <hr>
-**1.实验目的**：
-
-<p>通过实验理解算法的概念、算法的表示、算法的时间复杂度和空间复杂度分析；运用熟悉的编程工具对推销员问题进行求解，初步学会分析算法的时间复杂度和空间复杂度；</p>
-<p><strong>2.实验内容</strong>：</p>
-<p>有一推销员，欲到 $n$($n\le10$)个城市推销产品。为了节省旅行费用，在出发前他查清了任意两个城市间的旅行费用，想找到一条旅行路线，仅经过每个城市一次，且使旅行费用最少。本问题已知城市 $n$，和 $n\times n$ 的表达任意两个城市间费用的矩阵。试求最短路径及其费用。</p>
-<p><strong>3.实验要求</strong>：</p>
-<p>编制程序并对其时间复杂度和空间复杂度进行分析。</p>
-<p>$\square$ 基础性实验  $\square$  综合性实验  $\boxtimes$ 设计性实验</p>
-<hr>													
-
-<center><b><font size=6>实验报告证文</font></b></center>
-### 一、问题分析（模型、算法设计和正确性证明等）
-
-<h4>1、遍历方法</h4>
-
-<h5>模型：</h5>采用矩阵表示的图结构进行存储
-
-<h5>算法设计：</h5>遍历算法，计算出所有的可能行进路线，将其对应权值相加取最小。其中全排列的给出使用递归方法。
-
-<h5>正确性证明：</h5>因为考虑到所有的可能情况，该方法正确。
-
-<h4>2、递归方法</h4>
-
-<h5>模型：</h5>采用矩阵表示的图结构进行存储
-
-<h5>算法设计：</h5>递归算法，从一点遍历另一集合所有点再回到自身的最小花费等同于先到达该集合任意点再从该点遍历剩余的点构成的子集的最小花费。
-
-<h5>正确性证明：</h5>
-
-<p>设定出发点$x$，目标遍历集合$y$，则$TSP(x,y) &#x3D; \min_{i\in y}(TSP(i,y-i)+edge[x][i])$，其中，$edge[x][i]$表示从$x$到$i$的距离。则按照这种方法进行向下递归求解，最终集合会变为$\phi$，此时即为递归出口，返回值为$TSP(x,\phi) &#x3D; edge[x][0]$（假定0是是初始点）。由于每一个子问题均为最优解，因此主要问题即为最优解。</p>
-<h3 id="二、复杂度分析"><a href="#二、复杂度分析" class="headerlink" title="二、复杂度分析"></a>二、复杂度分析</h3><h4>1、遍历法</h4>
-
-<p>假设共要去$n$个地方。</p>
-<h5>时间复杂度：</h5>
-
-<p>​	第一步是计算$n$的全排列问题，使用递归的方法为$prem(R) &#x3D; \sum_{i&#x3D;1}^{n}r_i prem(r_i)$，而当$n &#x3D; 1$时，$prem(R) &#x3D; (r)$。因此，算法复杂度为$\prod_{i&#x3D;1}^{n}i&#x3D;n!$；</p>
-<p>​	第二步是计算给出的序列路径权重，即对算出的$n!$条路径进行长度计算，每条路径计算时相加$n$次，即算法复杂度为$n*n!$；</p>
-<p>​	第三步是对计算出的$n!$个路径权重查找最小值，$n!$。</p>
-<p>因此复杂度为$O((n+1)!)$。</p>
-<h5>空间复杂度：</h5>
-
-<p>​	采用$n*n$的矩阵记录图中边的权重。采用内含$path[n]$数组的结构体表示一个解决方案。共有$n!$个解决方案（即全排列个数），故空间复杂度为$O((n+1)!)$。</p>
-<h4>2、递归法</h4>
-
-<h5>时间复杂度：</h5>
-
-<p>​	为了更加方便地表示点集合，采用离散数学中特征函数表示方法表示，即第$i$个数字如果存在即为$1$，否则为$0$。所以每一个二进制数可以表示一个集合，二进制数用十进制数进行表示。在这种表示方法下，每一个规模为$i$的递归程序调用$i-1$次比较取最小值，因此时间复杂度为$\sum_{i&#x3D;1}^{n}i(i-1)C_{n}^{i} &#x3D; O(2^n n^2)$。</p>
-<h5>空间复杂度：</h5>
-
-<p>​	为了避免重复递归，使用空间代替时间的方法，将每一次的递归求解结果使用一个数组进行存储再次需要时直接返回此结果，故空间复杂度为$O((n+1)!)$</p>
-<h3 id="三、程序实现和测试过程和结果（主要描述出现的问题和解决方法）"><a href="#三、程序实现和测试过程和结果（主要描述出现的问题和解决方法）" class="headerlink" title="三、程序实现和测试过程和结果（主要描述出现的问题和解决方法）"></a>三、程序实现和测试过程和结果（主要描述出现的问题和解决方法）</h3><h4 id="程序实现："><a href="#程序实现：" class="headerlink" title="程序实现："></a>程序实现：</h4><h5>1、遍历法</h5>
-
-<h6>（1）空间爆炸问题：</h6>
-
-<p>​	程序内申请int $a[10!]$会导致程序停止。解决方法为将数组声明为全局变量，因为局部变量存在于动态数据区中，而全局变量存在于静态存储区中。</p>
-<h6>（2）全排列的给出：</h6>
-
-<p>​	全排列利用$prem(R) &#x3D; \sum_{i&#x3D;1}^{n}r_i prem(r_i)$，进行递归程序的编写，递归方法为将每一个需要求的序列的除第一个外所有元素与第一个元素换位置之后求以该元素开头的序列全排列，递归出口为要求的全排列序列长度为$1$。代码如下：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">PREM</span><span class="params">(<span class="type">int</span> lst[], <span class="type">int</span> low, <span class="type">int</span> high, solve T[],<span class="type">int</span> N)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(low == high)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>; i&lt;N; i++) T[flag].path[i] = lst[i];</span><br><span class="line">        flag++;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> i=low; i&lt;=high; i++)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">swap</span>(lst[low],lst[i]);</span><br><span class="line">            <span class="built_in">PREM</span>(lst, low+<span class="number">1</span>, high, T, N);</span><br><span class="line">            <span class="built_in">swap</span>(lst[low],lst[i]);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h5>2、递归法</h5>
-
-<pre><code>&lt;h6&gt;（1）空间爆炸问题：&lt;/h6&gt;
-</code></pre>
-<p>​	同上。</p>
-<pre><code>&lt;h6&gt;（2）重复调用问题：&lt;/h6&gt;
-</code></pre>
-<p>​	递归函数在调用的时候会多次调用到相同的子问题，会导致不必要的时间浪费，因此将每一次的递归求解结果使用一个数组进行存储再次需要时直接返回此结果。代码如下：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">TSP</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span> re = inf;</span><br><span class="line">    <span class="keyword">if</span>(cost[x][y]) <span class="keyword">return</span> cost[x][y];				<span class="comment">//代替数组</span></span><br><span class="line">    <span class="keyword">if</span>(y==<span class="number">0</span>) <span class="keyword">return</span> edge[x][<span class="number">0</span>];						<span class="comment">//递归出口</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>; i&lt;n; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span>(!((y&gt;&gt;i)&amp;<span class="number">1</span>)) <span class="keyword">continue</span>;					<span class="comment">//判断是否访问</span></span><br><span class="line">        <span class="type">int</span> temp = <span class="built_in">TSP</span>(i,y-<span class="built_in">pow</span>(<span class="number">2</span>,i))+edge[x][i];	<span class="comment">//更新条件</span></span><br><span class="line">        <span class="keyword">if</span>(re &gt; temp) re = temp;</span><br><span class="line">    &#125;</span><br><span class="line">    cost[x][y] = re;</span><br><span class="line">    <span class="keyword">return</span> re;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h6>（3）打印路径问题</h6>
-
-<p>​	打印路径时同样使用递归函数，但是在已经计算完成的$cost$数组下进行计算。找到每一个路径对应的$next$再进行对于$next$的搜索。代码如下：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">print_path</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(y==<span class="number">0</span>) <span class="keyword">return</span>;</span><br><span class="line">    <span class="type">int</span> re = inf, next;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i=<span class="number">0</span>; i&lt;n; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span>(!((y&gt;&gt;i)&amp;<span class="number">1</span>)) <span class="keyword">continue</span>;</span><br><span class="line">        <span class="keyword">if</span>(re &gt; cost[i][y-(<span class="type">int</span>)<span class="built_in">pow</span>(<span class="number">2</span>,i)]+edge[x][i])</span><br><span class="line">        &#123;</span><br><span class="line">            next=i; re=cost[i][y-(<span class="type">int</span>)<span class="built_in">pow</span>(<span class="number">2</span>,i)]+edge[x][i];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    cout&lt;&lt;next+<span class="number">1</span>&lt;&lt;<span class="string">&quot; &quot;</span>;</span><br><span class="line">    <span class="built_in">print_path</span>(next, y-<span class="built_in">pow</span>(<span class="number">2</span>,next));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h4>运行结果：</h4>
-
-<p>两种方法运行结果相同，$n&#x3D;20$仅递归法给出结果。</p>
-<h5>第一组：</h5>
-
-<p><img src="C:\Users\CloudUREE061405\AppData\Roaming\Typora\typora-user-images\image-20200309160522270.png" alt="image-20200309160522270"></p>
-<h5>第二组：</h5>
-
-<p><img src="C:\Users\CloudUREE061405\AppData\Roaming\Typora\typora-user-images\image-20200309160644518.png" alt="image-20200309160644518"></p>
-<h5>第三组：</h5>
-
-<p><img src="C:\Users\CloudUREE061405\AppData\Roaming\Typora\typora-user-images\image-20200309160751810.png" alt="image-20200309160751810"></p>
-<h5>第四组：</h5>
-
-<p><img src="C:\Users\CloudUREE061405\AppData\Roaming\Typora\typora-user-images\image-20200310110954182.png" alt="image-20200310110954182"></p>
-<h5>第五组：</h5>
-
-<p><img src="C:\Users\CloudUREE061405\AppData\Roaming\Typora\typora-user-images\image-20200310111045441.png" alt="image-20200310111045441"></p>
-<h5>第六组：</h5>
-
-<p><img src="C:\Users\CloudUREE061405\AppData\Roaming\Typora\typora-user-images\image-20200310111147057.png" alt="image-20200310111147057"></p>
-<h3 id="四、总结（经验和反思等）"><a href="#四、总结（经验和反思等）" class="headerlink" title="四、总结（经验和反思等）"></a>四、总结（经验和反思等）</h3><p>1、大空间的存储：较大空间的申请最好放在全局变量进行申请。</p>
-<p>2、可以使用空间简化时间，在递归时使用数组进行存储可以简化递归的调用次数。</p>
-<p>3、相对于暴力求解方法，递归方法的空间复杂度更低，可以求解的问题规模也更大。</p>
+<h3 id="list"><a href="#list" class="headerlink" title="list"></a>list</h3><ul>
+<li>1</li>
+<li>2</li>
+<li>3 </li>
+</ul>
+<ol>
+<li>1</li>
+<li>2</li>
+<li>3</li>
+</ol>
 
       
     </div>
@@ -471,6 +374,8 @@
 
 
 
+
+  
 
   
 
