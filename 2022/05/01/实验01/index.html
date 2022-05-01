@@ -20,28 +20,39 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta property="og:type" content="website">
+  <meta name="description" content="北京师范大学 2019-2020学年第二学期  “算法设计与分析”实验报告 实验01：推销员问题      姓    名 学    号 学    院 日    期    楚舒扬 201811210122 人工智能 2020.03.09    **1.实验目的**：  通过实验理解算法的概念、算法的表示、算法的时间复杂度和空间复杂度分析；运用熟悉的编程工具对推销员问题进行求解，初步学会分析算法的时间">
+<meta property="og:type" content="article">
 <meta property="og:title" content="csy&#39;s blog">
-<meta property="og:url" content="http://example.com/index.html">
+<meta property="og:url" content="http://example.com/2022/05/01/%E5%AE%9E%E9%AA%8C01/index.html">
 <meta property="og:site_name" content="csy&#39;s blog">
+<meta property="og:description" content="北京师范大学 2019-2020学年第二学期  “算法设计与分析”实验报告 实验01：推销员问题      姓    名 学    号 学    院 日    期    楚舒扬 201811210122 人工智能 2020.03.09    **1.实验目的**：  通过实验理解算法的概念、算法的表示、算法的时间复杂度和空间复杂度分析；运用熟悉的编程工具对推销员问题进行求解，初步学会分析算法的时间">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="c:/Users/CloudUREE061405/AppData/Roaming/Typora/typora-user-images/image-20200309160522270.png">
+<meta property="og:image" content="c:/Users/CloudUREE061405/AppData/Roaming/Typora/typora-user-images/image-20200309160644518.png">
+<meta property="og:image" content="c:/Users/CloudUREE061405/AppData/Roaming/Typora/typora-user-images/image-20200309160751810.png">
+<meta property="og:image" content="c:/Users/CloudUREE061405/AppData/Roaming/Typora/typora-user-images/image-20200310110954182.png">
+<meta property="og:image" content="c:/Users/CloudUREE061405/AppData/Roaming/Typora/typora-user-images/image-20200310111045441.png">
+<meta property="og:image" content="c:/Users/CloudUREE061405/AppData/Roaming/Typora/typora-user-images/image-20200310111147057.png">
+<meta property="article:published_time" content="2022-05-01T04:44:30.696Z">
+<meta property="article:modified_time" content="2022-05-01T04:50:48.772Z">
 <meta property="article:author" content="shuyang chu">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="c:/Users/CloudUREE061405/AppData/Roaming/Typora/typora-user-images/image-20200309160522270.png">
 
-<link rel="canonical" href="http://example.com/">
+<link rel="canonical" href="http://example.com/2022/05/01/%E5%AE%9E%E9%AA%8C01/">
 
 
 <script id="page-configurations">
   // https://hexo.io/docs/variables.html
   CONFIG.page = {
     sidebar: "",
-    isHome : true,
-    isPost : false,
+    isHome : false,
+    isPost : true,
     lang   : 'zh-CN'
   };
 </script>
 
-  <title>csy's blog</title>
+  <title> | csy's blog</title>
   
 
 
@@ -139,9 +150,10 @@
         <div class="content-wrap">
           
 
-          <div class="content index posts-expand">
+          <div class="content post posts-expand">
             
-      
+
+    
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
@@ -157,10 +169,9 @@
       <meta itemprop="name" content="csy's blog">
     </span>
       <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
+        <h1 class="post-title" itemprop="name headline">
           
-            <a href="/2022/05/01/%E5%AE%9E%E9%AA%8C01/" class="post-title-link" itemprop="url">未命名</a>
-        </h2>
+        </h1>
 
         <div class="post-meta">
             <span class="post-meta-item">
@@ -184,7 +195,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <center>北京师范大学</centercenter>
+        <center>北京师范大学</centercenter>
 <center>2019-2020学年第二学期  “算法设计与分析”实验报告</center>
 <center><b><font size=6 bold=true>实验01：推销员问题</font><b></center>
 
@@ -308,21 +319,23 @@
 <p>2、可以使用空间简化时间，在递归时使用数组进行存储可以简化递归的调用次数。</p>
 <p>3、相对于暴力求解方法，递归方法的空间复杂度更低，可以求解的问题规模也更大。</p>
 
-      
     </div>
 
     
     
     
+
       <footer class="post-footer">
-        <div class="post-eof"></div>
+
+        
+
+
+        
       </footer>
+    
   </article>
   
   
-  
-
-
   
 
 
@@ -375,6 +388,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link"><span class="nav-number">1.</span> <span class="nav-text">1、遍历方法</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link"><span class="nav-number">1.1.</span> <span class="nav-text">模型：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link"><span class="nav-number">1.2.</span> <span class="nav-text">算法设计：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link"><span class="nav-number">1.3.</span> <span class="nav-text">正确性证明：</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link"><span class="nav-number">2.</span> <span class="nav-text">2、递归方法</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link"><span class="nav-number">2.1.</span> <span class="nav-text">模型：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link"><span class="nav-number">2.2.</span> <span class="nav-text">算法设计：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link"><span class="nav-number">2.3.</span> <span class="nav-text">正确性证明：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E5%A4%8D%E6%9D%82%E5%BA%A6%E5%88%86%E6%9E%90"><span class="nav-number"></span> <span class="nav-text">二、复杂度分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link"><span class="nav-number">1.</span> <span class="nav-text">1、遍历法</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link"><span class="nav-number">1.1.</span> <span class="nav-text">时间复杂度：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link"><span class="nav-number">1.2.</span> <span class="nav-text">空间复杂度：</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link"><span class="nav-number">2.</span> <span class="nav-text">2、递归法</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link"><span class="nav-number">2.1.</span> <span class="nav-text">时间复杂度：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link"><span class="nav-number">2.2.</span> <span class="nav-text">空间复杂度：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E7%A8%8B%E5%BA%8F%E5%AE%9E%E7%8E%B0%E5%92%8C%E6%B5%8B%E8%AF%95%E8%BF%87%E7%A8%8B%E5%92%8C%E7%BB%93%E6%9E%9C%EF%BC%88%E4%B8%BB%E8%A6%81%E6%8F%8F%E8%BF%B0%E5%87%BA%E7%8E%B0%E7%9A%84%E9%97%AE%E9%A2%98%E5%92%8C%E8%A7%A3%E5%86%B3%E6%96%B9%E6%B3%95%EF%BC%89"><span class="nav-number"></span> <span class="nav-text">三、程序实现和测试过程和结果（主要描述出现的问题和解决方法）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A8%8B%E5%BA%8F%E5%AE%9E%E7%8E%B0%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">程序实现：</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link"><span class="nav-number">1.1.</span> <span class="nav-text">1、遍历法</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link"><span class="nav-number">1.1.1.</span> <span class="nav-text">（1）空间爆炸问题：</span></a></li><li class="nav-item nav-level-6"><a class="nav-link"><span class="nav-number">1.1.2.</span> <span class="nav-text">（2）全排列的给出：</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link"><span class="nav-number">1.2.</span> <span class="nav-text">2、递归法</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link"><span class="nav-number">1.2.1.</span> <span class="nav-text">（3）打印路径问题</span></a></li></ol></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link"><span class="nav-number">2.</span> <span class="nav-text">运行结果：</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link"><span class="nav-number">2.1.</span> <span class="nav-text">第一组：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link"><span class="nav-number">2.2.</span> <span class="nav-text">第二组：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link"><span class="nav-number">2.3.</span> <span class="nav-text">第三组：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link"><span class="nav-number">2.4.</span> <span class="nav-text">第四组：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link"><span class="nav-number">2.5.</span> <span class="nav-text">第五组：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link"><span class="nav-number">2.6.</span> <span class="nav-text">第六组：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E6%80%BB%E7%BB%93%EF%BC%88%E7%BB%8F%E9%AA%8C%E5%92%8C%E5%8F%8D%E6%80%9D%E7%AD%89%EF%BC%89"><span class="nav-number"></span> <span class="nav-text">四、总结（经验和反思等）</span></a></div>
       </div>
       <!--/noindex-->
 
