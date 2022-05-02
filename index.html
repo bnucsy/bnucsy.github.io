@@ -72,11 +72,7 @@
   </style>
 </noscript>
 
-<!-- hexo injector head_end start -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
-<!-- hexo injector head_end end --></head>
+</head>
 
 <body itemscope itemtype="http://schema.org/WebPage">
   <div class="container use-motion">
@@ -172,10 +168,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2022-05-01 12:44:30 / 修改时间：14:30:48" itemprop="dateCreated datePublished" datetime="2022-05-01T12:44:30+08:00">2022-05-01</time>
+              <time title="创建时间：2022-05-01 12:44:30" itemprop="dateCreated datePublished" datetime="2022-05-01T12:44:30+08:00">2022-05-01</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-05-02 09:57:21" itemprop="dateModified" datetime="2022-05-02T09:57:21+08:00">2022-05-02</time>
+              </span>
 
           
 
@@ -197,7 +199,12 @@
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br></pre></td></tr></table></figure>
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">include &lt;iostream&gt;</span><br></pre></td></tr></table></figure>
 <h3 id="url"><a href="#url" class="headerlink" title="url"></a>url</h3><p>link2baidu =&gt; <a href="www.baidu.com" title="baidu when click">link</a></p>
-<h3 id="math"><a href="#math" class="headerlink" title="math"></a>math</h3><script type="math/tex; mode=display">
+<h3 id="math"><a href="#math" class="headerlink" title="math"></a>math</h3><p>最终，不渲染数学公式的问题未能解决，blog的建设也就到此为止</p>
+<p>尝试了<a target="_blank" rel="noopener" href="https://blog.csdn.net/yexiaohhjk/article/details/82526604">https://blog.csdn.net/yexiaohhjk/article/details/82526604</a></p>
+<p>以及<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_44846324/article/details/114582328?utm_medium=distribute.pc_relevant.none-task-blog-2~default~baidujs_baidulandingword~default-1.pc_relevant_paycolumn_v3&amp;spm=1001.2101.3001.4242.2&amp;utm_relevant_index=4">https://blog.csdn.net/qq_44846324/article/details/114582328?utm_medium=distribute.pc_relevant.none-task-blog-2~default~baidujs_baidulandingword~default-1.pc_relevant_paycolumn_v3&amp;spm=1001.2101.3001.4242.2&amp;utm_relevant_index=4</a></p>
+<p>以及<a target="_blank" rel="noopener" href="https://blog.csdn.net/Cool_breeze_/article/details/115104683">https://blog.csdn.net/Cool_breeze_/article/details/115104683</a></p>
+<p>均失败，blog继续存放在这个目录下，有机会能搞清楚如何显示再尝试更新</p>
+<script type="math/tex; mode=display">
 MultiLabelMarginLoss = \frac{\sum\limits_{i \in y,j \notin y} \max(0, 1-(x[i]-x[j]))}{x.size[0]}</script><p>$line~math ~ x=\frac{1}{2}$</p>
 <hr>
 <h3 id="list"><a href="#list" class="headerlink" title="list"></a>list</h3><ul>
@@ -378,6 +385,59 @@ MultiLabelMarginLoss = \frac{\sum\limits_{i \in y,j \notin y} \max(0, 1-(x[i]-x[
   
 
   
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
 
   
 
