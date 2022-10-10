@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"bnucsy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Momentum_Contrast_for_Unsupervised_Visual_Representation_Learning 【目标检测、图像分割】 CVPR2020摘要&amp;emsp;&amp;emsp;这篇文章实际上发布了有相当一段时间了，在两年之后的今天会看这项工作，很难不折服于 MoCo 的框架通用性、泛化性以及作者高度的前瞻性。随后作者又提出了 MoCoV2，MoCoV3，这两项工作在一定程度">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MoCo_V1_V2_V3">
+<meta property="og:url" content="http://bnucsy.github.io/MoCo/index.html">
+<meta property="og:site_name" content="CSY&#39;s blog">
+<meta property="og:description" content="Momentum_Contrast_for_Unsupervised_Visual_Representation_Learning 【目标检测、图像分割】 CVPR2020摘要&amp;emsp;&amp;emsp;这篇文章实际上发布了有相当一段时间了，在两年之后的今天会看这项工作，很难不折服于 MoCo 的框架通用性、泛化性以及作者高度的前瞻性。随后作者又提出了 MoCoV2，MoCoV3，这两项工作在一定程度">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://bnucsy.github.io/MoCo/image-20220928213908179.png">
+<meta property="og:image" content="http://bnucsy.github.io/MoCo/image-20220928224432063.png">
+<meta property="og:image" content="http://bnucsy.github.io/MoCo/image-20220929180009533.png">
+<meta property="og:image" content="http://bnucsy.github.io/MoCo/image-20220929185622211.png">
+<meta property="og:image" content="http://bnucsy.github.io/MoCo/image-20220929230910284.png">
+<meta property="og:image" content="http://bnucsy.github.io/MoCo/image-20220929231009289.png">
+<meta property="og:image" content="http://bnucsy.github.io/MoCo/image-20220929231210763.png">
+<meta property="og:image" content="http://bnucsy.github.io/MoCo/image-20220929231717516.png">
+<meta property="og:image" content="http://bnucsy.github.io/MoCo/image-20220929232042931.png">
+<meta property="og:image" content="http://bnucsy.github.io/MoCo/image-20220929232245194.png">
+<meta property="article:published_time" content="2022-09-28T02:58:12.252Z">
+<meta property="article:modified_time" content="2022-09-30T05:09:09.830Z">
+<meta property="article:author" content="ShuYang Chu">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://bnucsy.github.io/MoCo/image-20220928213908179.png">
+
+<link rel="canonical" href="http://bnucsy.github.io/MoCo/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>MoCo_V1_V2_V3 | CSY's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CSY's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/bnucsy/" class="github-corner" title="Follow me on Github" aria-label="Follow me on Github" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://bnucsy.github.io/MoCo/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ShuYang Chu">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CSY's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          MoCo_V1_V2_V3
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-09-28 10:58:12" itemprop="dateCreated datePublished" datetime="2022-09-28T10:58:12+08:00">2022-09-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-09-30 13:09:09" itemprop="dateModified" datetime="2022-09-30T13:09:09+08:00">2022-09-30</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper/" itemprop="url" rel="index"><span itemprop="name">paper</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper/cv/" itemprop="url" rel="index"><span itemprop="name">cv</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/MoCo/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/MoCo/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>6.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="Momentum-Contrast-for-Unsupervised-Visual-Representation-Learning-【目标检测、图像分割】-CVPR2020"><a href="#Momentum-Contrast-for-Unsupervised-Visual-Representation-Learning-【目标检测、图像分割】-CVPR2020" class="headerlink" title="Momentum_Contrast_for_Unsupervised_Visual_Representation_Learning 【目标检测、图像分割】 CVPR2020"></a><a target="_blank" rel="noopener" href="https://openaccess.thecvf.com/content_CVPR_2020/papers/He_Momentum_Contrast_for_Unsupervised_Visual_Representation_Learning_CVPR_2020_paper.pdf">Momentum_Contrast_for_Unsupervised_Visual_Representation_Learning</a> 【目标检测、图像分割】 CVPR2020</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;这篇文章实际上发布了有相当一段时间了，在两年之后的今天会看这项工作，很难不折服于 MoCo 的框架通用性、泛化性以及作者高度的前瞻性。随后作者又提出了 MoCoV2，MoCoV3，这两项工作在一定程度上就是单纯的对 MoCo 的适应性改编，尤其是 MoCoV2，几乎没有什么更新的想法，而 MoCoV3 至少发现了一些一直被人们所忽略的 VIT 的训练特性。作为相当一段时间内在对比学习领域和 SimCLR 齐名的前二名，MoCo 对对比学习问题进行了高度抽象，提出了简单又高效的改革。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/MoCo/image-20220928213908179.png" alt="image-20220928213908179" style="zoom:50%;"></p>
+<span id="more"></span>
+<hr>
+<h3 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h3><p>&emsp;&emsp;在讲述 MoCo 发展史之前，首先需要了解何为对比学习，以及以往的对比学习都采取了哪样的策略，这些工作尽管很出名，但是为什么被 MoCo 的作者说成”不可避免地受限“。</p>
+<h4 id="对比学习"><a href="#对比学习" class="headerlink" title="对比学习"></a>对比学习</h4><p>&emsp;&emsp;首先，对比学习并非某种网络结构，更多地，这是像 AE、VAE、GAN 类似的无监督学习的一种学习方式。在对比学习之中，我们需要做两个关键的事情，1.构造正负例样本的向量表征，2.选择合适的损失函数训练分类/预测问题。</p>
+<p>&emsp;&emsp;我们将举一个非常简单的例子描述对比学习，这种方式实际上出现在 SimCLR 之中。</p>
+<p><img src="/MoCo/image-20220928224432063.png" alt="image-20220928224432063" style="zoom:40%;"></p>
+<p>&emsp;&emsp;简单来说，通过对同一张图像进行数据增强，得到的两个新图像互为正样本，同样的，由两个不同的图像进行数据增强之后的结果就是负样本，因此对于某个图像，对他来说是正样本的只有 1 个，负样本有很多个，准确来说应该是 (batchSize-1)x2 个，因此问题转化为一个多分类问题。将所有的正负样本输入一个编码器，得到向量表征，这里的向量表征就是我们在最后想要得到的具备强语义信息。对向量继续通过一个 MLP 进行分类，并对分类之后的结果求 NCELoss，梯度回传并更新编码器，我们其实只想要编码器，这里训练用的 MLP 在推理的时候并不使用，而是到时候再训练一个新的解码器。</p>
+<h4 id="代理任务"><a href="#代理任务" class="headerlink" title="代理任务"></a>代理任务</h4><p>&emsp;&emsp;所谓代理任务，即构造正负样本的方法，其中最出名的是 个体判别 方法，该方法将每个图像数据增强后的结果看做一个类，任何两个不同的图像都不属于一个类 ，这种简单粗暴的方式反而具备很好的效果，一直被 SimCLR，MoCo 等对比学习经典作品采用。</p>
+<p>&emsp;&emsp;当然，还有其他的代理任务，正是代理任务的灵活性给了对比学习很高的进步空间，比如将一张图像打成多个 patch，选择中心 patch 作为基准，对其他 8 个 patch 进行标号，随机选取一个 patch，然后预测其相对于基准的标号。再比如在视频流中，每个帧和下一帧互为正样本，其他的随机抽取均为负样本。再比如在所有时序数据中，选取前四帧分别经过编码器和 MLP 整合成一个语义表征，则下四帧经过同样的编码器后的表征就是正样本，任意其他四帧经过编码器之后的就是负样本，这也就是 CPC 的策略，简单泛化效果好。</p>
+<h4 id="对比学习中的困难点"><a href="#对比学习中的困难点" class="headerlink" title="对比学习中的困难点"></a>对比学习中的困难点</h4><p>&emsp;&emsp;当然，对比学习很棒，自监督意味着不需要额外的标号。但是正如 MoCo 所说，大多数工作都主要致力于解决这两个问题：1.负样本的一致性问题，2.负样本的数量问题。简单来说，问题 2 意味着负样本太少会让编码器学习到一些捷径，从而难以学到有力的表征，问题 1 意味着不同的负样本表征可能是由不同参数的编码器得到的，这加重了模型的训练难度，可能使其学到额外的知识并难以收敛。</p>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>MoCo<ul>
+<li>提出了一种抽象的 q-k 描述来总结以往的对比学习优化目标和局限性</li>
+<li>提出使用 queue 的数据结构将 batchSize 和 dictSize 分开，保证了 key 数据多样性</li>
+<li>提出了动量更新的策略，保证了多个 key 之间的数据一致性</li>
+</ul>
+</li>
+<li>MoCoV2<ul>
+<li>对 ResNet50 之后的 MLP 层进行了加深</li>
+<li>采用了一种更新的数据增强策略</li>
+</ul>
+</li>
+<li>MoCoV3<ul>
+<li>将骨干网络换成了 VIT，微调了 loss，取得了相对于 MoCo，MoCoV2 稍好一点点的结果</li>
+<li>发现了在 VIT 训练过程中 patch projection 会导致训练精度突变的问题，并给出了解决方案</li>
+</ul>
+</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p>&emsp;&emsp;MoCo 实际上只是提出了一种网络架构，并没有规定在这个架构中具体的网络是什么，在 MoCo 刚提出的时候还是 CNN 时代，因此最初选取的骨干网络是 ResNet50，之后 MoCoV2 对 ResNet50 进行了一点小改动，在 MoCoV3 的时候已经是 transformer 盛行时代了，因此 MoCoV3 把骨干网络换成了 VIT，但是在实际操作的过程中发现了效果并没有太好，因此作者认真探究了为何会变差，得到了很有意思的结论。</p>
+<h4 id="MoCo"><a href="#MoCo" class="headerlink" title="MoCo"></a>MoCo</h4><p><img src="/MoCo/image-20220929180009533.png" alt="image-20220929180009533" style="zoom:50%;"></p>
+<p>&emsp;&emsp;对于 MoCo，所有的问题被重新表述了，在选用个体判别的代理任务的情况下，现在我们认为同一个 batch 内的所有图像中，由某一个图像数据增强得到的两个图像其中一个为 $x^q$，其他的都是 $x^k$，在所有的 $x^k$ 之中，只有 $x^{k_0}$ 的正样本，其他的都是负样本。对于 $x^q$ 和 $x^k$ 做转置乘，得到他们的相似性，这就相当于构造了一个字典，所有的 $x^k$ 就是字典中的键，原本的两个困难就可以被重新描述为 1. 字典的键要尽可能多，2. 字典的键要尽可能一致。为了解决这两个问题，MoCo 提出了两个方案：1.使用队列存储字典，2.不训练 key 的编码器</p>
+<h5 id="队列和动量更新"><a href="#队列和动量更新" class="headerlink" title="队列和动量更新"></a>队列和动量更新</h5><p>&emsp;&emsp;对于刚刚提出的两个改进策略，1.将每次 batch 得到的所有 $x^k$ 都存储在一个队列里面，当队列满了之后就每次剔除队列头的元素，通过这种方式就可以保证负样本的数量。2.不训练 key 的编码器，而是每次直接从 query 的编码器中 copy 参数过来，通过一个公式进行动量更新，在保证 key 编码器在逐渐变化的情况下不失去 key 的一致性。</p>
+<p>&emsp;&emsp;在每个 batch 得到 query 和 key 之后，key 进入队列，此时如果队列满了，就将队头移出。对于很多的 key，这之中有的是正样本，有的是负样本，总共约有 6W 多个，将这些 key 和 query 计算 loss，具体的 loss 这里选择 $\rm InfoNCELoss$，其具体计算公式如下：</p>
+<script type="math/tex; mode=display">
+\zeta_q=-\log\frac{\exp(q·k_+/\tau)}{\sum_{i=0}^{K}\exp(q·k_i/\tau)}</script><p>&emsp;&emsp;这里其实和 NCELoss 几乎没区别，加了个 $\tau$，目的是使模型更加好训练，据说是因为要控制 $q·k_+$ 的分布，咱也不太懂原理是啥。</p>
+<p>&emsp;&emsp;总之，现在我们计算出来了 loss，接下来就可以进行反向传播了，但是要注意的是，这里的反向传播只能传播到 query 的编码器之中，我们切断了向 key 的梯度。然后更新 query 的编码器，更新完 query 的编码器之后我们同样要更新 key 的编码器，我们记 query 的编码器参数为 $\theta_q$，key 前一时刻编码器参数为 $\theta_k^{i-1}$，则当前时刻的 key 编码器参数由如下公式更新：</p>
+<script type="math/tex; mode=display">
+\theta_k^i=m\times\theta_k^{i-1}+(1-m)\times\theta_q</script><p>&emsp;&emsp;这个式子也就是所谓的动量更新，这里的 $m$ 就是动量，$m$ 越大代表 key 编码器更新越慢，而事实上 $m$ 在 MoCo 中选择非常之大，为 0.999，也就是每次 query 的编码器参数对 key 编码器参数的影响只占 $0.1\%$。</p>
+<p>&emsp;&emsp;据此策略，MoCo 就可以展开训练了，作者选取 ResNet50 作为骨干网络，取得了很好的结果，并且给出了训练时的 pytorch 风格的伪代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># f_q, f_k: encoder networks for query and key</span></span><br><span class="line"><span class="comment"># queue: dictionary as a queue of K keys (CxK)</span></span><br><span class="line"><span class="comment"># m: momentum</span></span><br><span class="line"><span class="comment"># t: temperature</span></span><br><span class="line">f_k.params = f_q.params <span class="comment"># initialize</span></span><br><span class="line"><span class="keyword">for</span> x <span class="keyword">in</span> loader: <span class="comment"># load a minibatch x with N samples</span></span><br><span class="line">    x_q = aug(x) <span class="comment"># a randomly augmented version</span></span><br><span class="line">    x_k = aug(x) <span class="comment"># another randomly augmented version</span></span><br><span class="line">    q = f_q.forward(x_q) <span class="comment"># queries: NxC</span></span><br><span class="line">    k = f_k.forward(x_k) <span class="comment"># keys: NxC</span></span><br><span class="line">    k = k.detach() <span class="comment"># no gradient to keys</span></span><br><span class="line">    <span class="comment"># positive logits: Nx1</span></span><br><span class="line">    l_pos = bmm(q.view(N,<span class="number">1</span>,C), k.view(N,C,<span class="number">1</span>))</span><br><span class="line">    <span class="comment"># negative logits: NxK</span></span><br><span class="line">    l_neg = mm(q.view(N,C), queue.view(C,K))</span><br><span class="line">    <span class="comment"># logits: Nx(1+K)</span></span><br><span class="line">    logits = cat([l_pos, l_neg], dim=<span class="number">1</span>)</span><br><span class="line">    <span class="comment"># contrastive loss, Eqn.(1)</span></span><br><span class="line">    labels = zeros(N) <span class="comment"># positives are the 0-th</span></span><br><span class="line">    loss = CrossEntropyLoss(logits/t, labels)</span><br><span class="line">    <span class="comment"># SGD update: query network</span></span><br><span class="line">    loss.backward()</span><br><span class="line">    update(f_q.params)</span><br><span class="line">    <span class="comment"># momentum update: key network</span></span><br><span class="line">    f_k.params = m*f_k.params+(<span class="number">1</span>-m)*f_q.params</span><br><span class="line">    <span class="comment"># update dictionary</span></span><br><span class="line">    enqueue(queue, k) <span class="comment"># enqueue the current minibatch</span></span><br><span class="line">    dequeue(queue) <span class="comment"># dequeue the earliest minibatch</span></span><br></pre></td></tr></table></figure>
+<h5 id="MoCo和其他对比学习框架"><a href="#MoCo和其他对比学习框架" class="headerlink" title="MoCo和其他对比学习框架"></a>MoCo和其他对比学习框架</h5><p>&emsp;&emsp;MoCo 在之前提到，以往的工作往往受限于字典大小和表征一致性，那么具体是如何受限的呢，MoCo 给出了对比，在 MoCo 的动量更新、队列存储之前，对比学习往往才有两种训练方式，一种是端到端的训练，另一种是使用 memory bank 存储较多 key 的训练。</p>
+<p><img src="/MoCo/image-20220929185622211.png" alt="image-20220929185622211"></p>
+<p>&emsp;&emsp;对于端到端的训练，我们将 query 和 key 分别输入同样的 encoder，并且得到的 loss 直接反向传播到两个编码器，这两个编码器既可以共享参数也可以不共享参数，这样做的好处是每次我们得到的 $k$ 都是通过同一个编码器得到的，缺点就是每次一个 batch 得到的 $k$ 的个数太少了。</p>
+<p>&emsp;&emsp;对于基于 memory bank 的方法，为了解决单个 batch 得到的 $k$ 的个数太少的问题，将预先将很多负样本通过一个 encoder 存储起来，这个就叫做 memory bank，每次计算时，从 memory bank 里面随机抽取几个负样本进行计算，并梯度回传更新 query 的 encoder，此时将我们抽取出来的负样本重新走一遍更新之后的 encoder，并更新这些样本然后再放回 memory bank。这样做的问题就是，memory bank 里面的 $k$ 不够一致，他们是由不同的 encoder 得到的，虽然为了解决这个问题，memory bank 方法采用了动量更新的方式更新改动的负样本，但是仍然无法从根本上解决一致性问题。</p>
+<h4 id="MoCoV2"><a href="#MoCoV2" class="headerlink" title="MoCoV2"></a>MoCoV2</h4><p><a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2003.04297.pdf">Improved Baselines with Momentum Contrastive Learning</a></p>
+<p>&emsp;&emsp;在 MoCo 发表的同一年，SimCLR 也发表了出来，因此 FAIR 团队把 SimCLR 的技术关键点移植到了 MoCo，提出了 MoCoV2，在指标上超越了 SimCLR，但是因为实在没有什么创新，因此也没有发表，作者写了个三页的小报告挂在了 arxiv 上，具体来说，改动分为这两个方面。</p>
+<p>&emsp;&emsp;1.加入一个预测头，也就是解码器，这个解码器由后接 RELU 的两层 MLP 组成，这个解码器只在训练的时候使用，而在训练完成之后将这个 linear projection 扔掉，这实际上是 SimCLRV1 的策略。2.加入了一个更加有效的数据增强方式，blur augmentation，即模糊图像。之后可以专门写一篇总结基于 torchvision.transforms 的数据增强 API。</p>
+<h4 id="MoCoV3"><a href="#MoCoV3" class="headerlink" title="MoCoV3"></a>MoCoV3</h4><p><a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2104.02057.pdf">An Empirical Study of Training Self-Supervised Vision Transformers</a></p>
+<p>&emsp;&emsp;MoCoV3 是 VIT 提出之后作者将骨干网络换成 VIT 之后的续写，是在 MoCoV2 的改进基础上的续写，实际上如果仅仅如此，有可能 MoCoV3 也变成一篇技术报告，但是作者在替换骨干网络之后发现了奇怪的事情。</p>
+<p>&emsp;&emsp;作者发现在将骨干网络替换为 VIT 之后出现了训练不稳定的问题，具体的不稳定体现在训练时的准确率会在某些时刻突然下降又升高。这和很多因素有关，作者做了一些实验，包括 batchsize，学习率，优化器。</p>
+<p><img src="/MoCo/image-20220929230910284.png" alt="image-20220929230910284" style="zoom:57%;"></p>
+<p><img src="/MoCo/image-20220929231009289.png" alt="image-20220929231009289" style="zoom:64%;"></p>
+<p><img src="/MoCo/image-20220929231210763.png" alt="image-20220929231210763" style="zoom:100%;"></p>
+<p>&emsp;&emsp;通过上面三张图像，我们可以发现，batchsize 和学习率都属于适中最好。这没啥说的，但问题就在于无论是选择了不太好的 batchsize 还是不太好的学习率，这些不稳定是有规律可循的。另外就是优化器，作者默认AdamW 作为优化器（常用于 ViT model），而另一方面，最近的工作经常使用 LARS 优化器处理大的 batchsize，作者对 LAMB 优化器进行实验，其是 LARS 中 AdamW 对应版本。这些优化器说实话不太理解，只知道最基础的 SGD、Adam 之类的，之后可以写一篇总结各种优化器及其优劣。总之，作者通过测试，发现 LAMB 优化器不太好，不如 AdamW。</p>
+<p>&emsp;&emsp;在发现有规律可循之后，作者尝试探索了一下，打印出了网络的第一层和最后一层的参数梯度变化图像如下</p>
+<p><img src="/MoCo/image-20220929231717516.png" alt="image-20220929231717516" style="zoom:80%;"></p>
+<p>&emsp;&emsp;作者认为，这些突起的梯度，是因为在 MoCoV2 中加入的 linear projection 的训练问题，因此作者提出了一种策略：不训练 linear projection，仅做随机初始化。这是很离谱的想法，这样就让人很难理解为什么这样一个随机初始化又不更新的线性层对原本的 MoCo 有辅助作用，但实际上是有的，并且使用不训练策略之后梯度变化真的稳定了，而且在不同的学习率之下都是更稳定了。</p>
+<p><img src="/MoCo/image-20220929232042931.png" alt="image-20220929232042931" style="zoom:80%;"></p>
+<p>&emsp;&emsp;甚至不仅如此，作者还贴心地测试了 SimCLR 和 BYOL，将 SimCLR 和 BYOL 的线性层也改成随机初始化不训练的方式，神奇的是得到的训练结果真的上了几个点，并且没有了准确率的突变。</p>
+<p><img src="/MoCo/image-20220929232245194.png" alt="image-20220929232245194" style="zoom:70%;"></p>
+<p>&emsp;&emsp;总之，这就是 MoCoV3 的贡献，其不仅成功将 VIT 应用于 MoCo 的骨干网络，并且提升了结果，最关键的是其找到了新对比学习框架中常见的准确率突变问题的解决方案，并且在多个框架中验证了其有效性。同样地，这是 MoCoV3 的伪代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># f_q: encoder: backbone + proj mlp + pred mlp</span></span><br><span class="line"><span class="comment"># f_k: momentum encoder: backbone + proj mlp</span></span><br><span class="line"><span class="comment"># m: momentum coefficient</span></span><br><span class="line"><span class="comment"># tau: temperature</span></span><br><span class="line"><span class="keyword">for</span> x <span class="keyword">in</span> loader: <span class="comment"># load a minibatch x with N samples</span></span><br><span class="line">    x1, x2 = aug(x), aug(x) <span class="comment"># augmentation</span></span><br><span class="line">    q1, q2 = f_q(x1), f_q(x2) <span class="comment"># queries: [N, C] each</span></span><br><span class="line">    k1, k2 = f_k(x1), f_k(x2) <span class="comment"># keys: [N, C] each</span></span><br><span class="line">    loss = ctr(q1, k2) + ctr(q2, k1) <span class="comment"># symmetrized</span></span><br><span class="line">    loss.backward()</span><br><span class="line">    update(f_q) <span class="comment"># optimizer update: f_q</span></span><br><span class="line">    f_k = m*f_k + (<span class="number">1</span>-m)*f_q <span class="comment"># momentum update: f_k</span></span><br><span class="line"><span class="comment"># contrastive loss</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">ctr</span>(<span class="params">q, k</span>):</span><br><span class="line">    logits = mm(q, k.t()) <span class="comment"># [N, N] pairs</span></span><br><span class="line">    labels = <span class="built_in">range</span>(N) <span class="comment"># positives are in diagonal</span></span><br><span class="line">    loss = CrossEntropyLoss(logits/tau, labels)</span><br><span class="line">    <span class="keyword">return</span> <span class="number">2</span> * tau * loss</span><br></pre></td></tr></table></figure>
+<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;$\rm InfoNCELoss$ 已经说过，不再赘述，之后可以专门写一篇总结$\rm MSE, RMSE, NCE,InfoNCE,BCE,CE$ 等的区别和联系。</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>ShuYang Chu
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://bnucsy.github.io/MoCo/" title="MoCo_V1_V2_V3">http://bnucsy.github.io/MoCo/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/MAE/" rel="prev" title="MAE_源码级精读">
+      <i class="fa fa-chevron-left"></i> MAE_源码级精读
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/HR_review/" rel="next" title="HR_review">
+      HR_review <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Momentum-Contrast-for-Unsupervised-Visual-Representation-Learning-%E3%80%90%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E3%80%81%E5%9B%BE%E5%83%8F%E5%88%86%E5%89%B2%E3%80%91-CVPR2020"><span class="nav-text">Momentum_Contrast_for_Unsupervised_Visual_Representation_Learning 【目标检测、图像分割】 CVPR2020</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E8%A7%88"><span class="nav-text">概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86"><span class="nav-text">前置知识</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0"><span class="nav-text">对比学习</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%A3%E7%90%86%E4%BB%BB%E5%8A%A1"><span class="nav-text">代理任务</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0%E4%B8%AD%E7%9A%84%E5%9B%B0%E9%9A%BE%E7%82%B9"><span class="nav-text">对比学习中的困难点</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E6%96%B0"><span class="nav-text">创新</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C"><span class="nav-text">网络</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#MoCo"><span class="nav-text">MoCo</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%98%9F%E5%88%97%E5%92%8C%E5%8A%A8%E9%87%8F%E6%9B%B4%E6%96%B0"><span class="nav-text">队列和动量更新</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#MoCo%E5%92%8C%E5%85%B6%E4%BB%96%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0%E6%A1%86%E6%9E%B6"><span class="nav-text">MoCo和其他对比学习框架</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#MoCoV2"><span class="nav-text">MoCoV2</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#MoCoV3"><span class="nav-text">MoCoV3</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8D%9F%E5%A4%B1"><span class="nav-text">损失</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ShuYang Chu</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ShuYang Chu</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'gSZuY7rr1fsTF5DTHs68r5lu-gzGzoHsz',
+      appKey     : 'JqjUXxwDxPg9qbRlCyMx3gkg',
+      placeholder: "在这里写下评论",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
