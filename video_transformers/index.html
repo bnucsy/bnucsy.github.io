@@ -32,8 +32,15 @@
 <meta property="og:image" content="http://bnucsy.github.io/video_transformers/image-20221011115043135.png">
 <meta property="og:image" content="http://bnucsy.github.io/video_transformers/image-20221011115228865.png">
 <meta property="og:image" content="http://bnucsy.github.io/video_transformers/image-20221011124534878.png">
+<meta property="og:image" content="http://bnucsy.github.io/video_transformers/image-20221018101252155.png">
+<meta property="og:image" content="http://bnucsy.github.io/video_transformers/image-20221018104815582.png">
+<meta property="og:image" content="http://bnucsy.github.io/video_transformers/image-20221018111403788.png">
+<meta property="og:image" content="http://bnucsy.github.io/video_transformers/image-20221018111833490.png">
+<meta property="og:image" content="http://bnucsy.github.io/video_transformers/image-20221018112811765.png">
+<meta property="og:image" content="http://bnucsy.github.io/video_transformers/image-20221018112538340.png">
+<meta property="og:image" content="http://bnucsy.github.io/video_transformers/image-20221018112733777.png">
 <meta property="article:published_time" content="2022-10-09T05:23:41.810Z">
-<meta property="article:modified_time" content="2022-10-11T04:48:11.659Z">
+<meta property="article:modified_time" content="2022-10-18T03:31:27.364Z">
 <meta property="article:author" content="ShuYang Chu">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://bnucsy.github.io/video_transformers/image-20221010173024409.png">
@@ -197,7 +204,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-10-11 12:48:11" itemprop="dateModified" datetime="2022-10-11T12:48:11+08:00">2022-10-11</time>
+                <time title="修改时间：2022-10-18 11:31:27" itemprop="dateModified" datetime="2022-10-18T11:31:27+08:00">2022-10-18</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -244,14 +251,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>3.7k</span>
+              <span>5.4k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>3 分钟</span>
+              <span>5 分钟</span>
             </span>
 
         </div>
@@ -281,7 +288,7 @@
 </ul>
 <h4 id="网络结构"><a href="#网络结构" class="headerlink" title="网络结构"></a>网络结构</h4><p>&emsp;&emsp;这项工作选取了 Res50 和 Res101 作为 backbone，分别在 C2D 和 I3D 上不同位置加入了 NL，区别于原本的双流 I3D，取消了光流的输入，以在 Res50 C2D 版本的 res2/3 中加入 5 个 NL 来说，大致网络结构如下：</p>
 <p><img src="/video_transformers/res50_NL_5.png" alt></p>
-<p>&emsp;&emsp;如果除去蓝色小块，剩下的就是标准的 Res50，对于不同的 NL 个数：1/5/10，全部在 stage2/3 之中加入，或隔一个加一个，或全部后接 NL。这样做的原因是：1.NL 操作复杂度较高，直接在 stage1 后接，会导致训练变慢，而在 stage4 后接的话，此时的特征图已经太小，并且这个时候的感受野已经很大了，再接入 NL 意义不大。具体到某一个 NL_block，其具体的计算方式如下：</p>
+<p>&emsp;&emsp;如果除去蓝色小块，剩下的就是标准的 Res50，对于不同的 NL 个数：1/5/10，全部在 stage2/3 之中加入，或隔一个加一个，或全部后接 NL。这样做的原因是：1.NL 操作复杂度较高，直接在 stage1 后接，会导致训练变慢，2.在 stage4 后接的话，此时的特征图已经太小，并且这个时候的感受野已经很大了，再接入 NL 意义不大。具体到某一个 NL_block，其具体的计算方式如下：</p>
 <p><img src="/video_transformers/image-20221011115043135.png" alt="image-20221011115043135"></p>
 <p>&emsp;&emsp;看上去是很复杂的，其实就是带残差连接的 SA。上面的这个实现可以直接复现出源码，在论文中，作者也给出了抽象的 NL_block 的实现方式：</p>
 <p><img src="/video_transformers/image-20221011115228865.png" alt="image-20221011115228865"></p>
@@ -292,15 +299,37 @@ y_i = \frac 1 {C( x)} \sum_{\forall j} f( {x_i},{x_j})g({x_i})\tag1</script><p>&
 <script type="math/tex; mode=display">
 y_i=\frac{1}{\Sigma_{\forall j}e^{\theta(x_i)^T\phi(x_j)}}e^{\theta(x_i)^T\phi(x_j)}g(x) \tag 2</script><p>&emsp;&emsp;并且，$\theta,\phi,g$ 也就是对应的 $Q,K,V$，具体来说有：</p>
 <script type="math/tex; mode=display">
-\theta(x)=W_{\theta}x</script><script type="math/tex; mode=display">
-\phi(x) = W_\phi x</script><script type="math/tex; mode=display">
-g(x)=W_gx</script><p>&emsp;&emsp;显然，对于 方程 $(2)$ 的前半部分，正是 $\rm softmax(Q^TK)$ 部分，这其实就是 SA 的一种简单的形式化表示，相对于标准 SA，缺少了对 $\sqrt{d_k}$ 的放缩，多了残差连接，是很小的改动。并且作者同样提出了很多种其他的 $f$ 形式，表明了 $\rm softmax$ 操作实际上在 NL 里并不是重要的，直接使用 $f(x) = \theta(x_i)^T\phi(x_j),C(x)=N$ 也可以取得很好的结果。</p>
+\theta(x)=W_{\theta}\times x</script><script type="math/tex; mode=display">
+\phi(x) = W_\phi \times x</script><script type="math/tex; mode=display">
+g(x)=W_g\times x</script><p>&emsp;&emsp;显然，对于 方程 $(2)$ 的前半部分，正是 $\rm softmax(Q^TK)$ 部分，这其实就是 SA 的一种简单的形式化表示，相对于标准 SA，缺少了对 $\sqrt{d_k}$ 的放缩，多了残差连接，是很小的改动。并且作者同样提出了很多种其他的 $f$ 形式，表明了 $\rm softmax$ 操作实际上在 NL 里并不是重要的，直接使用 $f(x) = \theta(x_i)^T\phi(x_j),C(x)=N$ 也可以取得很好的结果。</p>
 <h4 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h4><p>&emsp;&emsp;对于结果，当然是很棒的，有着很高的 K400 得分，并且在 COCO 上 2D 分类也能通过 NL 提 1 个点左右。除此之外，作者做了很多的实验，分别探索了以 Res50/Res101 的 C2D/I3D 形式下，加入1/5/10 个 NL，采用Gaussian、Gaussian embed、dot-product、concatenation 的 NL 算法，在 K400 上测试了多组结果。在很大程度上超过了原始的 I3D。</p>
 <p>&emsp;&emsp;最令人惊喜的是，对于 NL，我们可以仅使用 RGB 输入而舍弃光流，在仅使用 RGB 的情况下仍然超过了使用双流的 I3D，虽然 NL 也不是很廉价的操作，但是对比于光流已经改进了不少。</p>
 <p><img src="/video_transformers/image-20221011124534878.png" alt="image-20221011124534878"></p>
 <p>&emsp;&emsp;图中标灰的使用了 3 模态，相比于单模态的 NL I3D 优势太大，尽管如此也没有超过 NL I3D。因为此时的 I3D 还没有发以 ResNet 为 backbone 的结果，因此只比较了以 inception 为 backbone 的 I3D。</p>
 <hr>
 <h3 id="R-2-1-D"><a href="#R-2-1-D" class="headerlink" title="R(2+1)D"></a>R(2+1)D</h3><p><a target="_blank" rel="noopener" href="https://openaccess.thecvf.com/content_cvpr_2018/papers/Tran_A_Closer_Look_CVPR_2018_paper.pdf">A Closer Look at Spatiotemporal Convolutions for Action Recognition</a> 【视频动作识别】 CVPR2018</p>
+<h4 id="动机"><a href="#动机" class="headerlink" title="动机"></a>动机</h4><p>&emsp;&emsp;在视频理解逐渐火热的时候，出现了一个尴尬的问题：使用 res151 在 sports-1M 上逐帧输入的情况下仍然得到了接近 SOTA 的结果。也就是即使不使用大家普遍认为的关键点，即多帧信息，仍然是很好的结果。</p>
+<p>&emsp;&emsp;因此 FAIR 做了这个工作，说白了，就是将 3DCNN 拆分成对于空间的 2DCNN 和 时间上的 1DCNN，通过多方对比，证实了 3DCNN 还是有效的，并且以同样的参数取得了相比 3DCNN 更好的效果，是个大型消融实验现场，同样的还有 ConvNext，挖坑等填。</p>
+<h4 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h4><p><img src="/video_transformers/image-20221018101252155.png" alt="image-20221018101252155"></p>
+<p>&emsp;&emsp;本文总共尝试了 5 种网络结构，分别从 2D，先 3D 后 2D，先 2D 后 3D，全 3D，全 R(2+1)D 五个方面做了测试，并且在输入帧的层次上尝试了 8 帧和 16 帧的输入，并且对比了 RGB 和 FLOW 以及两者结合的输入方式。在结果上，对比了 I3D 在 UCF-101，K400，sports-1M 上的结果，离谱的是完全没打过 I3D（打不过 I3D 不离谱，毕竟 I3D 巧夺天工，作者圆的很离谱，属于浑身上下只有嘴是硬的）</p>
+<p>&emsp;&emsp;需要注意的时候，这些所有的网络使用的都是具有 5 个 stage 的 ResNet，具体来说，包括 res18 和 res34。</p>
+<h5 id="R2D-＆-f-R2D-amp-R3D"><a href="#R2D-＆-f-R2D-amp-R3D" class="headerlink" title="R2D ＆ f-R2D &amp; R3D"></a>R2D ＆ f-R2D &amp; R3D</h5><p>&emsp;&emsp;对于 2DCNN，有两种处理方式：1.将多个帧进行堆叠，对于 RGB 通道的图像，堆叠 L 帧，得到的输入通道就是 3L，接下来按照普通 2DCNN 做就行，2.将多个帧逐个输入，得到多个帧的独立特征图，然后经过顶部池化进行融合，其实没啥区别，R2D 就相当于在 f-R2D 的池化前面加一个 1x1Conv。</p>
+<p>&emsp;&emsp;至于 3DCNN，本文表示：使用经典的 3DCNN 网络，相当单纯，甚至对标的是 2015 年的 paper。</p>
+<h5 id="MCx-amp-rMCx"><a href="#MCx-amp-rMCx" class="headerlink" title="MCx &amp; rMCx"></a>MCx &amp; rMCx</h5><p>&emsp;&emsp;由于有这么一种说法：运动建模（即 3D 卷积）可能在早期层中特别有用，而在更高级别的语义抽象（晚期层）中，运动或时间建模不是必需的。因此本文探索了 (r)MC2-5 共 8 中结构。</p>
+<h5 id="R-2-1-D-1"><a href="#R-2-1-D-1" class="headerlink" title="R(2+1)D"></a>R(2+1)D</h5><p><img src="/video_transformers/image-20221018104815582.png" alt="image-20221018104815582"></p>
+<p>&emsp;&emsp;所谓的 R(2+1)D 其实只是将一个 txdxd 的 3D 卷积块拆分成先进行 1xdxd 的 2D 空间卷积，再进行 tx1x1 的时间卷积，在两者中间按照惯例加入一个 ReLU。在保证输入和输出的通道、维度一样的情况下，对于 R(2+1)D 实际上多了一个参数，就是选取的 2D 卷积核的个数。作者所谓“为了公平比较”，将通道数通过一个计算公式得出，保证 R(2+1)D 的参数量大约等于同层数的 3DCNN。</p>
+<p>&emsp;&emsp;这种结构有两个好处：1.由于 ReLU 的非线性，整个网络的非线性程度将会扩大一倍。2.这种拆分的形式能够能加有利于网络的训练（第 2 条纯粹是结果导向的结论罢了）</p>
+<h5 id="参数量-帧数-准确度-对比"><a href="#参数量-帧数-准确度-对比" class="headerlink" title="参数量-帧数-准确度 对比"></a>参数量-帧数-准确度 对比</h5><p><img src="/video_transformers/image-20221018111403788.png" alt="image-20221018111403788" style="zoom:50%;"></p>
+<p>&emsp;&emsp;可以看出​：1.3DCNN 真的很大，效果比 2D 确实好了一点点。2.R(2+1)D 效果确实比 3D 好了一点点。3.多帧输入确实比单帧好一点点。</p>
+<p><img src="/video_transformers/image-20221018111833490.png" alt="image-20221018111833490"></p>
+<p>&emsp;&emsp;这张图显示出的效果其实也没啥太大冲击力，比较对比的是 15 年的老方法，也没有太明显的超越。不过还是能看出 R(2+1)D 有些小优势，更深的 res34 相比于 res18 也更好一些。</p>
+<h4 id="结果-1"><a href="#结果-1" class="headerlink" title="结果"></a>结果</h4><p>&emsp;&emsp;整体来说反正不如 I3D，也没啥好看的，但是有意思的来了嗷，在 UCF-101 和 HMDB51 上验证时，有这张图：</p>
+<p><img src="/video_transformers/image-20221018112811765.png" alt="image-20221018112811765"></p>
+<p>&emsp;&emsp;这张图中呢，显然 R(2+1)D 是不如 I3D 的，但是作者解释为：</p>
+<p><img src="/video_transformers/image-20221018112538340.png" alt="image-20221018112538340"></p>
+<p>&emsp;&emsp;他说自己不如人家 I3D，但是 I3D 用了 ImageNet 预训练，话里话外就是说 I3D 如果不用 ImageNet 预训练就不如自己呗，但是事实并非如此捏：</p>
+<p><img src="/video_transformers/image-20221018112733777.png" alt="image-20221018112733777"></p>
+<p>&emsp;&emsp;关于《 I3D 如果不用 ImageNet 预训练就不如 R(2+1)D》，不能说是有理有据，基本也是信口雌黄。当然，R(2+1)D 在思路上是很棒的，之后也有很多工作基于 R(2+1)D 开展，取得了比 I3D 更好的结果，只是这张图和解释，真是老太太钻被窝了属于是。</p>
 <hr>
 <h3 id="SlowFast"><a href="#SlowFast" class="headerlink" title="SlowFast"></a>SlowFast</h3><p><a target="_blank" rel="noopener" href="https://openaccess.thecvf.com/content_ICCV_2019/papers/Feichtenhofer_SlowFast_Networks_for_Video_Recognition_ICCV_2019_paper.pdf">SlowFast Networks for Video Recognition</a> 【视频动作识别】 ICCV2019</p>
 <hr>
@@ -409,7 +438,7 @@ g(x)=W_gx</script><p>&emsp;&emsp;显然，对于 方程 $(2)$ 的前半部分，
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text">视频理解综述-从 I3D 到 video transformers</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E8%A7%88"><span class="nav-text">概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Non-local"><span class="nav-text">Non-local</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E6%96%B0"><span class="nav-text">创新</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E7%BB%93%E6%9E%84"><span class="nav-text">网络结构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-text">结果</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#R-2-1-D"><span class="nav-text">R(2+1)D</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SlowFast"><span class="nav-text">SlowFast</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#VTN"><span class="nav-text">VTN</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Timesformer"><span class="nav-text">Timesformer</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ViViT"><span class="nav-text">ViViT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MViTv1-2"><span class="nav-text">MViTv1&#x2F;2</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Video-Swin-Transformer"><span class="nav-text">Video Swin Transformer</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text">视频理解综述-从 I3D 到 video transformers</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E8%A7%88"><span class="nav-text">概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Non-local"><span class="nav-text">Non-local</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E6%96%B0"><span class="nav-text">创新</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E7%BB%93%E6%9E%84"><span class="nav-text">网络结构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-text">结果</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#R-2-1-D"><span class="nav-text">R(2+1)D</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8A%A8%E6%9C%BA"><span class="nav-text">动机</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C"><span class="nav-text">网络</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#R2D-%EF%BC%86-f-R2D-amp-R3D"><span class="nav-text">R2D ＆ f-R2D &amp; R3D</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#MCx-amp-rMCx"><span class="nav-text">MCx &amp; rMCx</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#R-2-1-D-1"><span class="nav-text">R(2+1)D</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%8F%82%E6%95%B0%E9%87%8F-%E5%B8%A7%E6%95%B0-%E5%87%86%E7%A1%AE%E5%BA%A6-%E5%AF%B9%E6%AF%94"><span class="nav-text">参数量-帧数-准确度 对比</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C-1"><span class="nav-text">结果</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SlowFast"><span class="nav-text">SlowFast</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#VTN"><span class="nav-text">VTN</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Timesformer"><span class="nav-text">Timesformer</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ViViT"><span class="nav-text">ViViT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MViTv1-2"><span class="nav-text">MViTv1&#x2F;2</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Video-Swin-Transformer"><span class="nav-text">Video Swin Transformer</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
