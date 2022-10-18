@@ -43,7 +43,7 @@
 <meta property="og:image" content="http://bnucsy.github.io/video_transformers/image-20221018155442444.png">
 <meta property="og:image" content="http://bnucsy.github.io/video_transformers/image-20221018155851588.png">
 <meta property="article:published_time" content="2022-10-09T05:23:41.810Z">
-<meta property="article:modified_time" content="2022-10-18T08:01:42.565Z">
+<meta property="article:modified_time" content="2022-10-18T08:30:41.740Z">
 <meta property="article:author" content="ShuYang Chu">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://bnucsy.github.io/video_transformers/image-20221010173024409.png">
@@ -207,7 +207,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-10-18 16:01:42" itemprop="dateModified" datetime="2022-10-18T16:01:42+08:00">2022-10-18</time>
+                <time title="修改时间：2022-10-18 16:30:41" itemprop="dateModified" datetime="2022-10-18T16:30:41+08:00">2022-10-18</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -335,7 +335,7 @@ g(x)=W_g\times x</script><p>&emsp;&emsp;显然，对于 方程 $(2)$ 的前半�
 <p>&emsp;&emsp;关于《 I3D 如果不用 ImageNet 预训练就不如 R(2+1)D》，不能说是有理有据，基本也是信口雌黄。当然，R(2+1)D 在思路上是很棒的，之后也有很多工作基于 R(2+1)D 开展，取得了比 I3D 更好的结果，只是这张图和解释，真是老太太钻被窝了属于是👴。</p>
 <hr>
 <h3 id="SlowFast"><a href="#SlowFast" class="headerlink" title="SlowFast"></a>SlowFast</h3><p><a target="_blank" rel="noopener" href="https://openaccess.thecvf.com/content_ICCV_2019/papers/Feichtenhofer_SlowFast_Networks_for_Video_Recognition_ICCV_2019_paper.pdf">SlowFast Networks for Video Recognition</a> 【视频动作识别】 ICCV2019</p>
-<h4 id="动机-1"><a href="#动机-1" class="headerlink" title="动机"></a>动机</h4><p>ds；在动物识别视觉信息时，有观察静态帧和动态帧的两种细胞，举例来说，对于 DOTA，静态帧即不会动的地图，动态帧即时刻在变化的英雄和小兵。并且这两类细胞有着一定的比例，基本上动态帧细胞占据全部数量的 20% 左右。基于这种直觉，FAIR 提出了两个同时进行数据帧的采样和卷积的网络结构 SlowFast，其总共有两个网络，是一种通用的网络结构，适用于多个 backbone，一个网络是 SLOW 网络，以较低的帧采样率通过较多参数的网络，另一个 FAST 网络则以较高的帧采样率通过较少参数的网络，网络之中进行横向连接。</p>
+<h4 id="动机-1"><a href="#动机-1" class="headerlink" title="动机"></a>动机</h4><p>&emsp;&emsp;在动物识别视觉信息时，有观察静态帧和动态帧的两种细胞，举例来说，对于 DOTA，静态帧即不会动的地图，动态帧即时刻在变化的英雄和小兵。并且这两类细胞有着一定的比例，基本上动态帧细胞占据全部数量的 20% 左右。基于这种直觉，FAIR 提出了两个同时进行数据帧的采样和卷积的网络结构 SlowFast，其总共有两个网络，是一种通用的网络结构，适用于多个 backbone，一个网络是 SLOW 网络，以较低的帧采样率通过较多参数的网络，另一个 FAST 网络则以较高的帧采样率通过较少参数的网络，网络之中进行横向连接。</p>
 <h4 id="创新-1"><a href="#创新-1" class="headerlink" title="创新"></a>创新</h4><ul>
 <li>网络有两条互相补充的路径分别在高低时间分辨率下工作</li>
 <li><p>FAST 分支中通道数较少，SLOW 分支中通道数较多</p>
@@ -344,21 +344,21 @@ g(x)=W_g\times x</script><p>&emsp;&emsp;显然，对于 方程 $(2)$ 的前半�
 </li>
 </ul>
 <h4 id="网络-1"><a href="#网络-1" class="headerlink" title="网络"></a>网络</h4><p><img src="/video_transformers/image-20221018143019767.png" alt="image-20221018143019767" style="zoom:60%;"></p>
-<p>ds；整体来说，这个网络可以适配多种 backbone，在本文中采用了 3D Res50 网络结构，两个网络分别采样，并且从 FAST 分支向 SLOW 分支进行横向连接，需要注意的是，SlowFast 在进行 3D 卷积时不进行任何时间方向的下采样。 </p>
-<h5 id="SLOW-分支"><a href="#SLOW-分支" class="headerlink" title="SLOW 分支"></a>SLOW 分支</h5><p>ds；对于 SLOW 分支，其采样率更低，具体来说是每 16 帧取 1 帧，最终得到 $T$ 个帧。其参数量更大，具体体现于卷积的过程中通道数更多，初始每个帧 3 通道，之后的特征图通道数用 $C$ 表示，且 $C$ 在不断变化。初始的图像大小为 $H\times W$ ，$H=W=224$。</p>
-<h5 id="FAST-分支"><a href="#FAST-分支" class="headerlink" title="FAST 分支"></a>FAST 分支</h5><p>ds；对于 FAST 分支，其具备更高的采样率，这里的高采样率相比于 SLOW 分支进行讨论，具体来说，是 SLOW 分支采样率的 $\alpha$ 倍（$\alpha &gt; 1 $，默认为 8），即最终采样得到 $\alpha T$ 帧。同时其具备更小的参数量，具体体现在于卷积的过程中参数量较少，即相对于 SLOW 分支，每个对应阶段的通道数都是其 $\beta$ 倍（$\beta &lt;1$，默认为 $\frac 1 8$），即每个对应阶段的通道数均为 $\beta C$。$H,W$ 和 SLOW 一致。</p>
-<h5 id="横向连接"><a href="#横向连接" class="headerlink" title="横向连接"></a>横向连接</h5><p>ds；由于在生物体内，动态细胞和静态细胞之间是信息共享的，因此在每个阶段结束之后理论上都需要将两个分支的信息共享给对方，但是这里作者通过消融实验证明了：从 SLOW 分支向 FAST 分支共享信息是没有提升的，因此只通过 FAST 分支向 SLOW 分支共享信息即可。</p>
-<p>ds；由于 FAST 分支的每个阶段的 $\rm shape=(N,\alpha T,\beta C,H,W)$，而对于对应的 SLOW 分支，每个阶段的 $\rm shape=(N,T,C,H,W)$，因此需要一个映射使他们 $\rm shape$ 一致，作者提出了三个可能的方法：</p>
+<p>&emsp;&emsp;整体来说，这个网络可以适配多种 backbone，在本文中采用了 3D Res50 网络结构，两个网络分别采样，并且从 FAST 分支向 SLOW 分支进行横向连接，需要注意的是，SlowFast 在进行 3D 卷积时不进行任何时间方向的下采样。 </p>
+<h5 id="SLOW-分支"><a href="#SLOW-分支" class="headerlink" title="SLOW 分支"></a>SLOW 分支</h5><p>&emsp;&emsp;对于 SLOW 分支，其采样率更低，具体来说是每 16 帧取 1 帧，最终得到 $T$ 个帧。其参数量更大，具体体现于卷积的过程中通道数更多，初始每个帧 3 通道，之后的特征图通道数用 $C$ 表示，且 $C$ 在不断变化。初始的图像大小为 $H\times W$ ，$H=W=224$。</p>
+<h5 id="FAST-分支"><a href="#FAST-分支" class="headerlink" title="FAST 分支"></a>FAST 分支</h5><p>&emsp;&emsp;对于 FAST 分支，其具备更高的采样率，这里的高采样率相比于 SLOW 分支进行讨论，具体来说，是 SLOW 分支采样率的 $\alpha$ 倍（$\alpha &gt; 1 $，默认为 8），即最终采样得到 $\alpha T$ 帧。同时其具备更小的参数量，具体体现在于卷积的过程中参数量较少，即相对于 SLOW 分支，每个对应阶段的通道数都是其 $\beta$ 倍（$\beta &lt;1$，默认为 $\frac 1 8$），即每个对应阶段的通道数均为 $\beta C$。$H,W$ 和 SLOW 一致。</p>
+<h5 id="横向连接"><a href="#横向连接" class="headerlink" title="横向连接"></a>横向连接</h5><p>&emsp;&emsp;由于在生物体内，动态细胞和静态细胞之间是信息共享的，因此在每个阶段结束之后理论上都需要将两个分支的信息共享给对方，但是这里作者通过消融实验证明了：从 SLOW 分支向 FAST 分支共享信息是没有提升的，因此只通过 FAST 分支向 SLOW 分支共享信息即可。</p>
+<p>&emsp;&emsp;由于 FAST 分支的每个阶段的 $\rm shape=(N,\alpha T,\beta C,H,W)$，而对于对应的 SLOW 分支，每个阶段的 $\rm shape=(N,T,C,H,W)$，因此需要一个映射使他们 $\rm shape$ 一致，作者提出了三个可能的方法：</p>
 <ul>
 <li>直接进行 reshape 操作，将 $\rm (N,\alpha T,\beta C,H,W)\to (N,T,\alpha\beta C,H,W)$</li>
 <li>每 $\alpha$ 个帧抽取 1 个通道进行融合，得到 $\rm (N,T,\beta C,H,W)$</li>
 <li>通过一个 3D 卷积层，$\rm Ks=(5,1,1),stride=(\alpha,1,1),padding=(2,0,0)$，通道数为 $2\beta C$ 得到 $\rm shape=(N,T,2\beta C,H,W)$</li>
 </ul>
-<p>ds；对从 FAST 分支变来的新特征和 SLOW 的特征进行相加或级联（❓通道不同如何相加或级联❓）</p>
-<h5 id="实例参数"><a href="#实例参数" class="headerlink" title="实例参数"></a>实例参数</h5><p>ds；作者给出了以 res50 为 backbone 的通道数、帧数、在不同阶段下的图像大小等参数信息，如下图：</p>
+<p>&emsp;&emsp;对从 FAST 分支变来的新特征和 SLOW 的特征进行相加或级联（❓通道不同如何相加或级联❓）</p>
+<h5 id="实例参数"><a href="#实例参数" class="headerlink" title="实例参数"></a>实例参数</h5><p>&emsp;&emsp;作者给出了以 res50 为 backbone 的通道数、帧数、在不同阶段下的图像大小等参数信息，如下图：</p>
 <p><img src="/video_transformers/image-20221018155442444.png" alt="image-20221018155442444" style="zoom:80%;"></p>
 <h4 id="结果-2"><a href="#结果-2" class="headerlink" title="结果"></a>结果</h4><p><img src="/video_transformers/image-20221018155851588.png" alt="image-20221018155851588" style="zoom:60%;"></p>
-<p>ds；话不多说，真的无敌，特别是在 K400 上，就算是面对在 ImageNet 上预训练并且使用光流的 I3D，基本也是完虐，甚至不加 NL 都超之前的 NL R101 预训练模型，而这个 NL R101 其实是 KaiMing 的上一个 SOTA，在刷新记录这方面有种博尔特的感觉。</p>
+<p>&emsp;&emsp;话不多说，真的无敌，特别是在 K400 上，就算是面对在 ImageNet 上预训练并且使用光流的 I3D，基本也是完虐，甚至不加 NL 都超之前的 NL R101 预训练模型，而这个 NL R101 其实是 KaiMing 的上一个 SOTA，在刷新记录这方面有种博尔特的感觉。</p>
 <hr>
 <h3 id="VTN"><a href="#VTN" class="headerlink" title="VTN"></a>VTN</h3><p><a target="_blank" rel="noopener" href="https://openaccess.thecvf.com/content/ICCV2021W/CVEU/papers/ Neimark_Video_Transformer_Network_ICCVW_2021_paper.pdf">Video Transformer Network</a> 【视频动作识别】 ICCV2021</p>
 <hr>
