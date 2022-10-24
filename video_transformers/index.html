@@ -48,8 +48,13 @@
 <meta property="og:image" content="http://bnucsy.github.io/video_transformers/image-20221020162559210.png">
 <meta property="og:image" content="http://bnucsy.github.io/video_transformers/image-20221020163011342.png">
 <meta property="og:image" content="http://bnucsy.github.io/video_transformers/image-20221020164636754.png">
+<meta property="og:image" content="http://bnucsy.github.io/video_transformers/image-20221024163455341.png">
+<meta property="og:image" content="http://bnucsy.github.io/video_transformers/image-20221024224948541.png">
+<meta property="og:image" content="http://bnucsy.github.io/video_transformers/image-20221024172000599.png">
+<meta property="og:image" content="http://bnucsy.github.io/video_transformers/image-20221024230546563.png">
+<meta property="og:image" content="http://bnucsy.github.io/video_transformers/image-20221024231006088.png">
 <meta property="article:published_time" content="2022-10-09T05:23:41.810Z">
-<meta property="article:modified_time" content="2022-10-21T15:07:29.342Z">
+<meta property="article:modified_time" content="2022-10-24T15:13:22.874Z">
 <meta property="article:author" content="ShuYang Chu">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://bnucsy.github.io/video_transformers/image-20221010173024409.png">
@@ -213,7 +218,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-10-21 23:07:29" itemprop="dateModified" datetime="2022-10-21T23:07:29+08:00">2022-10-21</time>
+                <time title="修改时间：2022-10-24 23:13:22" itemprop="dateModified" datetime="2022-10-24T23:13:22+08:00">2022-10-24</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -260,14 +265,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>10k</span>
+              <span>12k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>9 分钟</span>
+              <span>11 分钟</span>
             </span>
 
         </div>
@@ -369,7 +374,7 @@ g(x)=W_g\times x</script><p>&emsp;&emsp;显然，对于 方程 $(2)$ 的前半�
 <hr>
 <h3 id="VTN"><a href="#VTN" class="headerlink" title="VTN"></a>VTN</h3><p><a target="_blank" rel="noopener" href="https://openaccess.thecvf.com/content/ICCV2021W/CVEU/papers/Neimark_Video_Transformer_Network_ICCVW_2021_paper.pdf">Video Transformer Network</a> 【视频动作识别】 ICCV2021</p>
 <p>⚠️⚠️⚠️⚠️⚠️</p>
-<p>从这里开始很多工作都出现与 2021 年，因此这些 2021 年的工作之间并没有互相比较，仅对比了 SlowFast</p>
+<p>从这里开始一些工作出现于 2021 年，因此这些 2021 年的工作之间并没有互相比较，仅对比了 SlowFast</p>
 <p>⚠️⚠️⚠️⚠️⚠️</p>
 <h4 id="创新-2"><a href="#创新-2" class="headerlink" title="创新"></a>创新</h4><ul>
 <li>使用 transformer 结构代替了 3DCNN，提出的网络对 full-video 更加友好</li>
@@ -407,6 +412,44 @@ g(x)=W_g\times x</script><p>&emsp;&emsp;显然，对于 方程 $(2)$ 的前半�
 <hr>
 <h3 id="MViTv1-2"><a href="#MViTv1-2" class="headerlink" title="MViTv1/2"></a>MViTv1/2</h3><p><a target="_blank" rel="noopener" href="https://openaccess.thecvf.com/content/ICCV2021/papers/Fan_Multiscale_Vision_Transformers_ICCV_2021_paper.pdf">Multiscale Vision Transformers</a> 【视频动作识别】 ICCV2021 </p>
 <p><a target="_blank" rel="noopener" href="https://openaccess.thecvf.com/content/CVPR2022/papers/Li_MViTv2_Improved_Multiscale_Vision_Transformers_for_Classification_and_Detection_CVPR_2022_paper.pdf">MViTv2: Improved Multiscale Vision Transformers for Classification and Detection</a> 【视频动作识别】 CVPR2022</p>
+<h4 id="创新-4"><a href="#创新-4" class="headerlink" title="创新"></a>创新</h4><ul>
+<li>MViT<ul>
+<li>使用多尺度的方式处理图像，得到不同感受野的信息（此研究独立于 SwinT，同时实验表明这种方式能够更好地学到时间偏移）</li>
+<li>通过扩展多阶段同时减少各阶段序列长度的方式，减少了很多计算量</li>
+</ul>
+</li>
+<li>MViTv2<ul>
+<li>对 MViT 进行了改进，加入了相对位置编码</li>
+<li>为了消除池化操作产生的信息消失，加入了残差连接</li>
+<li>将 MViT 应用于了 FPN 和 mask-RCNN</li>
+</ul>
+</li>
+</ul>
+<h4 id="网络-4"><a href="#网络-4" class="headerlink" title="网络"></a>网络</h4><ul>
+<li>MViT</li>
+</ul>
+<p><img src="/video_transformers/image-20221024163455341.png" alt="image-20221024163455341" style="zoom:60%;"></p>
+<h5 id="前向过程"><a href="#前向过程" class="headerlink" title="前向过程"></a>前向过程</h5><center>⚠️⚠️ 在前向中多次出现 pooling，池化可以做 max / avg / conv，此工作里的池化最终选择的是 conv⚠️⚠️</center>
+
+<p>&emsp;&emsp;整个 MViT 的前向过程是基于 stage 的，也就是在不同的阶段有不同的深度和具体注意力计算的维度设置，对每个阶段，作者提出了一种新的计算多头自注意力的方式 MHPA（$\rm MultiHeadPoolingAttention$）。这个层会将输出逐层进行降采样，因此最终的输出比原输入的 shape 要小，类似 swinTransformer。</p>
+<p>&emsp;&emsp;首先对于输入视频进行帧采样：得到 $(D,T,H,W)$，其中 $D$ 表示通道数，$T$ 表示帧采样数，然后打 patch 并加入 PE，这里的 PE 是绝对 PE，打 patch 的时候每个 patch size 为 4x4，这是因为这里的 patch 是 3D 的，太大了会导致计算复杂度较高。基本上就是 3D 版本 VIT，但是没有用学习位置编码，<strong>这其实是一个缺陷，因为这种位置编码破坏了图像的先验知识平移不变性，在 MViTv2 中得到改进</strong>。</p>
+<p>&emsp;&emsp;接着通过多层的 MHPA+MLP，这里的 MHPA 会进行降采样，对于输入 $X\to(L,D)$ 会降低序列长度 $L$ 并且增大 $D$，因此通过 MHPA 之后的 $X’\to(\hat L,2D)$，之后再通过 MLP，多次循环 MHPA+MLP 即可得到最终输出，在多层的输出中，每层的 output shape 由下图给出。</p>
+<p><img src="/video_transformers/image-20221024224948541.png" alt="image-20221024224948541" style="zoom:80%;"></p>
+<p>&emsp;&emsp;这里稍微需要注意的是，由于每个 MHPA 都会降采样，而每一个 stage 都会执行多次 MHPA，因此实际上在执行时每个 stage 只有第一次执行 MHPA 的时候会进行降采样，其他的 MHPA 中的池化卷积核都是 1x1x1。</p>
+<h5 id="MHPA"><a href="#MHPA" class="headerlink" title="MHPA"></a>MHPA</h5><p>&emsp;&emsp;MHPA 简单来说就是在计算出 $Q,K,V$ 之后加入一个池化层从而使其维度下降，具体来说 MHPA 如下图所示：</p>
+<p><img src="/video_transformers/image-20221024172000599.png" alt="image-20221024172000599" style="zoom:70%;"></p>
+<p>&emsp;&emsp;对于输入 $X\to(L,D),L=THW$，首先正常获得 $\hat Q,\hat K,\hat V\to(L,D)$，接着就是关键的池化操作，即将 $\hat Q,\hat K,\hat V$ 都经过一个 池化层进行降采样，计算公式很简单，即 $\hat L = [\frac{L-K+2P}{S}]+1$，于是得到的 $Q,K,V\to(\hat L,2D)$，具体来说对于 $\hat L$，其中的 $(\hat T,\hat H,\hat W)=(T,\frac H 2,\frac W 2)$，同时通道数扩大了二倍，这是遵循 CNN 的设计法则：当降采样到原 size 的 $\frac 1 4$ 时，通道应该扩大一倍。之后的计算和 VIT 保持一致，同时加入了残差连接，但是由于此时的输出已经变了，所以对 $X$ 也进行一个 pooling 再连上去。<strong>这里其实也是一个缺陷，因为对 $X$ 的池化显然会损失相当多的信息，残差连接的效果会变差，在 MViTv2 中得到改进</strong></p>
+<p>&emsp;&emsp;需要注意的是池化本质的目的是降低整个 MHPA 之后的 shape，而计算过程中 $QK^TV\to(Q.shape[0],D)$ 实际上对于 $K^T\times V$ 过程里的 $\rm K.shape[1]=V.shape[0]$ 具体值无所谓，也就是说其实只需要更改 $Q$ 的第一个维度，即仅对 $Q$ 进行 pooling 即可使维度降低，对 $K,V$ 理论上不需要进行 pooling，但是实验表明对 $K,V$ 的池化甚至更加重要，并且为了能更好地适应不同状态下的池化，这里令每个 stage 的每一次 MHPA 都对 $K,V$ 进行池化，并且这些池化卷积核在仅在同一个 stage 内相等，即 $\Theta_K=\Theta_V$。</p>
+<ul>
+<li>MViTv2</li>
+</ul>
+<h4 id="结果-5"><a href="#结果-5" class="headerlink" title="结果"></a>结果</h4><ul>
+<li>MViT</li>
+</ul>
+<p><img src="/video_transformers/image-20221024230546563.png" alt="image-20221024230546563" style="zoom:67%;"></p>
+<p>&emsp;&emsp;结果随便举个在 K600 上的测试对比，可以看出来简直无敌，且不说超了需要基于 IN-21K 预训练的 ViViT一个点多，甚至参数量和 flops 都是数量级级别的下降，是非常友好于复现和自主训练的，这要多多归功于每过一个 stage 之后的序列长度都会减少。</p>
+<p><img src="/video_transformers/image-20221024231006088.png" alt="image-20221024231006088" style="zoom:70%;"></p>
+<p>&emsp;&emsp;除此之外这个结果也很大程度上证明了这项工作的有效性，通过 shuffle 输入的方式分别训练 MViT 和 VIT，可以看出 MViT 效果大打折扣，而 VIT 几乎没有变化，而视频的前后性是一项特别在视频领域的知识，显然 VIT 没有利用上这一知识，而 MViT 学到了这项知识。</p>
 <hr>
 <h3 id="Video-Swin-Transformer"><a href="#Video-Swin-Transformer" class="headerlink" title="Video Swin Transformer"></a>Video Swin Transformer</h3><p><a target="_blank" rel="noopener" href="https://openaccess.thecvf.com/content/CVPR2022/papers/Liu_Video_Swin_Transformer_CVPR_2022_paper.pdf">video swin transformer</a> 【视频动作识别】 CVPR2022</p>
 
@@ -507,7 +550,7 @@ g(x)=W_g\times x</script><p>&emsp;&emsp;显然，对于 方程 $(2)$ 的前半�
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text">视频理解综述-从 I3D 到 video transformers</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E8%A7%88"><span class="nav-text">概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Non-local"><span class="nav-text">Non-local</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E6%96%B0"><span class="nav-text">创新</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E7%BB%93%E6%9E%84"><span class="nav-text">网络结构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-text">结果</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#R-2-1-D"><span class="nav-text">R(2+1)D</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8A%A8%E6%9C%BA"><span class="nav-text">动机</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C"><span class="nav-text">网络</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#R2D-%EF%BC%86-f-R2D-amp-R3D"><span class="nav-text">R2D ＆ f-R2D &amp; R3D</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#MCx-amp-rMCx"><span class="nav-text">MCx &amp; rMCx</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#R-2-1-D-1"><span class="nav-text">R(2+1)D</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%8F%82%E6%95%B0%E9%87%8F-%E5%B8%A7%E6%95%B0-%E5%87%86%E7%A1%AE%E5%BA%A6-%E5%AF%B9%E6%AF%94"><span class="nav-text">参数量-帧数-准确度 对比</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C-1"><span class="nav-text">结果</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SlowFast"><span class="nav-text">SlowFast</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8A%A8%E6%9C%BA-1"><span class="nav-text">动机</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E6%96%B0-1"><span class="nav-text">创新</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C-1"><span class="nav-text">网络</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#SLOW-%E5%88%86%E6%94%AF"><span class="nav-text">SLOW 分支</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#FAST-%E5%88%86%E6%94%AF"><span class="nav-text">FAST 分支</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%A8%AA%E5%90%91%E8%BF%9E%E6%8E%A5"><span class="nav-text">横向连接</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AE%9E%E4%BE%8B%E5%8F%82%E6%95%B0"><span class="nav-text">实例参数</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C-2"><span class="nav-text">结果</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#VTN"><span class="nav-text">VTN</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E6%96%B0-2"><span class="nav-text">创新</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C-2"><span class="nav-text">网络</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%A9%BA%E9%97%B4%E7%BD%91%E7%BB%9C"><span class="nav-text">空间网络</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%97%B6%E9%97%B4%E7%BD%91%E7%BB%9C"><span class="nav-text">时间网络</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C-3"><span class="nav-text">结果</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Timesformer"><span class="nav-text">Timesformer</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E6%96%B0-3"><span class="nav-text">创新</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C-3"><span class="nav-text">网络</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#S"><span class="nav-text">S</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#ST"><span class="nav-text">ST</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#T-S"><span class="nav-text">T+S</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#L-G"><span class="nav-text">L+G</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#T-W-H"><span class="nav-text">T+W+H</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C-4"><span class="nav-text">结果</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MViTv1-2"><span class="nav-text">MViTv1&#x2F;2</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Video-Swin-Transformer"><span class="nav-text">Video Swin Transformer</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text">视频理解综述-从 I3D 到 video transformers</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E8%A7%88"><span class="nav-text">概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Non-local"><span class="nav-text">Non-local</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E6%96%B0"><span class="nav-text">创新</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E7%BB%93%E6%9E%84"><span class="nav-text">网络结构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-text">结果</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#R-2-1-D"><span class="nav-text">R(2+1)D</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8A%A8%E6%9C%BA"><span class="nav-text">动机</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C"><span class="nav-text">网络</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#R2D-%EF%BC%86-f-R2D-amp-R3D"><span class="nav-text">R2D ＆ f-R2D &amp; R3D</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#MCx-amp-rMCx"><span class="nav-text">MCx &amp; rMCx</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#R-2-1-D-1"><span class="nav-text">R(2+1)D</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%8F%82%E6%95%B0%E9%87%8F-%E5%B8%A7%E6%95%B0-%E5%87%86%E7%A1%AE%E5%BA%A6-%E5%AF%B9%E6%AF%94"><span class="nav-text">参数量-帧数-准确度 对比</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C-1"><span class="nav-text">结果</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SlowFast"><span class="nav-text">SlowFast</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8A%A8%E6%9C%BA-1"><span class="nav-text">动机</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E6%96%B0-1"><span class="nav-text">创新</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C-1"><span class="nav-text">网络</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#SLOW-%E5%88%86%E6%94%AF"><span class="nav-text">SLOW 分支</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#FAST-%E5%88%86%E6%94%AF"><span class="nav-text">FAST 分支</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%A8%AA%E5%90%91%E8%BF%9E%E6%8E%A5"><span class="nav-text">横向连接</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AE%9E%E4%BE%8B%E5%8F%82%E6%95%B0"><span class="nav-text">实例参数</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C-2"><span class="nav-text">结果</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#VTN"><span class="nav-text">VTN</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E6%96%B0-2"><span class="nav-text">创新</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C-2"><span class="nav-text">网络</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%A9%BA%E9%97%B4%E7%BD%91%E7%BB%9C"><span class="nav-text">空间网络</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%97%B6%E9%97%B4%E7%BD%91%E7%BB%9C"><span class="nav-text">时间网络</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C-3"><span class="nav-text">结果</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Timesformer"><span class="nav-text">Timesformer</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E6%96%B0-3"><span class="nav-text">创新</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C-3"><span class="nav-text">网络</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#S"><span class="nav-text">S</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#ST"><span class="nav-text">ST</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#T-S"><span class="nav-text">T+S</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#L-G"><span class="nav-text">L+G</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#T-W-H"><span class="nav-text">T+W+H</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C-4"><span class="nav-text">结果</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MViTv1-2"><span class="nav-text">MViTv1&#x2F;2</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E6%96%B0-4"><span class="nav-text">创新</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C-4"><span class="nav-text">网络</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%89%8D%E5%90%91%E8%BF%87%E7%A8%8B"><span class="nav-text">前向过程</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#MHPA"><span class="nav-text">MHPA</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C-5"><span class="nav-text">结果</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Video-Swin-Transformer"><span class="nav-text">Video Swin Transformer</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
