@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"bnucsy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="The Way to my Heart is through Contrastive Learning:Remote Photoplethysmography from Unlabelled Video 【心率检测】 ICCV2021摘要&amp;emsp;&amp;emsp;这篇文章为了解决心率检测数据集难以采集的问题提出了一种可能的对比学习方法，并且同时缝合了能够放大 ROI 区域的显著性采样器，取得了一般的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HR_CL_the_way_to_my_heart">
+<meta property="og:url" content="http://bnucsy.github.io/HR_CL_the_way_to_my_heart/index.html">
+<meta property="og:site_name" content="CSY&#39;s blog">
+<meta property="og:description" content="The Way to my Heart is through Contrastive Learning:Remote Photoplethysmography from Unlabelled Video 【心率检测】 ICCV2021摘要&amp;emsp;&amp;emsp;这篇文章为了解决心率检测数据集难以采集的问题提出了一种可能的对比学习方法，并且同时缝合了能够放大 ROI 区域的显著性采样器，取得了一般的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://bnucsy.github.io/HR_CL_the_way_to_my_heart/image-20221023100822413.png">
+<meta property="og:image" content="http://bnucsy.github.io/HR_CL_the_way_to_my_heart/image-20221023102357201.png">
+<meta property="og:image" content="http://bnucsy.github.io/HR_CL_the_way_to_my_heart/image-20221024094202326.png">
+<meta property="og:image" content="http://bnucsy.github.io/HR_CL_the_way_to_my_heart/image-20221024094219989.png">
+<meta property="og:image" content="http://bnucsy.github.io/HR_CL_the_way_to_my_heart/image-20221024093951467.png">
+<meta property="og:image" content="http://bnucsy.github.io/HR_CL_the_way_to_my_heart/image-20221024100057269.png">
+<meta property="og:image" content="http://bnucsy.github.io/HR_CL_the_way_to_my_heart/image-20221024100515924.png">
+<meta property="og:image" content="http://bnucsy.github.io/HR_CL_the_way_to_my_heart/image-20221024100808249.png">
+<meta property="article:published_time" content="2022-10-23T00:29:35.588Z">
+<meta property="article:modified_time" content="2022-10-24T02:32:01.389Z">
+<meta property="article:author" content="ShuYang Chu">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://bnucsy.github.io/HR_CL_the_way_to_my_heart/image-20221023100822413.png">
+
+<link rel="canonical" href="http://bnucsy.github.io/HR_CL_the_way_to_my_heart/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>HR_CL_the_way_to_my_heart | CSY's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CSY's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/bnucsy/" class="github-corner" title="Follow me on Github" aria-label="Follow me on Github" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://bnucsy.github.io/HR_CL_the_way_to_my_heart/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ShuYang Chu">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CSY's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          HR_CL_the_way_to_my_heart
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-10-23 08:29:35" itemprop="dateCreated datePublished" datetime="2022-10-23T08:29:35+08:00">2022-10-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-10-24 10:32:01" itemprop="dateModified" datetime="2022-10-24T10:32:01+08:00">2022-10-24</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper/" itemprop="url" rel="index"><span itemprop="name">paper</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper/cv/" itemprop="url" rel="index"><span itemprop="name">cv</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper/cv/hr/" itemprop="url" rel="index"><span itemprop="name">hr</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/HR_CL_the_way_to_my_heart/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/HR_CL_the_way_to_my_heart/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>7.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>7 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="The-Way-to-my-Heart-is-through-Contrastive-Learning-Remote-Photoplethysmography-from-Unlabelled-Video-【心率检测】-ICCV2021"><a href="#The-Way-to-my-Heart-is-through-Contrastive-Learning-Remote-Photoplethysmography-from-Unlabelled-Video-【心率检测】-ICCV2021" class="headerlink" title="The Way to my Heart is through Contrastive Learning:Remote Photoplethysmography from Unlabelled Video 【心率检测】 ICCV2021"></a><a target="_blank" rel="noopener" href="https://openaccess.thecvf.com/content/ICCV2021/papers/Gideon_The_Way_to_My_Heart_Is_Through_Contrastive_Learning_Remote_ICCV_2021_paper.pdf">The Way to my Heart is through Contrastive Learning:Remote Photoplethysmography from Unlabelled Video</a> 【心率检测】 ICCV2021</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;这篇文章为了解决心率检测数据集难以采集的问题提出了一种可能的对比学习方法，并且同时缝合了能够放大 ROI 区域的显著性采样器，取得了一般的结果，并且在结果中似乎展示了这种改变的显著性采样器方法是不太有效的，这个结论文章没提，但很容易看出来，这个结论是反直觉的，不过也可能是实验设计差点意思。</p>
+<p>&emsp;&emsp;值得一提的是，这篇文章对比的 SOTA 都来自 18 年，实际上 CVPR2021 有一篇非端到端的模型 Dual-GAN 在效果上已经远超这篇文章的结果，甚至是数量级级别的优势。这篇文章的结果甚至放在 20 年都毫无竞争力，基本可以说贡献仅限于某个可行的对比学习框架（嗷，或许还有模型概览中的人脸是黑人，政治正确了属于是）。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/HR_CL_the_way_to_my_heart/image-20221023100822413.png" alt="image-20221023100822413" style="zoom:60%;"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>缝合了显著性采样器（直觉上有改进，实际上无）</li>
+<li>提出了一种对比学习的框架（陷入了 MoCo 提出的两种缺陷之一：负样本太少）</li>
+<li>提出了一种代理任务（通过改变心率频率获得正负样本，理论上仅说得通，但想不到更好的）</li>
+<li>提出了一种新的 loss 函数 MCC（最大互相关，或许能更好适配 CL）</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/HR_CL_the_way_to_my_heart/image-20221023102357201.png" alt="image-20221023102357201" style="zoom:70%;"></p>
+<h4 id="整体框架"><a href="#整体框架" class="headerlink" title="整体框架"></a>整体框架</h4><p>&emsp;&emsp;首先通过输入 $X_i$ 进行均匀采样得到 $x_a\to(N,C,D,H,W)$，$x_a$ 通过显著性采样器 $S$ 得到 $x_a^s$，这里的显著性采样器作用就是放大图像的 ROI 区域，输入输出 shape 不变。接着 $x_a^s$ 经过估计器（backbone）$g_\theta$ 得到 $y_a\to(N,1,D,1,1)$，也就是对 $x_a$ 的心率预测结果。</p>
+<ul>
+<li>监督学习框架</li>
+</ul>
+<p>&emsp;&emsp;在监督学习框架下，直接用 $y_a$ 对比 GT，并使用损失函数限制输出估计从而训练 $g_\theta$，对于 backbone 的选择，本文中选择了老熟人 physnet，也就是说这种“监督学习框架”只是把 physnet 加了个显著性采样器，而且效果还不如不加🤦‍♂️</p>
+<ul>
+<li>对比学习框架</li>
+</ul>
+<p>&emsp;&emsp;在对比学习框架下，我们自然需要正负样本，于是对 $x_a^s$ 经过一个频率重采样器 $R$（在代理任务中详细介绍）得到 $x_n^s\to(N,C,[\frac D {r_f}],H,W)$，这里的 $x_n^s$ 即为对显著性采样后的图像进行的频率重采样，此时的视频帧序列长度变少了，具体取决于 $r_f$ 的值，而这个值随机在 $1.25\to1.5$ 之间取得。</p>
+<p>&emsp;&emsp;对于已经得到的 $x_n^s$，其经过同一个估计器 $g_\theta$ 得到 $y_n\to(N,1,[\frac D {r_f}],1,1)$ 即为对比学习之中的负样本，这里经过同一个参数的估计器可以保证负样本和预测值的一致性。对于 $y_n$ 再进行重采样变回到原来的频率即可得到 $y_p$（即正样本），虽然这里写的 $R$ 模块是一个由 $r_f$ 参数确定的采样模块，其实就是一个线性插值，甚至获得正负样本的代码里用的还不是一个函数，直接调的 nn.UpSample，还分别调了两次🤦‍♂️</p>
+<p>&emsp;&emsp;对于得到的预测值 $y_a$，正样本 $y_p$，负样本 $y_n$，分别经过 rfft 和 fft 得到新的表示 $f_a,f_p,f_n$，然后用一些对比学习的常用函数进行 loss 计算，具体来说包括：IrrelevantPowerRatio、NegativeMaxCrossCov、NegSNRLoss。</p>
+<h4 id="代理任务"><a href="#代理任务" class="headerlink" title="代理任务"></a>代理任务</h4><p>&emsp;&emsp;这里将详细描述代理任务的正负样本构造过程以及这样做的目的、为什么有效、在何时有效、以及在后处理中为了适配视频帧数目的一些 trick。</p>
+<ul>
+<li>正负样本构造过程</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">FrequencyContrast</span>(nn.Module):</span><br><span class="line">    <span class="string">&quot;&quot;&quot; Frequency contrast wrapper around a backbone model e.g. PhysNet</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, args, device, dataset</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line"></span><br><span class="line">        self.backbone = init_model(args.contrast_model, args, device, dataset)</span><br><span class="line">        self.upsampler = nn.Upsample(size=(dataset.options.D,), mode=<span class="string">&#x27;linear&#x27;</span>, align_corners=<span class="literal">False</span>)</span><br><span class="line">        self.get_temp_views = CalculateMultiView(args.mvtl_window_size, args.mvtl_number_views) <span class="comment"># 记两个参数分别为 ws, nv</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x_a</span>):</span><br><span class="line">        B = x_a.shape[<span class="number">0</span>]    <span class="comment"># 没用上，经典写点废话</span></span><br><span class="line">        D = x_a.shape[<span class="number">2</span>]</span><br><span class="line">        <span class="comment"># x_a shape : (N, C, D, H, W)</span></span><br><span class="line">        branches = &#123;&#125;   <span class="comment"># 这个参数最终返回 anchors, positives, negatives，需要注意的是最后他们的shape都是 (nv, N, ws)</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># Resample input</span></span><br><span class="line">        freq_factor = <span class="number">1.25</span> + (torch.rand(<span class="number">1</span>, device=x_a.device) / <span class="number">4</span>) <span class="comment"># 随机生成频率参数 1.25 ~ 1.5</span></span><br><span class="line">        target_size = <span class="built_in">int</span>(D / freq_factor)  <span class="comment"># 计算目标频率（即目标帧数量）</span></span><br><span class="line">        resampler = nn.Upsample(size=(target_size, x_a.shape[<span class="number">3</span>], x_a.shape[<span class="number">4</span>]),</span><br><span class="line">                                mode=<span class="string">&#x27;trilinear&#x27;</span>,</span><br><span class="line">                                align_corners=<span class="literal">False</span>)    <span class="comment"># 使用三线性插值的方式将帧数量调整到目标频率</span></span><br><span class="line">        x_n = resampler(x_a)    <span class="comment"># x_n shape : (N, C, target_size, H, W)</span></span><br><span class="line">        x_n = F.pad(x_n, (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, D - target_size)) <span class="comment"># 将帧数量补齐到目标频率，具体来说，就是在 target_size 之后补0</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># Pass both samples through backbone</span></span><br><span class="line">        y_a = self.backbone(x_a).squeeze(<span class="number">4</span>).squeeze(<span class="number">3</span>)</span><br><span class="line">        <span class="comment"># backbone : PhysNet, (N, C, D, H, W) -&gt; (N, 1, D, 1, 1)</span></span><br><span class="line">        <span class="comment"># y_a shape : (N, 1, D)</span></span><br><span class="line">        y_n = self.backbone(x_n).squeeze(<span class="number">4</span>).squeeze(<span class="number">3</span>)</span><br><span class="line">        <span class="comment"># y_n shape : (N, 1, D) 这里需要注意的是，由于 y_n 是经过了 pad 的，因此在 target_size 之后的结果或许不准确</span></span><br><span class="line">        <span class="comment"># Remove padding from negative branch</span></span><br><span class="line">        y_n = y_n[:,:,:target_size] <span class="comment"># y_n shape : (N, 1, target_size) 正如刚刚说的，这里将 target_size 之后的结果去掉</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># Resample negative PPG to create positive branch</span></span><br><span class="line">        y_p = self.upsampler(y_n)   <span class="comment"># y_p shape : (N, 1, D)，这里使用线性插值的方式将帧数量调整到目标频率</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># Save branches and backbone</span></span><br><span class="line">        branches[<span class="string">&#x27;anc&#x27;</span>] = y_a.squeeze(<span class="number">1</span>) <span class="comment"># anc shape : (N, 1, D) -&gt; (N, D) 这三个都一样</span></span><br><span class="line">        branches[<span class="string">&#x27;neg&#x27;</span>] = y_n.squeeze(<span class="number">1</span>)</span><br><span class="line">        branches[<span class="string">&#x27;pos&#x27;</span>] = y_p.squeeze(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># Create backbone output</span></span><br><span class="line">        backbone_out = branches[<span class="string">&#x27;anc&#x27;</span>]</span><br><span class="line"></span><br><span class="line">        <span class="comment"># Sample random views for each branch</span></span><br><span class="line">        <span class="keyword">for</span> key, branch <span class="keyword">in</span> branches.items():</span><br><span class="line">            branches[key] = self.get_temp_views(branch) <span class="comment"># 这里的 branch key shape : (nv, N, ws)</span></span><br><span class="line">            <span class="comment"># 具体来说，这个函数从 target_size / D 中随机取 ws 帧，目的是保证序列长度一致</span></span><br><span class="line">            <span class="comment"># 这个操作会进行 nv 次，最终返回的 shape 为 (nv, N, ws)</span></span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> backbone_out, branches</span><br></pre></td></tr></table></figure>
+<ul>
+<li>正负样本有效性</li>
+</ul>
+<p>&emsp;&emsp;这里的正样本和负样本从视觉上看几乎没有差别，毕竟差不多相当于重新在输入中采样，而 HR 的输入一般都差别较小。区分正负样本的本质是<strong>改变正负样本的心跳频率</strong>，下图展示了为什么重采样会改变预测出的心跳频率。假设对于 GT 进行重采样得到 GTN，GTN 的帧数约为 GT 的 50%，接着再将 GTN 重采样回 GTP。</p>
+<p><img src="/HR_CL_the_way_to_my_heart/image-20221024094202326.png" alt="image-20221024094202326"></p>
+<p>&emsp;&emsp;这里假设 $y_a$ 是正弦分布，共采样了 160 个点，周期为 64。我们可以看出负样本 $y_n$ 就是频率减小一半的 $ y_a$，至于为什么这个图里面看起来只有两个，是因为 $y_a$ $y_p$ 基本相等，其中 UpSample 方法基本和原论文保持一致，生成代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 正负样本分析</span></span><br><span class="line">D, target_size = <span class="number">160</span>, <span class="number">80</span></span><br><span class="line">y_a = torch.from_numpy(np.sin(np.arange(<span class="number">0</span>, D//<span class="number">10</span>, <span class="number">0.1</span>))).unsqueeze(<span class="number">0</span>).unsqueeze(<span class="number">0</span>)</span><br><span class="line"><span class="comment">#D, target_size = 20, 10</span></span><br><span class="line"><span class="comment">#y_a = torch.from_numpy(np.sin(np.arange(0, D, 1))).unsqueeze(0).unsqueeze(0)</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;y_a.shape: <span class="subst">&#123;y_a.shape&#125;</span>&#x27;</span>)</span><br><span class="line">y_n = nn.Upsample(size=(target_size,), mode=<span class="string">&#x27;linear&#x27;</span>, align_corners=<span class="literal">False</span>)(y_a)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;y_n.shape: <span class="subst">&#123;y_n.shape&#125;</span>&#x27;</span>)</span><br><span class="line">y_p = nn.Upsample(size=(D,), mode=<span class="string">&#x27;linear&#x27;</span>, align_corners=<span class="literal">False</span>)(y_n)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;y_p.shape: <span class="subst">&#123;y_p.shape&#125;</span>&#x27;</span>)</span><br><span class="line">plt.plot(y_a.squeeze().numpy(), label=<span class="string">&#x27;y_a&#x27;</span>)</span><br><span class="line">plt.plot(y_n.squeeze().numpy(), label=<span class="string">&#x27;y_n&#x27;</span>)</span><br><span class="line">plt.plot(y_p.squeeze().numpy(), label=<span class="string">&#x27;y_p&#x27;</span>)</span><br><span class="line">plt.legend()</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p>&emsp;&emsp;但是，如果我们稍微减少 D 和 target_size 的值，也就是使其采样频率大幅度降低，每秒采样数极少的情况下，仍然采用 sin 生成，得到的结果如下：</p>
+<p><img src="/HR_CL_the_way_to_my_heart/image-20221024094219989.png" alt="image-20221024094219989"></p>
+<p>&emsp;&emsp;可以看出其中正样本和锚点的预测图像也开始变得不同，实际上如果更大的采样间隔会产生更严重的问题，下图展示了实际采用 UBFC 数据集每秒采集三帧然后重采样得到的结果：</p>
+<p><img src="/HR_CL_the_way_to_my_heart/image-20221024093951467.png" alt="image-20221024093951467"></p>
+<p>&emsp;&emsp;从上至下依次是 $x_a,x_n,x_p$，采用方式和之前对 GT 的采样方式完全一致，代码如下所示。从上图可以看出，$x_a$ 表示了原人脸进行 睁眼-闭眼-睁眼 的过程，而重采样之后的负样本 $x_n$ 仅包含 睁眼-闭眼 两帧，这个其实没问题，毕竟负样本频率就要比锚点频率低的。但是重采样后的正样本虽然帧数和 $x_a$ 一样，也只包含了 睁眼-闭眼 的过程，整个频率预测之后 $x_n,x_p$ 反而保持了一致，这是不可接受的。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 重采样分析：UBFC</span></span><br><span class="line">UBFC_data_root = <span class="string">&#x27;put root here&#x27;</span></span><br><span class="line">img1 = torch.tensor(cv2.imread(<span class="string">f&#x27;<span class="subst">&#123;UBFC_data_root&#125;</span>/subject1/pic/0.png&#x27;</span>), dtype=torch.float32).unsqueeze(-<span class="number">1</span>)</span><br><span class="line">img2 = torch.tensor(cv2.imread(<span class="string">f&#x27;<span class="subst">&#123;UBFC_data_root&#125;</span>/subject1/pic/10.png&#x27;</span>), dtype=torch.float32).unsqueeze(-<span class="number">1</span>)</span><br><span class="line">img3 = torch.tensor(cv2.imread(<span class="string">f&#x27;<span class="subst">&#123;UBFC_data_root&#125;</span>/subject1/pic/20.png&#x27;</span>), dtype=torch.float32).unsqueeze(-<span class="number">1</span>)</span><br><span class="line">img4 = torch.tensor(cv2.imread(<span class="string">f&#x27;<span class="subst">&#123;UBFC_data_root&#125;</span>/subject1/pic/30.png&#x27;</span>), dtype=torch.float32).unsqueeze(-<span class="number">1</span>)</span><br><span class="line">img_all = torch.cat((img1, img2, img3, img4), axis=-<span class="number">1</span>)</span><br><span class="line"><span class="built_in">print</span>(img_all.shape)</span><br><span class="line">x_a = img_all.permute(<span class="number">2</span>,<span class="number">3</span>,<span class="number">1</span>,<span class="number">0</span>).unsqueeze(<span class="number">0</span>)</span><br><span class="line">(B, C, D, H, W) = x_a.shape</span><br><span class="line">freq_factor = <span class="number">1.25</span> + (torch.rand(<span class="number">1</span>, ) / <span class="number">4</span>)</span><br><span class="line"><span class="built_in">print</span>(freq_factor)</span><br><span class="line">target_size = <span class="built_in">int</span>(D / freq_factor)</span><br><span class="line"><span class="built_in">print</span>(target_size)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;x_a.shape: <span class="subst">&#123;x_a.shape&#125;</span>&#x27;</span>)</span><br><span class="line">resampler = nn.Upsample(size=(target_size, x_a.shape[<span class="number">3</span>], x_a.shape[<span class="number">4</span>]),</span><br><span class="line">                                mode=<span class="string">&#x27;trilinear&#x27;</span>,</span><br><span class="line">                                align_corners=<span class="literal">False</span>)</span><br><span class="line">x_n = resampler(x_a)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;x_n.shape: <span class="subst">&#123;x_n.shape&#125;</span>&#x27;</span>)</span><br><span class="line">unsampler = nn.Upsample(size=(D, x_n.shape[<span class="number">3</span>], x_n.shape[<span class="number">4</span>]),</span><br><span class="line">                                mode=<span class="string">&#x27;trilinear&#x27;</span>,</span><br><span class="line">                                align_corners=<span class="literal">False</span>)</span><br><span class="line">x_r = unsampler(x_n)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;x_r.shape: <span class="subst">&#123;x_r.shape&#125;</span>&#x27;</span>)</span><br><span class="line">after_inter = x_n[<span class="number">0</span>].permute(<span class="number">1</span>,<span class="number">3</span>,<span class="number">2</span>,<span class="number">0</span>).numpy().astype(np.uint8)</span><br><span class="line">row_img = x_a[<span class="number">0</span>].permute(<span class="number">1</span>,<span class="number">3</span>,<span class="number">2</span>,<span class="number">0</span>).numpy().astype(np.uint8)</span><br><span class="line">re_img = x_r[<span class="number">0</span>].permute(<span class="number">1</span>,<span class="number">3</span>,<span class="number">2</span>,<span class="number">0</span>).numpy().astype(np.uint8)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">4</span>):</span><br><span class="line">    plt.subplot(<span class="number">3</span>,<span class="number">4</span>,i+<span class="number">1</span>)</span><br><span class="line">    plt.axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">    plt.imshow(row_img[i])</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">2</span>):</span><br><span class="line">    plt.subplot(<span class="number">3</span>,<span class="number">4</span>,i+<span class="number">5</span>)</span><br><span class="line">    plt.axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">    plt.imshow(after_inter[i])</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">4</span>):</span><br><span class="line">    plt.subplot(<span class="number">3</span>,<span class="number">4</span>,i+<span class="number">9</span>)</span><br><span class="line">    plt.axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">    plt.imshow(re_img[i])</span><br></pre></td></tr></table></figure>
+<p>&emsp;&emsp;因此这种代理任务仅适用于采样频率较高的数据集，若采样频率稍低，可能会产生正负样本都和锚点预测频率不一致的情况。</p>
+<p>&emsp;&emsp;❓❓❓这里有个小疑惑：为什么这个代理任务是奏效的❓❓❓通过阅读代码可知，这个网络实际上并没有进行预训练，也没有教师网络，如何保证其训练不会走偏❓（这大概也是对对比学习的疑惑），以及，这里的每个锚点其对应的正样本和负样本的数目是一样的，而 MoCo 认为负样本实际上越多越好，那么这里也给他加上动量更新的 memory bank 是不是会得到更好的结果呢❓</p>
+<h4 id="显著性采样器"><a href="#显著性采样器" class="headerlink" title="显著性采样器"></a>显著性采样器</h4><p>&emsp;&emsp;显著性采样器来自于 ECCV2018 的这项工作：<a target="_blank" rel="noopener" href="https://openaccess.thecvf.com/content_ECCV_2018/papers/Adria_Recasens_Learning_to_Zoom_ECCV_2018_paper.pdf">Learning to zoom: a saliency-<br>based sampling layer for neural networks</a>，简单介绍这个工作，这一项工作是针对所有图像处理领域的前置工作，本质上是对不同任务的 ROI 进行放大，在生成放大 ROI 之后的图像时需要经过这两个步骤：1.根据不同的 task_network 获得显著性特征图 Saliency map $S$（其实就是一个注意力图，这是由已经训练好的 task_network 得到的）2.根据特征图进行重采样，并得到新的图像（这里仅使用了图像处理）</p>
+<p><img src="/HR_CL_the_way_to_my_heart/image-20221024100057269.png" alt="image-20221024100057269" style="zoom:80%;"></p>
+<p>&emsp;&emsp;根据生成的显著性图 $S$ 获得每个新像素（红色位置）的采样点（蓝色位置），然后进行采样。</p>
+<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;这里提出了一种新的计算 loss 的方法，名字为 maximum cross-correlation (MCC) 最大互相关，</p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;结果很差，不值一提，举个例子，可见一斑。</p>
+<p><img src="/HR_CL_the_way_to_my_heart/image-20221024100515924.png" alt="image-20221024100515924"></p>
+<p>&emsp;&emsp;这里展示了是否有监督以及是否使用显著性采样器在 UBFC 数据集上的 RMSE 和 MAE 最好的结果，4.6 / 3.6。同时下图展示了同年发表在 CVPR2021 的论文 Dual-GAN 的结果，为 0.67 / 0.44。</p>
+<p><img src="/HR_CL_the_way_to_my_heart/image-20221024100808249.png" alt="image-20221024100808249" style="zoom:60%;"></p>
+<p>&emsp;&emsp;其他的一些结果我都不乐意展示，他们这篇论文刻意避开了一些更常用的数据集，并且很多数据集没选择的理由几乎没有解释（详见本文 Table. 2），并且在比较结果的时候仅比较了 HR-CNN，是一篇 2018 年的工作，经典鸵鸟比较法了属于是。</p>
+<p>&emsp;&emsp;不过不管怎么说，自监督还是牛的，至少拉平了 physnet 的结果，如果选用更好的 backbone 是不是会更好呢？以及采用更加合理的对比学习框架是不是会更好呢？</p>
+<hr>
+<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3><p>&emsp;&emsp;究极缝合：为了解决负样本不足的问题，可以将其余数据采样之后的负样本进入队列存储，但是这样或许会导致网络学到捷径，为了解决这个问题，可以加入教师网络进行知识蒸馏，以及为了得到更好的结果可以尝试更换 backbone。</p>
+<p>&emsp;&emsp;更好的代理任务一定是可行的，但是对于心率检测，代理任务还提出的相当少，或许需要大量的假设和尝试，简单的方法就是迁移已有的代理任务，多多实验尝试。</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>ShuYang Chu
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://bnucsy.github.io/HR_CL_the_way_to_my_heart/" title="HR_CL_the_way_to_my_heart">http://bnucsy.github.io/HR_CL_the_way_to_my_heart/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/video_transformers/" rel="prev" title="video_transformers">
+      <i class="fa fa-chevron-left"></i> video_transformers
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#The-Way-to-my-Heart-is-through-Contrastive-Learning-Remote-Photoplethysmography-from-Unlabelled-Video-%E3%80%90%E5%BF%83%E7%8E%87%E6%A3%80%E6%B5%8B%E3%80%91-ICCV2021"><span class="nav-text">The Way to my Heart is through Contrastive Learning:Remote Photoplethysmography from Unlabelled Video 【心率检测】 ICCV2021</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E8%A7%88"><span class="nav-text">概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E6%96%B0"><span class="nav-text">创新</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C"><span class="nav-text">网络</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%B4%E4%BD%93%E6%A1%86%E6%9E%B6"><span class="nav-text">整体框架</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%A3%E7%90%86%E4%BB%BB%E5%8A%A1"><span class="nav-text">代理任务</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%98%BE%E8%91%97%E6%80%A7%E9%87%87%E6%A0%B7%E5%99%A8"><span class="nav-text">显著性采样器</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8D%9F%E5%A4%B1"><span class="nav-text">损失</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-text">结果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%AF%E5%8F%91"><span class="nav-text">启发</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ShuYang Chu</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">21</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ShuYang Chu</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'gSZuY7rr1fsTF5DTHs68r5lu-gzGzoHsz',
+      appKey     : 'JqjUXxwDxPg9qbRlCyMx3gkg',
+      placeholder: "在这里写下评论",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
