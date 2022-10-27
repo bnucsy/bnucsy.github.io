@@ -20,12 +20,12 @@
     var CONFIG = {"hostname":"bnucsy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="Dual-GAN: Joint BVP and Noise Modeling for Remote PhysiologicalMeasurement【心率检测】 CVPR2021 paper code未开源 摘要&amp;emsp;&amp;emsp;本文提出了一种基于对偶 GAN 的心率预测网络，同时提出了一种解决不同 ROI 之间的噪声和 BVP 分布不一致的问题的即插即用块。并且本文网络的贡献除了效果非常好">
+  <meta name="description" content="Dual-GAN: Joint BVP and Noise Modeling for Remote PhysiologicalMeasurement【心率检测】【CVPR2021】【paper】【code未开源】 摘要&amp;emsp;&amp;emsp;本文提出了一种基于对偶 GAN 的心率预测网络，同时提出了一种解决不同 ROI 之间的噪声和 BVP 分布不一致的问题的即插即用块。并且本文网络的贡献除了效果">
 <meta property="og:type" content="article">
 <meta property="og:title" content="HR_Dual_GAN">
 <meta property="og:url" content="http://bnucsy.github.io/HR_Dual_GAN/index.html">
 <meta property="og:site_name" content="CSY&#39;s blog">
-<meta property="og:description" content="Dual-GAN: Joint BVP and Noise Modeling for Remote PhysiologicalMeasurement【心率检测】 CVPR2021 paper code未开源 摘要&amp;emsp;&amp;emsp;本文提出了一种基于对偶 GAN 的心率预测网络，同时提出了一种解决不同 ROI 之间的噪声和 BVP 分布不一致的问题的即插即用块。并且本文网络的贡献除了效果非常好">
+<meta property="og:description" content="Dual-GAN: Joint BVP and Noise Modeling for Remote PhysiologicalMeasurement【心率检测】【CVPR2021】【paper】【code未开源】 摘要&amp;emsp;&amp;emsp;本文提出了一种基于对偶 GAN 的心率预测网络，同时提出了一种解决不同 ROI 之间的噪声和 BVP 分布不一致的问题的即插即用块。并且本文网络的贡献除了效果">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://bnucsy.github.io/HR_Dual_GAN/image-20221026192218294.png">
 <meta property="og:image" content="http://bnucsy.github.io/HR_Dual_GAN/image-20221027105943129.png">
@@ -36,7 +36,7 @@
 <meta property="og:image" content="http://bnucsy.github.io/HR_Dual_GAN/image-20221027152703290.png">
 <meta property="og:image" content="http://bnucsy.github.io/HR_Dual_GAN/image-20221027152834826.png">
 <meta property="article:published_time" content="2022-10-26T10:25:14.100Z">
-<meta property="article:modified_time" content="2022-10-27T07:43:53.493Z">
+<meta property="article:modified_time" content="2022-10-27T08:10:04.813Z">
 <meta property="article:author" content="ShuYang Chu">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://bnucsy.github.io/HR_Dual_GAN/image-20221026192218294.png">
@@ -200,7 +200,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-10-27 15:43:53" itemprop="dateModified" datetime="2022-10-27T15:43:53+08:00">2022-10-27</time>
+                <time title="修改时间：2022-10-27 16:10:04" itemprop="dateModified" datetime="2022-10-27T16:10:04+08:00">2022-10-27</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -266,7 +266,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h2 id="Dual-GAN-Joint-BVP-and-Noise-Modeling-for-Remote-PhysiologicalMeasurement"><a href="#Dual-GAN-Joint-BVP-and-Noise-Modeling-for-Remote-PhysiologicalMeasurement" class="headerlink" title="Dual-GAN: Joint BVP and Noise Modeling for Remote PhysiologicalMeasurement"></a>Dual-GAN: Joint BVP and Noise Modeling for Remote PhysiologicalMeasurement</h2><p>【心率检测】 CVPR2021 <a target="_blank" rel="noopener" href="https://openaccess.thecvf.com/content/CVPR2021/papers/Lu_Dual-GAN_Joint_BVP_and_Noise_Modeling_for_Remote_Physiological_Measurement_CVPR_2021_paper.pdf">paper</a> <a href>code未开源</a></p>
+        <h2 id="Dual-GAN-Joint-BVP-and-Noise-Modeling-for-Remote-PhysiologicalMeasurement"><a href="#Dual-GAN-Joint-BVP-and-Noise-Modeling-for-Remote-PhysiologicalMeasurement" class="headerlink" title="Dual-GAN: Joint BVP and Noise Modeling for Remote PhysiologicalMeasurement"></a>Dual-GAN: Joint BVP and Noise Modeling for Remote PhysiologicalMeasurement</h2><p>【心率检测】【CVPR2021】【<a target="_blank" rel="noopener" href="https://openaccess.thecvf.com/content/CVPR2021/papers/Lu_Dual-GAN_Joint_BVP_and_Noise_Modeling_for_Remote_Physiological_Measurement_CVPR_2021_paper.pdf">paper</a>】【<a href>code未开源</a>】</p>
 <h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种基于对偶 GAN 的心率预测网络，同时提出了一种解决不同 ROI 之间的噪声和 BVP 分布不一致的问题的即插即用块。并且本文网络的贡献除了效果非常好之外，对于噪声更加鲁棒。除此之外，该网络结构并不是纯 Dual-GAN，而是由三个生成器和一个判别器组成的网络，用到了回归的方式进行训练，并非无监督训练，并且全部的 G/D 基于 CNN，网络只需要在 1080Ti 上训练 10 个 epoch 即可收敛。可以说唯一的缺点是还没开源了😭</p>
 <h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/HR_Dual_GAN/image-20221026192218294.png" alt="image-20221026192218294" style="zoom:60%;"></p>
 <span id="more"></span>
