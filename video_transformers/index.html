@@ -62,7 +62,7 @@
 <meta property="og:image" content="http://bnucsy.github.io/video_transformers/image-20221031101707798.png">
 <meta property="og:image" content="http://bnucsy.github.io/video_transformers/image-20221031103531905.png">
 <meta property="article:published_time" content="2022-10-09T05:23:41.810Z">
-<meta property="article:modified_time" content="2022-10-31T02:42:01.948Z">
+<meta property="article:modified_time" content="2022-10-31T02:48:50.525Z">
 <meta property="article:author" content="ShuYang Chu">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://bnucsy.github.io/video_transformers/image-20221010173024409.png">
@@ -226,7 +226,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-10-31 10:42:01" itemprop="dateModified" datetime="2022-10-31T10:42:01+08:00">2022-10-31</time>
+                <time title="修改时间：2022-10-31 10:48:50" itemprop="dateModified" datetime="2022-10-31T10:48:50+08:00">2022-10-31</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -273,7 +273,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>15k</span>
+              <span>16k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -476,25 +476,25 @@ g(x)=W_g\times x</script><p>&emsp;&emsp;显然，对于 方程 $(2)$ 的前半�
 <p>&emsp;&emsp;对比 MViT 的结果，这里大致提了两个点左右，这说明提出的两点改进是有效的，并且参数量和计算量甚至还降了一点点。至于更大的模型，在不经过预训练的情况下明显超过了 swin，注意这里的 Swin-L 是下一篇 paper Video Swin Transformer。好像顺序反了，MViTv2 更好一点呢好像 😅</p>
 <hr>
 <h3 id="Video-Swin-Transformer"><a href="#Video-Swin-Transformer" class="headerlink" title="Video Swin Transformer"></a>Video Swin Transformer</h3><p><a target="_blank" rel="noopener" href="https://openaccess.thecvf.com/content/CVPR2022/papers/Liu_Video_Swin_Transformer_CVPR_2022_paper.pdf">video swin transformer</a> 【视频动作识别】 CVPR2022</p>
-<p>ds；在视频领域有 ViViT，Timesformer 等工作珠玉在前，MSRA 之前又有一篇绝对领跑级别的工作 swinTransformer，毫无疑问 MSRA 会将其迁移到视频领域，于是有了 video swinTransformer，看名字大致就知道干了什么，除了效果好、实验多之外没有可圈可点的地方，简要介绍一下本文的 3D 处理。</p>
+<p>&emsp;&emsp;在视频领域有 ViViT，Timesformer 等工作珠玉在前，MSRA 之前又有一篇绝对领跑级别的工作 swinTransformer，毫无疑问 MSRA 会将其迁移到视频领域，于是有了 video swinTransformer，看名字大致就知道干了什么，除了效果好、实验多之外没有可圈可点的地方，简要介绍一下本文的 3D 处理。</p>
 <h4 id="网络-5"><a href="#网络-5" class="headerlink" title="网络"></a>网络</h4><h5 id="前向过程-1"><a href="#前向过程-1" class="headerlink" title="前向过程"></a>前向过程</h5><p><img src="/video_transformers/Video_ST.png" alt="Video_ST"></p>
-<p>ds；基础的网络完全接近于 <a href="https://bnucsy.github.io/swin_transformer/">swinTransformer</a>，基本上仅在细节处有所不同。大致可以分为 embedding，backbone，head 三个部分。</p>
-<p>ds；embedding 具体来说，采样之后的 video 为 32x224x224，即 $T\times H\times W\times 3$，在打 patch 的时候每一个 patch 的 size 为 $P\times M\times M$，标准 VST 里面是 2x4x4，每个 window 具有 8x7x7 个 patch。</p>
-<p>ds；在经过和 swinTransformer 一样的打 patch 和线性投射层之后就分别通过 4 个 stage，后三个 stage 先进行 patch merging 再通过 VST 的 transformer 块，最后输出得到 $\frac T 2\times \frac H {32}\times \frac W{32}\times 8C$ 的输出，这里的输出是具备语义信息的表征向量，接下来需要再经过一个 head 网络融合这些 3D 信息，作者使用的是 I3D。</p>
-<h5 id="网络模块"><a href="#网络模块" class="headerlink" title="网络模块"></a>网络模块</h5><p>ds；对于 transformer 块，整体来说由上述网络图可以大致看出和 swinTransformer 基本一样，只有 3D W-MSA 和 3D SW-MSA 多了 3D，具体来说，3D W-MSA 将得到的 tokens 分成不同的 window 进行分窗口的独立自注意力计算，然后进行移位，3D SW-MSA 计算各个窗口之间的自注意力，大致过程如下图。</p>
+<p>&emsp;&emsp;基础的网络完全接近于 <a href="https://bnucsy.github.io/swin_transformer/">swinTransformer</a>，基本上仅在细节处有所不同。大致可以分为 embedding，backbone，head 三个部分。</p>
+<p>&emsp;&emsp;embedding 具体来说，采样之后的 video 为 32x224x224，即 $T\times H\times W\times 3$，在打 patch 的时候每一个 patch 的 size 为 $P\times M\times M$，标准 VST 里面是 2x4x4，每个 window 具有 8x7x7 个 patch。</p>
+<p>&emsp;&emsp;在经过和 swinTransformer 一样的打 patch 和线性投射层之后就分别通过 4 个 stage，后三个 stage 先进行 patch merging 再通过 VST 的 transformer 块，最后输出得到 $\frac T 2\times \frac H {32}\times \frac W{32}\times 8C$ 的输出，这里的输出是具备语义信息的表征向量，接下来需要再经过一个 head 网络融合这些 3D 信息，作者使用的是 I3D。</p>
+<h5 id="网络模块"><a href="#网络模块" class="headerlink" title="网络模块"></a>网络模块</h5><p>&emsp;&emsp;对于 transformer 块，整体来说由上述网络图可以大致看出和 swinTransformer 基本一样，只有 3D W-MSA 和 3D SW-MSA 多了 3D，具体来说，3D W-MSA 将得到的 tokens 分成不同的 window 进行分窗口的独立自注意力计算，然后进行移位，3D SW-MSA 计算各个窗口之间的自注意力，大致过程如下图。</p>
 <p><img src="/video_transformers/image-20221031095401323.png" alt="image-20221031095401323" style="zoom:80%;"></p>
-<p>ds；在移位之后会遇到和 swinTransformer 一样的问题，也就是计算量过大，在 3D 的情况下按照如下操作进行 cycle shift。</p>
+<p>&emsp;&emsp;在移位之后会遇到和 swinTransformer 一样的问题，也就是计算量过大，在 3D 的情况下按照如下操作进行 cycle shift。</p>
 <p><img src="/video_transformers/Video_ST_Cycle_shift-1667182367555.png" style="zoom:45%;"></p>
-<p>ds；对于 patch merging，结合上述移位操作的图，也就是对每一个 $T$ 维度进行和 swinTransformer 一样的降采样操作。 </p>
-<h5 id="实现细节"><a href="#实现细节" class="headerlink" title="实现细节"></a>实现细节</h5><p>ds；相比于 2D 版本的 swinTransformer，3D 模型的训练更加复杂和困难，而为了解决这个问题，本文采取了和 I3D 思路基本一致的初始化方法。具体来说，是对于已经经过预训练的 swinTransformer，embedding层输入的 shape 时间维度为 2，因此将权重直接复制两次，然后每个值乘 0.5；transformer 块中输入 shape 时间维度为 $2P-1$，因此将权重直接复制 $2P-1$ 次。两个复制一个做平均，另一个没有做，各有各的理由，反正都是结论倒退的，看个乐就得了。</p>
-<h4 id="结果-6"><a href="#结果-6" class="headerlink" title="结果"></a>结果</h4><p>ds；本文做了很多消融实验，意图按照之前的 ViViT、VTN、Timesformer 等网络的设置改进 VST，当然结果是改了之后也不如本身，不然就是改完之后的是 backbone 了。</p>
-<p>ds；对于不同时空注意力设计的消融实验如下图，本文共设计了三种不同的注意力形式，其中 joint 是 backbone 的默认形式，split 是在 2D swinTransformer 中的 MSA 之后接两个时间注意力层，factorized 是在同样的位置加一个时间自注意力层。</p>
+<p>&emsp;&emsp;对于 patch merging，结合上述移位操作的图，也就是对每一个 $T$ 维度进行和 swinTransformer 一样的降采样操作。 </p>
+<h5 id="实现细节"><a href="#实现细节" class="headerlink" title="实现细节"></a>实现细节</h5><p>&emsp;&emsp;相比于 2D 版本的 swinTransformer，3D 模型的训练更加复杂和困难，而为了解决这个问题，本文采取了和 I3D 思路基本一致的初始化方法。具体来说，是对于已经经过预训练的 swinTransformer，embedding层输入的 shape 时间维度为 2，因此将权重直接复制两次，然后每个值乘 0.5；transformer 块中输入 shape 时间维度为 $2P-1$，因此将权重直接复制 $2P-1$ 次。两个复制一个做平均，另一个没有做，各有各的理由，反正都是结论倒退的，看个乐就得了。</p>
+<h4 id="结果-6"><a href="#结果-6" class="headerlink" title="结果"></a>结果</h4><p>&emsp;&emsp;本文做了很多消融实验，意图按照之前的 ViViT、VTN、Timesformer 等网络的设置改进 VST，当然结果是改了之后也不如本身，不然就是改完之后的是 backbone 了。</p>
+<p>&emsp;&emsp;对于不同时空注意力设计的消融实验如下图，本文共设计了三种不同的注意力形式，其中 joint 是 backbone 的默认形式，split 是在 2D swinTransformer 中的 MSA 之后接两个时间注意力层，factorized 是在同样的位置加一个时间自注意力层。</p>
 <p><img src="/video_transformers/image-20221031101707798.png" alt="image-20221031101707798" style="zoom:90%;"></p>
-<p>ds；对于时间维度的值的消融实验不展示了，结论是无论是帧采样还是窗口大小，越大的时间维度就意味着越好的效果。同样的还有 3D SW-MSA 的消融实验，结论是无论是时间 shift 还是空间 shift 都不可或缺。</p>
-<p>ds；对于 backbone 和 head 的学习率的消融实验如下图，本文发现了由于 head 随机初始化，对于预训练参数初始化的 backbone 最好使用更低的学习率训练，具体来说，本文尝试了 $\rm ratio=\frac{lr_{backbone}}{lr_{head}}=1/0.1$，发现 0.1 更加合适，然后给了个结论倒推的原因，即：在拟合新的视频输入时，主干会慢慢忘记预先训练好的参数和数据，从而更好地泛化。</p>
+<p>&emsp;&emsp;对于时间维度的值的消融实验不展示了，结论是无论是帧采样还是窗口大小，越大的时间维度就意味着越好的效果。同样的还有 3D SW-MSA 的消融实验，结论是无论是时间 shift 还是空间 shift 都不可或缺。</p>
+<p>&emsp;&emsp;对于 backbone 和 head 的学习率的消融实验如下图，本文发现了由于 head 随机初始化，对于预训练参数初始化的 backbone 最好使用更低的学习率训练，具体来说，本文尝试了 $\rm ratio=\frac{lr_{backbone}}{lr_{head}}=1/0.1$，发现 0.1 更加合适，然后给了个结论倒推的原因，即：在拟合新的视频输入时，主干会慢慢忘记预先训练好的参数和数据，从而更好地泛化。</p>
 <p><img src="/video_transformers/image-20221031103531905.png" alt="image-20221031103531905" style="zoom:77%;"></p>
-<p>ds；和 MViT 一样，本文也测试了 shuffle 之后的结果，不过他既然测了这个，结果肯定是 shuffle 之后效果变差了，这样才能说明自己学到了时间信息。</p>
-<p>ds；具体到网络的结果，本文最高的 Swin-L 在 200M 参数、2107 Flops 、IN-21K 预训练的情况下达到了 84.9，整体上由于 ViViT，不过很快就被 MViTv2 超了。</p>
+<p>&emsp;&emsp;和 MViT 一样，本文也测试了 shuffle 之后的结果，不过他既然测了这个，结果肯定是 shuffle 之后效果变差了，这样才能说明自己学到了时间信息。</p>
+<p>&emsp;&emsp;具体到网络的结果，本文最高的 Swin-L 在 200M 参数、2107 Flops 、IN-21K 预训练的情况下达到了 84.9，整体上由于 ViViT，不过很快就被 MViTv2 超了。</p>
 
     </div>
 
