@@ -20,27 +20,24 @@
     var CONFIG = {"hostname":"bnucsy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="Represent LightField With A Single Image【光场压缩】【not published】摘要 提出了一种基于自编码器的光场压缩方法，构建了基于 U-Net 的编解码器使用单张RGB图进行光场压缩。 得到的 RGB 表征在 0.07bpp 下𝑃𝑆𝑁𝑅为 41.31dB，重建光场𝑃𝑆𝑁𝑅值 36.51dB， 𝑆𝑆𝐼𝑀值为 0.96。 在使用网络">
+  <meta name="description" content="SIMPER: SIMPLE SELF-SUPERVISED LEARNING OF PERIODIC TARGETS   【周期性信号对比学习】【arxiv】【paper】【code】 摘要&amp;emsp;&amp;emsp;本文探索了旧有对比学习方法在周期性任务学习中的局限性，提出了一种新的周期性对比学习的代理任务，并且改进了 InfoNCE，测试了六个周期性变化的对比学习任务，和 MoCo，SimCL">
 <meta property="og:type" content="article">
-<meta property="og:title" content="represent-light-field-with-a-single-image">
-<meta property="og:url" content="http://bnucsy.github.io/represent-light-field-with-a-single-image/index.html">
+<meta property="og:title" content="SimPer">
+<meta property="og:url" content="http://bnucsy.github.io/SimPER/index.html">
 <meta property="og:site_name" content="CSY&#39;s blog">
-<meta property="og:description" content="Represent LightField With A Single Image【光场压缩】【not published】摘要 提出了一种基于自编码器的光场压缩方法，构建了基于 U-Net 的编解码器使用单张RGB图进行光场压缩。 得到的 RGB 表征在 0.07bpp 下𝑃𝑆𝑁𝑅为 41.31dB，重建光场𝑃𝑆𝑁𝑅值 36.51dB， 𝑆𝑆𝐼𝑀值为 0.96。 在使用网络">
+<meta property="og:description" content="SIMPER: SIMPLE SELF-SUPERVISED LEARNING OF PERIODIC TARGETS   【周期性信号对比学习】【arxiv】【paper】【code】 摘要&amp;emsp;&amp;emsp;本文探索了旧有对比学习方法在周期性任务学习中的局限性，提出了一种新的周期性对比学习的代理任务，并且改进了 InfoNCE，测试了六个周期性变化的对比学习任务，和 MoCo，SimCL">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://bnucsy.github.io/represent-light-field-with-a-single-image/image-20220502140548979.png">
-<meta property="og:image" content="http://bnucsy.github.io/represent-light-field-with-a-single-image/image-20220502140608358.png">
-<meta property="og:image" content="http://bnucsy.github.io/represent-light-field-with-a-single-image/image-20220502140622337.png">
-<meta property="og:image" content="http://bnucsy.github.io/represent-light-field-with-a-single-image/image-20220502140637615.png">
-<meta property="og:image" content="http://bnucsy.github.io/represent-light-field-with-a-single-image/image-20220502140653242.png">
-<meta property="og:image" content="http://bnucsy.github.io/represent-light-field-with-a-single-image/image-20220502141337322.png">
-<meta property="og:image" content="http://bnucsy.github.io/represent-light-field-with-a-single-image/image-20220502140504370.png">
-<meta property="article:published_time" content="2022-05-02T05:31:59.490Z">
-<meta property="article:modified_time" content="2022-05-02T08:42:30.249Z">
+<meta property="og:image" content="http://bnucsy.github.io/SimPER/image-20221104103618517.png">
+<meta property="og:image" content="http://bnucsy.github.io/SimPER/image-20221104105331714.png">
+<meta property="og:image" content="http://bnucsy.github.io/SimPER/image-20221104115127418.png">
+<meta property="og:image" content="http://bnucsy.github.io/SimPER/image-20221104133719823.png">
+<meta property="article:published_time" content="2022-11-04T02:03:53.843Z">
+<meta property="article:modified_time" content="2022-11-04T05:41:53.620Z">
 <meta property="article:author" content="ShuYang Chu">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://bnucsy.github.io/represent-light-field-with-a-single-image/image-20220502140548979.png">
+<meta name="twitter:image" content="http://bnucsy.github.io/SimPER/image-20221104103618517.png">
 
-<link rel="canonical" href="http://bnucsy.github.io/represent-light-field-with-a-single-image/">
+<link rel="canonical" href="http://bnucsy.github.io/SimPER/">
 
 
 <script id="page-configurations">
@@ -53,7 +50,7 @@
   };
 </script>
 
-  <title>represent-light-field-with-a-single-image | CSY's blog</title>
+  <title>SimPer | CSY's blog</title>
   
 
 
@@ -169,7 +166,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://bnucsy.github.io/represent-light-field-with-a-single-image/">
+    <link itemprop="mainEntityOfPage" href="http://bnucsy.github.io/SimPER/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -182,7 +179,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          represent-light-field-with-a-single-image
+          SimPer
         </h1>
 
         <div class="post-meta">
@@ -193,7 +190,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2022-05-02 13:31:59 / 修改时间：16:42:30" itemprop="dateCreated datePublished" datetime="2022-05-02T13:31:59+08:00">2022-05-02</time>
+              <time title="创建时间：2022-11-04 10:03:53 / 修改时间：13:41:53" itemprop="dateCreated datePublished" datetime="2022-11-04T10:03:53+08:00">2022-11-04</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -205,7 +202,11 @@
                 </span>
                   ，
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/paper/mypaper/" itemprop="url" rel="index"><span itemprop="name">mypaper</span></a>
+                  <a href="/categories/paper/cv/" itemprop="url" rel="index"><span itemprop="name">cv</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper/cv/hr/" itemprop="url" rel="index"><span itemprop="name">hr</span></a>
                 </span>
             </span>
 
@@ -225,8 +226,8 @@
       </span>
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/represent-light-field-with-a-single-image/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/represent-light-field-with-a-single-image/" itemprop="commentCount"></span>
+    <a title="valine" href="/SimPER/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/SimPER/" itemprop="commentCount"></span>
     </a>
   </span>
   
@@ -236,7 +237,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>529</span>
+              <span>1.6k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -255,45 +256,40 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h2 id="Represent-LightField-With-A-Single-Image【光场压缩】【not-published】"><a href="#Represent-LightField-With-A-Single-Image【光场压缩】【not-published】" class="headerlink" title="Represent LightField With A Single Image【光场压缩】【not published】"></a><a target="_blank" rel="noopener" href="https://gitee.com/bnucsy/represent-light-field-with-a-single-rgb-image">Represent LightField With A Single Image</a>【光场压缩】【not published】</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><ul>
-<li>提出了一种基于自编码器的光场压缩方法，构建了基于 U-Net 的编解码器使用单张RGB图进行光场压缩。</li>
-<li>得到的 RGB 表征在 0.07bpp 下𝑃𝑆𝑁𝑅为 41.31dB，重建光场𝑃𝑆𝑁𝑅值 36.51dB， 𝑆𝑆𝐼𝑀值为 0.96。</li>
-<li>在使用网络平台 JPEG 压缩后重建光场𝑃𝑆𝑁𝑅值为 35.48dB。</li>
-<li>对重建后光场应用重聚焦和深度估计任务，均取得了较好的结果。</li>
-</ul>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/represent-light-field-with-a-single-image/image-20220502140548979.png" alt="image-20220502140548979"></p>
+        <h2><center> SIMPER: SIMPLE SELF-SUPERVISED LEARNING OF PERIODIC TARGETS </center></h2>
+
+<p>【周期性信号对比学习】【arxiv】【<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2210.03115.pdf">paper</a>】【<a target="_blank" rel="noopener" href="https://github.com/YyzHarry/SimPer">code</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文探索了旧有对比学习方法在周期性任务学习中的局限性，提出了一种新的周期性对比学习的代理任务，并且改进了 InfoNCE，测试了六个周期性变化的对比学习任务，和 MoCo，SimCLR，BYOL 等对比学习方法相比取得了较大的进步。（其实是个实验详实的水文，对比的这些 SOTA 都是学 ID 或者 ACTION 语义的，和 HR 等目标完全不一样）</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/SimPER/image-20221104103618517.png" alt="image-20221104103618517" style="zoom:80%;"></p>
 <span id="more"></span>
 <hr>
 <h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>限制使用单张 RGB 图像表征光场，并且该图像和光场中央视图视觉效果一致</li>
-<li>得到的 RGB 表征对 JPEG 压缩具备鲁棒性</li>
+<li>提出周期性任务对比学习的内在特性</li>
+<li>提出了一种周期性任务对比学习的框架 SimPer</li>
 </ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><ul>
-<li><p>网络概览</p>
-<p><img src="/represent-light-field-with-a-single-image/image-20220502140608358.png" alt="image-20220502140608358"></p>
-</li>
-<li><p>$E、D$ 网络结构</p>
-<p><img src="/represent-light-field-with-a-single-image/image-20220502140622337.png" alt="image-20220502140622337"></p>
-</li>
-<li><p>$J$ 网络结构</p>
-<p><img src="/represent-light-field-with-a-single-image/image-20220502140637615.png" alt="image-20220502140637615"></p>
-</li>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/SimPER/image-20221104105331714.png" alt="image-20221104105331714" style="zoom:67%;"></p>
+<p>&emsp;&emsp;对于网络结构，参考 <a href="https://bnucsy.github.io/HR_CL_the_way_to_my_heart/">The Way to My Heart</a> 是一目了然的，也就是提了一些更加准确性的定义：</p>
+<ul>
+<li>$\tau$：周期改变的数据增强</li>
+<li>$\sigma$：周期不变的数据增强</li>
 </ul>
-<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>使用$MSELoss$，分别限制中央视图和光场，比率分别为$0.9$，$0.5$。</p>
+<p>&emsp;&emsp;因此对于输入 $x$ 首先进行周期改变的数据增强，得到 $\tau_i(x),i\in [1,k]$，对于得到的 $k$ 个视频，将其逐个进行周期不变的增强，每个视频进行两次增强作为 pos 对，得到 $2k$ 个样本 $\sigma_i(\tau_j(x)),i\in [1,2],j\in[1,k]$。对于所有的样本通过 backbone $f$，$\tau $ 下标一致的接近，不一致的远离。</p>
+<p>&emsp;&emsp;其中 backbone 针对不同的六个任务选取不同，RotatingDigits 和 SCAMPS 上，采用了 CNN 的简单 3D 变体。采用 TS-CAN 模型的变体对 UBFC 和 PURE 进行实验。最后，在 Countix 和 LST 上，使用ResNet-3D-18。</p>
+<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;对于损失函数，为了度量周期性信号的相似度，不可以使用普通的 cos 方式测量，而是需要能够测量周期的损失，绝对误差和周期误差的区别如下图所示。</p>
+<p><img src="/SimPER/image-20221104115127418.png" alt="image-20221104115127418" style="zoom:80%;"></p>
+<p>&emsp;&emsp;因此本文尝试了 MXCorr（最大互相关）和 nPSD（归一化功率谱密度）对周期性信号进行建模，并且提出了一种基于 InfoNCE 的广义 InfoNCE。</p>
+<ul>
+<li>InfoNCE</li>
+</ul>
 <script type="math/tex; mode=display">
-\rm arg \min\limits_{E,D,\alpha,\beta}:=\alpha\times||J(E(L))-L(\frac M 2,\frac N 2)||_2^2 + \beta\times ||D(J(E(L)))-L||_2^2</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><ul>
-<li><p>和传统方法对比</p>
-<p><img src="/represent-light-field-with-a-single-image/image-20220502140653242.png" alt="image-20220502140653242"></p>
-</li>
-<li><p>深度估计</p>
-<p><img src="/represent-light-field-with-a-single-image/image-20220502141337322.png" alt="image-20220502141337322" style="zoom:80%;"></p>
-</li>
-<li><p>重聚焦</p>
-<p><img src="/represent-light-field-with-a-single-image/image-20220502140504370.png" alt="image-20220502140504370"></p>
-</li>
+\rm \mathcal L_{InfoNCE}=-log\frac{exp(sim(z,\hat z)/\nu)}{\sum_{z'\in \mathcal Z/\{z\}}exp(sim(z,z')/\nu)}</script><ul>
+<li>Generalized InfoNCE</li>
 </ul>
-<hr>
-<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3><p>&emsp;自己的文章，启发即为过程性总结，全在毕设记录之中了</p>
+<script type="math/tex; mode=display">
+\rm\mathcal L_{SimPer } = \mathop\sum\limits_i \mathcal l_{SimPer}^i</script><script type="math/tex; mode=display">
+\rm \mathcal l_{SimPer}^i=\mathop\sum\limits_i-\mathop\sum\limits_{j=1}^M\frac{exp(w_{i,j})}{\sum_{k=1}^Mexp(w_{i,k})}log\frac{exp(sim(z_i,\hat z_j)/\nu)}{\sum_{k=1}^Mexp(sim(z_i,z_k')/\nu)}</script><p>&emsp;&emsp;综合来看，其本身没有和 InfoNCE 的太大区别，区别在于对于高频采样的信号，GInfoNCE 可以将其视为连续信号计算误差，这样在实验中可以得到更好的优化。</p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;结果相对于 SIMCLR、MoCo，BYOL，CVRL 等都好很多，但是和正儿八经做周期性对比学习的方法差很多，以心率检测为例：其中 FFT 和 1-NN 是分别以傅立叶变换和最近邻分类器直接评估学习到的特征。虽然这样做由于没有进行特殊设计相比于 The Way to My Heart 略有劣势，但结果也差了不少，和 physnet 都差很多，更不用提 physformer 和 Dual-GAN 了。</p>
+<p><img src="/SimPER/image-20221104133719823.png" alt="image-20221104133719823"></p>
 
     </div>
 
@@ -309,7 +305,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="http://bnucsy.github.io/represent-light-field-with-a-single-image/" title="represent-light-field-with-a-single-image">http://bnucsy.github.io/represent-light-field-with-a-single-image/</a>
+    <a href="http://bnucsy.github.io/SimPER/" title="SimPer">http://bnucsy.github.io/SimPER/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -326,13 +322,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/docxs/" rel="prev" title="docx and help">
-      <i class="fa fa-chevron-left"></i> docx and help
+    <a href="/HR_STVEN_rPPGNet/" rel="prev" title="HR_STVEN_rPPGNet">
+      <i class="fa fa-chevron-left"></i> HR_STVEN_rPPGNet
     </a></div>
-      <div class="post-nav-item">
-    <a href="/leetcode_5/" rel="next" title="LeetCode-5 最长回文子串">
-      LeetCode-5 最长回文子串 <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -392,7 +385,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Represent-LightField-With-A-Single-Image%E3%80%90%E5%85%89%E5%9C%BA%E5%8E%8B%E7%BC%A9%E3%80%91%E3%80%90not-published%E3%80%91"><span class="nav-text">Represent LightField With A Single Image【光场压缩】【not published】</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E8%A7%88"><span class="nav-text">概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E6%96%B0"><span class="nav-text">创新</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C"><span class="nav-text">网络</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8D%9F%E5%A4%B1"><span class="nav-text">损失</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-text">结果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%AF%E5%8F%91"><span class="nav-text">启发</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> SIMPER: SIMPLE SELF-SUPERVISED LEARNING OF PERIODIC TARGETS </span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E8%A7%88"><span class="nav-text">概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E6%96%B0"><span class="nav-text">创新</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C"><span class="nav-text">网络</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8D%9F%E5%A4%B1"><span class="nav-text">损失</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-text">结果</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
