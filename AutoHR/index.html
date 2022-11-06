@@ -20,28 +20,26 @@
     var CONFIG = {"hostname":"bnucsy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="Dual-GAN: Joint BVP and Noise Modeling for Remote PhysiologicalMeasurement【心率检测】【CVPR2021】【paper】【code未开源】 摘要&amp;emsp;&amp;emsp;本文提出了一种基于对偶 GAN 的心率预测网络，同时提出了一种解决不同 ROI 之间的噪声和 BVP 分布不一致的问题的即插即用块。并且本文网络的贡献除了效果">
+  <meta name="description" content="AutoHR: A Strong End-to-end Baseline for Remote Heart Rate Measurement with Neural Searching   【心率检测】【SPL2020】【paper】【code未开源】 摘要&amp;emsp;&amp;emsp;本文提出了一种基于 NAS 的心率检测 backbone 设计策略，在操作域中加入了 TDC（时空差分卷积），同时提">
 <meta property="og:type" content="article">
-<meta property="og:title" content="HR_Dual_GAN">
-<meta property="og:url" content="http://bnucsy.github.io/HR_Dual_GAN/index.html">
+<meta property="og:title" content="AutoHR">
+<meta property="og:url" content="http://bnucsy.github.io/AutoHR/index.html">
 <meta property="og:site_name" content="CSY&#39;s blog">
-<meta property="og:description" content="Dual-GAN: Joint BVP and Noise Modeling for Remote PhysiologicalMeasurement【心率检测】【CVPR2021】【paper】【code未开源】 摘要&amp;emsp;&amp;emsp;本文提出了一种基于对偶 GAN 的心率预测网络，同时提出了一种解决不同 ROI 之间的噪声和 BVP 分布不一致的问题的即插即用块。并且本文网络的贡献除了效果">
+<meta property="og:description" content="AutoHR: A Strong End-to-end Baseline for Remote Heart Rate Measurement with Neural Searching   【心率检测】【SPL2020】【paper】【code未开源】 摘要&amp;emsp;&amp;emsp;本文提出了一种基于 NAS 的心率检测 backbone 设计策略，在操作域中加入了 TDC（时空差分卷积），同时提">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://bnucsy.github.io/HR_Dual_GAN/image-20221026192218294.png">
-<meta property="og:image" content="http://bnucsy.github.io/HR_Dual_GAN/image-20221027105943129.png">
-<meta property="og:image" content="http://bnucsy.github.io/HR_Dual_GAN/image-20221027153710237.png">
-<meta property="og:image" content="http://bnucsy.github.io/HR_Dual_GAN/image-20221027144843034.png">
-<meta property="og:image" content="http://bnucsy.github.io/HR_Dual_GAN/image-20221027145003786.png">
-<meta property="og:image" content="http://bnucsy.github.io/HR_Dual_GAN/image-20221027152524476.png">
-<meta property="og:image" content="http://bnucsy.github.io/HR_Dual_GAN/image-20221027152703290.png">
-<meta property="og:image" content="http://bnucsy.github.io/HR_Dual_GAN/image-20221027152834826.png">
-<meta property="article:published_time" content="2022-10-26T10:25:14.100Z">
-<meta property="article:modified_time" content="2022-10-27T08:10:04.813Z">
+<meta property="og:image" content="http://bnucsy.github.io/AutoHR/image-20221106184645470.png">
+<meta property="og:image" content="http://bnucsy.github.io/AutoHR/e082b8ba4993c229c993b7dfa19d4641.png">
+<meta property="og:image" content="http://bnucsy.github.io/AutoHR/image-20221106184757405.png">
+<meta property="og:image" content="http://bnucsy.github.io/AutoHR/image-20221106195942710.png">
+<meta property="og:image" content="http://bnucsy.github.io/AutoHR/image-20221106202041824.png">
+<meta property="og:image" content="http://bnucsy.github.io/AutoHR/image-20221106202146459.png">
+<meta property="article:published_time" content="2022-11-05T14:24:32.731Z">
+<meta property="article:modified_time" content="2022-11-06T12:24:20.715Z">
 <meta property="article:author" content="ShuYang Chu">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://bnucsy.github.io/HR_Dual_GAN/image-20221026192218294.png">
+<meta name="twitter:image" content="http://bnucsy.github.io/AutoHR/image-20221106184645470.png">
 
-<link rel="canonical" href="http://bnucsy.github.io/HR_Dual_GAN/">
+<link rel="canonical" href="http://bnucsy.github.io/AutoHR/">
 
 
 <script id="page-configurations">
@@ -54,7 +52,7 @@
   };
 </script>
 
-  <title>HR_Dual_GAN | CSY's blog</title>
+  <title>AutoHR | CSY's blog</title>
   
 
 
@@ -170,7 +168,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://bnucsy.github.io/HR_Dual_GAN/">
+    <link itemprop="mainEntityOfPage" href="http://bnucsy.github.io/AutoHR/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -183,7 +181,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          HR_Dual_GAN
+          AutoHR
         </h1>
 
         <div class="post-meta">
@@ -193,14 +191,14 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2022-10-26 18:25:14" itemprop="dateCreated datePublished" datetime="2022-10-26T18:25:14+08:00">2022-10-26</time>
+              <time title="创建时间：2022-11-05 22:24:32" itemprop="dateCreated datePublished" datetime="2022-11-05T22:24:32+08:00">2022-11-05</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-10-27 16:10:04" itemprop="dateModified" datetime="2022-10-27T16:10:04+08:00">2022-10-27</time>
+                <time title="修改时间：2022-11-06 20:24:20" itemprop="dateModified" datetime="2022-11-06T20:24:20+08:00">2022-11-06</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -236,8 +234,8 @@
       </span>
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/HR_Dual_GAN/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/HR_Dual_GAN/" itemprop="commentCount"></span>
+    <a title="valine" href="/AutoHR/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/AutoHR/" itemprop="commentCount"></span>
     </a>
   </span>
   
@@ -247,7 +245,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>2.9k</span>
+              <span>3.2k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -266,79 +264,42 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h2 id="Dual-GAN-Joint-BVP-and-Noise-Modeling-for-Remote-PhysiologicalMeasurement"><a href="#Dual-GAN-Joint-BVP-and-Noise-Modeling-for-Remote-PhysiologicalMeasurement" class="headerlink" title="Dual-GAN: Joint BVP and Noise Modeling for Remote PhysiologicalMeasurement"></a>Dual-GAN: Joint BVP and Noise Modeling for Remote PhysiologicalMeasurement</h2><p>【心率检测】【CVPR2021】【<a target="_blank" rel="noopener" href="https://openaccess.thecvf.com/content/CVPR2021/papers/Lu_Dual-GAN_Joint_BVP_and_Noise_Modeling_for_Remote_Physiological_Measurement_CVPR_2021_paper.pdf">paper</a>】【<a href>code未开源</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种基于对偶 GAN 的心率预测网络，同时提出了一种解决不同 ROI 之间的噪声和 BVP 分布不一致的问题的即插即用块。并且本文网络的贡献除了效果非常好之外，对于噪声更加鲁棒。除此之外，该网络结构并不是纯 Dual-GAN，而是由三个生成器和一个判别器组成的网络，用到了回归的方式进行训练，并非无监督训练，并且全部的 G/D 基于 CNN，网络只需要在 1080Ti 上训练 10 个 epoch 即可收敛。可以说唯一的缺点是还没开源了😭</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/HR_Dual_GAN/image-20221026192218294.png" alt="image-20221026192218294" style="zoom:60%;"></p>
+        <h2><center> AutoHR: A Strong End-to-end Baseline for Remote Heart Rate Measurement with Neural Searching </center></h2>
+
+<p>【心率检测】【SPL2020】【<a target="_blank" rel="noopener" href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&amp;arnumber=9133501">paper</a>】【<a href>code未开源</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种基于 NAS 的心率检测 backbone 设计策略，在操作域中加入了 TDC（时空差分卷积），同时提出了一种时域和频域的混合损失函数，在单数据集和跨数据集上的测试都取得了较好的结果，并且为了解决现有方法泛化能力弱的问题提出了新的数据增强策略，取得了端到端的 SOTA。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/AutoHR/image-20221106184645470.png" alt="image-20221106184645470"></p>
 <span id="more"></span>
 <hr>
 <h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>基于 Dual-GAN 的预测网络</li>
-<li>调整不同 ROI 之间噪声，BVP 分布不同的即插即用块</li>
-<li>集合了噪声生成器，增强了对环境噪音的鲁棒性</li>
+<li>首次使用 NAS 搜索 HR 任务的网络，并且在 NAS 搜索中加入了 TDC</li>
+<li>提出了一种时域频域的 loss，提出两种数据增强策略</li>
 </ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><h4 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h4><ul>
-<li><a target="_blank" rel="noopener" href="https://openaccess.thecvf.com/content_ICCV_2017/papers/Yi_DualGAN_Unsupervised_Dual_ICCV_2017_paper.pdf">Dual-GAN</a></li>
-</ul>
-<p>&emsp;&emsp;Dual-GAN 即对偶 GAN，是一篇发表于 ICCV2017 的文章，其通过对偶学习的方式提出了一种在两种具备同样语义信息之间的图像的转化方式。Dual-GAN 的网络结构如下图所示：</p>
-<p><img src="/HR_Dual_GAN/image-20221027105943129.png" alt="image-20221027105943129"></p>
-<p>&emsp;&emsp;其网络的目的是训练处两个生成器，$G_A$ 可以将素描转化为照片，$G_B$ 可以将照片转化为素描。训练的方式是使分先后顺序通过 $G_A,G_B$ 的图像分布更接近原图。简单解释这个意思：现在我们有素描的数据集和照片的数据集，把一张照片通过 $G_B$ 之后会变成素描图，这时候我们训练 $D_B$ 进行判别，强迫生成的素描图更真实。到这里和普通的 GAN 没区别，只是把 sample 的数据改成了照片。但是 Dual-GAN 还要求对于生成的素描图再通过 $G_A$ 变回去之后和原图分布一致。</p>
-<p>&emsp;&emsp;这种 GAN 适用于输出和输入都为强语义信息的数据，对于原本需要建立 label 对应的数据现在就可以进行无监督的训练了。</p>
-<ul>
-<li>STMap</li>
-</ul>
-<p><img src="/HR_Dual_GAN/image-20221027153710237.png" alt="image-20221027153710237"></p>
-<p>&emsp;&emsp;生成 STMap 的方式有很多，上图是其中一种方式，多项工作均显示了使用 STMap 代替原始输入能够得到更好的结果。简单来说，STMap 就是去除背景，仅保留 ROI 区域的图，然后将 ROI 图划分W为多个小块，每个小块划分为 YUV 三通道并拉平成 3D 序列，再将对应位置 YUV 通道的不同帧求平均。</p>
-<h4 id="前向过程"><a href="#前向过程" class="headerlink" title="前向过程"></a>前向过程</h4><p>&emsp;&emsp;正如概览中的图像，网络由多个子模块组成，首先详细解释概览图中每一项表示的具体含义：</p>
-<p>&emsp;&emsp;$Video\ v$ 表示原始输入视频，$m$ 表示由 $v$ 提取出的 STMap，其维度为 nx1xc。$F_b$ 表示心率/BVP估计器，是整个网络的核心，其输出最终被作为心率检测的结果。$s_{est}$ 表示 $m$ 通过 $F_b$ 的输出 BVP，$y_{est}$ 表示输出的心率。</p>
-<p>&emsp;&emsp;$s_{gt}$ 表示心率的 GT，$G_{phy}$ 表示通过真实心率生成不含有噪音的 STMap，输出即为 $m_{phy}$。$Z$ 为高斯随机产生的噪声，$G_{noise}$ 表示通过 $Z$ 生成随机噪声 STMap $m_n$ 的生成器。 其中，$m_{phy}\bigoplus m_n=m_{syn}$ 表示含有噪声但从 GT 生成的 STMap。$m_{phy}$ 经过 $F_b$ 之后输出为 $s_r$ 作为重建 BVP，回想 $s_r$ 的重建过程，由 $s_{gt}\to G_{phy}\to F_b\to s_r$，这个过程即为对偶学习。</p>
-<p>&emsp;&emsp;最后的判别器 $D$ 输入为 $s$ 和 $m$ 的组合，包括：1.从输入视频中得到的 STMap 和 预测出的心率，2.从输入视频中得到的 STMap 和 GT心率，3.含有噪声的 STMap 和 GT心率。其中 $D$ 认为 2 为真实，其余为虚假，以此训练。</p>
-<p>&emsp;&emsp;该文章提出了很多的损失函数，共包括：</p>
-<ul>
-<li>为了辅助回归训练的损失函数：</li>
-</ul>
+<h3 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h3><h4 id="NAS（神经结构搜索）"><a href="#NAS（神经结构搜索）" class="headerlink" title="NAS（神经结构搜索）"></a>NAS（神经结构搜索）</h4><p>&emsp;&emsp;NAS(Neural Architecture Search) 意图使用深度学习任务自主设计神经网络，其基本工作流程如下图所示。首先由人工给定搜索的空间以及搜索策略，由机器自主探索空间中的操作组成的网络结构，并根据其网络的表现更新网络架构和超参数。</p>
+<p><img src="/AutoHR/e082b8ba4993c229c993b7dfa19d4641.png" alt="img"></p>
+<p>&emsp;&emsp;但是 NAS 有着难以避免的问题：1.超参数和搜索空间的网络架构都是离散的，2.大量的超参数使得训练时间太长。为了解决这些问题，提出了层次化表示：Learning Transferable Architectures for Scalable Image Recognition，权重共享：Reinforcement Learning for Architecture Search by Network Transformation，表现预测：Progressive Neural Architecture Search 等方法。</p>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><h4 id="TDC"><a href="#TDC" class="headerlink" title="TDC"></a>TDC</h4><p>&emsp;&emsp;时空差分卷积（TDC）是一种新的卷积策略，其卷积过程大致如下图所示。具体来说，对第 $t$ 帧图像 $p_0$ 为位置的 3x3 卷积过程如下：对第 $t$ 帧图像的 $p_0$ 位置进行 expand 操作，扩展到整个 3x3 的大小，并且分别和 $t-1$，$t+1$ 帧的对应位置进行作差。注意这里的作差中 expand 的部分带有一个参数 $\theta$ 用来控制当前帧对临近帧的影响程度，对原位置直接进行卷积，并且将最终的结果相加。</p>
+<p><img src="/AutoHR/image-20221106184757405.png" alt="image-20221106184757405" style="zoom:50%;"></p>
+<p>&emsp;&emsp;上面的过程使用公式可以表示为：</p>
 <script type="math/tex; mode=display">
-\zeta_p=1-PCor(s_{est},s_{gt})\tag 1</script><script type="math/tex; mode=display">
-\zeta_{fre}=CE(PSD(s_{est},o_{gt}))\tag 2</script><script type="math/tex; mode=display">
-\zeta_{phy}=\lambda_1||y_{est}-y_{gt}||_1+\lambda_2\zeta_p+\lambda_3+\zeta_{fre}\tag 3</script><p>&emsp;&emsp;其中 $PCor$ 表示皮尔森相关性，$CE$ 表示交叉熵，$PSD$ 表示功率谱密度。公式 $(2)$ 中的 $o_{gt}$ 表示将心率的 GT $y_{gt}$ 表示为 one-hot 向量（详见原文公式 P5.Eq2）。公式 $(1),(2)$ 用于评估预测结果的质量，整体来说使用公式 $(3)$ 进行回归训练限制预测值和 GT 保持一致。</p>
-<ul>
-<li>为了训练判别器的损失函数：</li>
-</ul>
+O(p_0^t)=\mathop\sum\limits_{p_n^{t-1}\in\mathcal R_{t-1}}w(p_n^{t-1})·(I(p_0^{t-1}+p_n^{t-1})-\theta·I(p_0^t))\\+\mathop\sum\limits_{p_n^{t+1}\in\mathcal R_{t+1}}w(p_n^{t+1})·(I(p_0^{t+1}+p_n^{t+1})-\theta·I(p_0^t))\\+\mathop\sum\limits_{p_n^{t-1}\in\mathcal R_{t}}w(p_n^{t})·I(p_0^{t}+p_n^{t})</script><h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><script type="math/tex; mode=display">
+math\_express</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><hr>
+<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3><h4 id="前向过程"><a href="#前向过程" class="headerlink" title="前向过程"></a>前向过程</h4><p>&emsp;&emsp;正如概览图中所示，整个网络由一个有向无环图进行估计，记所有的操作空间为 $\mathcal O$，对于图中的每一个边 $(i,j)$，其输出为：$\tilde o^{(i,j)}(x_i)=\sum_{o\in\mathcal O}\eta_o^{(i,j)}·o(x_i)$，其中的 $o$  代表操作空间中的每一个操作，$\eta$ 由一个 softmax 的式子给出，$\eta_o^{(i,j)}=\frac{exp(\alpha_o^{(i,j)})}{\sum_{o’\in\mathcal O}exp(\alpha_{o’}^{(i,j)})}$，其中的 $\alpha_o^{(i,j)}$ 表示在边 $(i,j)$ 中操作 $o$ 的权重或系数。</p>
+<p>&emsp;&emsp;在这种表示下，可以通过如下式子进行训练从而找到最适合的 $\alpha$，在训练的过程中，由于有四个 block，这四个 block 可以以共享权重或不共享权重的方式训练，其中权重共享实际上是 NAS 的共识，这样不仅可以加速搜索，同样可以取得更好的结果。本文的消融实验也探讨了这部分。</p>
 <script type="math/tex; mode=display">
-\mathop{max}\limits_{D} \mathop{min}\limits_{F_b,G_{noise}} \zeta_{joint}=log(D(s_{gt},m))-log(D(s_{est},m))-log(D(s_{gt},m_{syn}))\tag 4</script><p>&emsp;&emsp;这个式子很简单且直观，就是要让 $D$ 将之前说的输入 2 判断为真，将输入 1 3 判断为假。</p>
-<ul>
-<li>为了训练 Dual-GAN 的损失函数：</li>
-</ul>
+\min\limits_\alpha \mathcal L_{val(\Phi^*(\alpha),\alpha)},\ s.t.\ \Phi^*(\alpha)=\arg \min\limits_\Phi\mathcal L_{train}(\Phi,\alpha)</script><p>&emsp;&emsp;通过这种方式找到的网络结构每个 cell 中的每一条边都含有所有的 $\mathcal O$ 中的网络算子，并且每一个算子都具备对应的权重，但是这样的网络结构太大，其中的多个算子中某些算子的权重其实非常低，因此作者采用这样的方法进行网络的剪枝以确定最终的网络：1.对于最终的输出 output 的入边，每个边选取一个权重最大的操作保留，2.对于其他的中间节点 B1,B2,B3 的入边，每个选取权重最大的两个操作保留。</p>
+<p><img src="/AutoHR/image-20221106195942710.png" alt="image-20221106195942710" style="zoom:50%;"></p>
+<h4 id="损失函数"><a href="#损失函数" class="headerlink" title="损失函数"></a>损失函数</h4><p>&emsp;&emsp;损失函数包括两个部分，分为时间和频率，其中时间部分就是所谓的线性相关性，具体由下式给出，并且这个函数在 rPPGNet 之中也用到了，不过 rPPGNet 更晚一些就是了。</p>
 <script type="math/tex; mode=display">
-\zeta_r=1-PCor(s_r,s_{gt})\tag 5</script><p>&emsp;&emsp;这个式子是为了限制 $s_{gt}=F_b(G_{phy}(s_{gt}))$，即限制生成器和估计器都完成各自的工作。</p>
-<p>&emsp;&emsp;网络的训练方式大致分以下四个步骤循环进行：</p>
-<ul>
-<li>使用公式 $(3)$ 训练估计器 $F_b$（回归训练，仅训练 $F_b$）</li>
-<li>锁定 $F_b$，使用公式 $(5)$ 训练生成器 $G_{phy}$（对偶学习训练）</li>
-<li>锁定 $G_{phy},D$，使用公式 $(4)$ 训练 $F_b$ 和 $G_{noise}$（相当于普通的 GAN 中 G 的训练）</li>
-<li>锁定其他所有网络，使用公式 $(4)$ 训练 $D$（相当于普通的 GAN 中 D 的训练）</li>
-</ul>
-<h4 id="组件架构"><a href="#组件架构" class="headerlink" title="组件架构"></a>组件架构</h4><ul>
-<li>$F_b,\ G_{phy},\ G_{noise}, \ D$</li>
-</ul>
-<p><img src="/HR_Dual_GAN/image-20221027144843034.png" alt="image-20221027144843034"></p>
-<p>&emsp;&emsp;这个网络架构是纯 CNN 架构，看着这些 block 已经基本可以复现论文的网络了，但是可惜的是还没有开源。</p>
-<ul>
-<li>ROI-AF</li>
-</ul>
-<p><img src="/HR_Dual_GAN/image-20221027145003786.png" alt="image-20221027145003786"></p>
-<p>&emsp;&emsp;将 STMap 按行分割，每行进行 1D-Conv，通过这种方式处理 BVP 和噪声分布差异以实现特征对齐。然后将对齐的特征根据通道和一维卷积连接起来。使用通道注意模型（即全局平均池化（GAP）后跟两个线性层（FC））来获得融合特征图。最后，融合的特征图被 reshape 成它的原始尺寸。</p>
-<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><ul>
-<li>PURE 数据集训练，PURE 数据集测试，优于部分方法（有些方法没有展示，比如 Siamese-rPPG 在 PURE 上的效果为 MAE-RMSE = 0.51-1.56）</li>
-</ul>
-<p><img src="/HR_Dual_GAN/image-20221027152524476.png" alt="image-20221027152524476"></p>
-<ul>
-<li>PURE 数据集训练，UBFC 数据集测试，优于绝大多数方法</li>
-</ul>
-<p><img src="/HR_Dual_GAN/image-20221027152703290.png" alt="image-20221027152703290"></p>
-<ul>
-<li>消融实验：1.Noise-GAN（增强对噪音的鲁棒性）2.ROI-AF（增强 BVP 信号和噪音的分布一致性）</li>
-</ul>
-<p><img src="/HR_Dual_GAN/image-20221027152834826.png" alt="image-20221027152834826"></p>
+\mathcal L_{np}=1-\frac{T\mathop\sum\limits_{i=1}^T y_iy_i^g-\mathop\sum\limits_{i=1}^Ty_i\mathop\sum\limits_{i=1}^Ty_i^g}{\sqrt{(T\mathop\sum\limits_{i=1}^Ty_i^2-(\mathop\sum\limits_{i=1}^Ty_i)^2)(T\mathop\sum\limits_{i=1}^T(y_i^g)^2-(\mathop\sum\limits_{i=1}^Ty_i^g)^2)}}</script><p>&emsp;&emsp;对于频率域，就是对 $y_i$ 求功率谱密度，然后和 GT 做比较，即：</p>
+<script type="math/tex; mode=display">
+\mathcal L_{fre}=\sum CE(PSD(y_i),y_i^g)</script><p>&emsp;&emsp;整体来说的损失函数由 $\mathcal L_{overall}=\lambda·\mathcal L_{time}+\mathcal L_{fre}$ 给出，其中 $\lambda$ 用于平衡损失。</p>
+<h4 id="数据增强"><a href="#数据增强" class="headerlink" title="数据增强"></a>数据增强</h4><p>&emsp;&emsp;本文针对现有数据集的两个问题提出了两个数据增强策略：1.头部运动可能导致 ROI 遮挡，2.HR 分布严重不平衡，呈倒 V 形。</p>
+<p>&emsp;&emsp;对于这两个问题的改进为：1.在随机时间片段（小于 20% 的空间大小和 20% 的时间长度）内随机擦除或切除部分时空管，模拟 ROI 遮挡的情况，2.对视频进行时间上采样和下采样，以生成具有极小或极大 HR 值的额外训练样本。具体来说，HR 值大于 90 bpm 的视频将被时间插值两次，而 HR 值小于 70 bpm 的视频将以采样率 2 下采样，分别模拟一半和两倍的心率。</p>
+<h3 id="结果-1"><a href="#结果-1" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文做了简单的消融实验，针对性地探究了 a）损失函数，b）TDC 中的 $\theta$ 值，c）是否具备 NAS / TDC 部分，d）是否使用数据增强策略。结果如下图所示，虽然基本上都没有提太多，但是每个方法都或多或少提了0.几 的点。</p>
+<p><img src="/AutoHR/image-20221106202041824.png" alt="image-20221106202041824" style="zoom:50%;"></p>
+<p>&emsp;&emsp;除了消融实验，本文还和目前的 SOTA 进行了比较，其中的△表示传统方法，◇表示非端到端的方法，☆表示端到端的深度学习方法。这里的 RhythmNet 是同年的论文，提出了 VIPL-HR，也是很棒的 SOTA 文章。</p>
+<p><img src="/AutoHR/image-20221106202146459.png" alt="image-20221106202146459" style="zoom:80%;"></p>
 
     </div>
 
@@ -354,7 +315,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="http://bnucsy.github.io/HR_Dual_GAN/" title="HR_Dual_GAN">http://bnucsy.github.io/HR_Dual_GAN/</a>
+    <a href="http://bnucsy.github.io/AutoHR/" title="AutoHR">http://bnucsy.github.io/AutoHR/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -371,13 +332,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/HR_CL_the_way_to_my_heart/" rel="prev" title="HR_CL_the_way_to_my_heart">
-      <i class="fa fa-chevron-left"></i> HR_CL_the_way_to_my_heart
+    <a href="/SimPER/" rel="prev" title="SimPer">
+      <i class="fa fa-chevron-left"></i> SimPer
     </a></div>
-      <div class="post-nav-item">
-    <a href="/%E5%A4%8D%E6%95%B0/" rel="next" title="复数">
-      复数 <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -437,7 +395,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Dual-GAN-Joint-BVP-and-Noise-Modeling-for-Remote-PhysiologicalMeasurement"><span class="nav-text">Dual-GAN: Joint BVP and Noise Modeling for Remote PhysiologicalMeasurement</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E8%A7%88"><span class="nav-text">概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E6%96%B0"><span class="nav-text">创新</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C"><span class="nav-text">网络</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86"><span class="nav-text">前置知识</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%89%8D%E5%90%91%E8%BF%87%E7%A8%8B"><span class="nav-text">前向过程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BB%84%E4%BB%B6%E6%9E%B6%E6%9E%84"><span class="nav-text">组件架构</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-text">结果</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> AutoHR: A Strong End-to-end Baseline for Remote Heart Rate Measurement with Neural Searching </span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E8%A7%88"><span class="nav-text">概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E6%96%B0"><span class="nav-text">创新</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86"><span class="nav-text">前置知识</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#NAS%EF%BC%88%E7%A5%9E%E7%BB%8F%E7%BB%93%E6%9E%84%E6%90%9C%E7%B4%A2%EF%BC%89"><span class="nav-text">NAS（神经结构搜索）</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C"><span class="nav-text">网络</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#TDC"><span class="nav-text">TDC</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8D%9F%E5%A4%B1"><span class="nav-text">损失</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-text">结果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%AF%E5%8F%91"><span class="nav-text">启发</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%89%8D%E5%90%91%E8%BF%87%E7%A8%8B"><span class="nav-text">前向过程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0"><span class="nav-text">损失函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%A2%9E%E5%BC%BA"><span class="nav-text">数据增强</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C-1"><span class="nav-text">结果</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
