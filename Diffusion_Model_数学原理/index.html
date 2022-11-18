@@ -33,7 +33,7 @@
 <meta property="og:image" content="http://bnucsy.github.io/Diffusion_Model_%E6%95%B0%E5%AD%A6%E5%8E%9F%E7%90%86/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2NqaF9qaW5kdW94aWE=,size_16,color_FFFFFF,t_70.png">
 <meta property="og:image" content="http://bnucsy.github.io/Diffusion_Model_%E6%95%B0%E5%AD%A6%E5%8E%9F%E7%90%86/image-20221117114810759.png">
 <meta property="article:published_time" content="2022-11-17T03:35:45.000Z">
-<meta property="article:modified_time" content="2022-11-18T09:19:02.695Z">
+<meta property="article:modified_time" content="2022-11-18T10:17:13.287Z">
 <meta property="article:author" content="ShuYang Chu">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://bnucsy.github.io/Diffusion_Model_%E6%95%B0%E5%AD%A6%E5%8E%9F%E7%90%86/image-20221118092337442.png">
@@ -197,7 +197,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-11-18 17:19:02" itemprop="dateModified" datetime="2022-11-18T17:19:02+08:00">2022-11-18</time>
+                <time title="修改时间：2022-11-18 18:17:13" itemprop="dateModified" datetime="2022-11-18T18:17:13+08:00">2022-11-18</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -413,7 +413,7 @@ D_{KL}(p,q)=\log\frac{\sigma_2}{\sigma_1}+\frac{\sigma_1^2+(\mu_1-\mu_2)^2}{2\si
 q(x_t|x_{t-1})=\mathcal N(x_t;\sqrt{1-\beta_t}x_{t-1},\beta_tI)\tag 7</script><ul>
 <li>对于 $0\to T$ 个状态，由马尔科夫过程，可以得出 $q(x_{1:T}|x_0)=\Pi_{t=1}^T q(x_t|x_{t-1})$，这也说明了所有过程的分布都是确定的</li>
 </ul>
-<h5 id="任意状态-t-的-x-t-与-x-0-beta-t-的关系"><a href="#任意状态-t-的-x-t-与-x-0-beta-t-的关系" class="headerlink" title="任意状态 $t$ 的 $x_t$ 与 $x_0,\ \beta_t$ 的关系"></a>任意状态 $t$ 的 $x_t$ 与 $x_0,\ \beta_t$ 的关系</h5><p>ds；事实上，任何一个状态的分布 $x_t$ 都可以由 $x_0$ 和 $\beta_{0:t}$ 唯一确定。直觉上是很好理解的，由于扩散过程本质上是一个迭代的过程，而上一小节我们已经给出了 $x_{t-1}\to x_t$ 的递推，我们自然是可以总结出通项公式的，其推导过程如下：</p>
+<h5 id="任意状态-t-的-x-t-与-x-0-beta-t-的关系"><a href="#任意状态-t-的-x-t-与-x-0-beta-t-的关系" class="headerlink" title="任意状态 $t$ 的 $x_t$ 与 $x_0,\ \beta_t$ 的关系"></a>任意状态 $t$ 的 $x_t$ 与 $x_0,\ \beta_t$ 的关系</h5><p>&emsp;&emsp;事实上，任何一个状态的分布 $x_t$ 都可以由 $x_0$ 和 $\beta_{0:t}$ 唯一确定。直觉上是很好理解的，由于扩散过程本质上是一个迭代的过程，而上一小节我们已经给出了 $x_{t-1}\to x_t$ 的递推，我们自然是可以总结出通项公式的，其推导过程如下：</p>
 <script type="math/tex; mode=display">
 \begin{aligned}
 x_t&=\sqrt{1-\beta_t}x_{t-1}+\sqrt{\beta_t}z_1，其中z_1\sim\mathcal N(0,I)，这里用到了式(7)和重参数技巧，尤其注意 \sigma\&\sigma^2\\
@@ -423,8 +423,8 @@ x_t&=\sqrt{1-\beta_t}x_{t-1}+\sqrt{\beta_t}z_1，其中z_1\sim\mathcal N(0,I)，
 &=\sqrt{\alpha_t\alpha_{t-1}}x_{t-2}+\sqrt{1-\alpha_t\alpha_{t-1}}z_3，不理解请看重参数技巧的最后一步，其中z_3\sim\mathcal N(0,I)\\
 &\cdots\cdots\\
 &=\sqrt{\bar\alpha_t}x_0+\sqrt{1-\bar \alpha_t}z，着重观察本公式第二、五行，是简单的递推改通项，其中z\sim\mathcal N(0,I)
-\end{aligned}\tag 8</script><p>ds；也就是说在网络的实现过程中，我们实际上式不需要逐层迭代来求 $x_t$ 的，而是可以直接根据已知的常数和 $x_0$ 计算得到 $x_t$ 的分布。</p>
-<h5 id="为什么最终的-x-T-sim-mathcal-N-0-I"><a href="#为什么最终的-x-T-sim-mathcal-N-0-I" class="headerlink" title="为什么最终的 $x_T\sim \mathcal N(0,I)$"></a>为什么最终的 $x_T\sim \mathcal N(0,I)$</h5><p>ds；由上一小节可以知道，对于最终的 $T$ 状态的分布，证明其在 $T$ 足够大时为标准正态分布：</p>
+\end{aligned}\tag 8</script><p>&emsp;&emsp;也就是说在网络的实现过程中，我们实际上式不需要逐层迭代来求 $x_t$ 的，而是可以直接根据已知的常数和 $x_0$ 计算得到 $x_t$ 的分布。</p>
+<h5 id="为什么最终的-x-T-sim-mathcal-N-0-I"><a href="#为什么最终的-x-T-sim-mathcal-N-0-I" class="headerlink" title="为什么最终的 $x_T\sim \mathcal N(0,I)$"></a>为什么最终的 $x_T\sim \mathcal N(0,I)$</h5><p>&emsp;&emsp;由上一小节可以知道，对于最终的 $T$ 状态的分布，证明其在 $T$ 足够大时为标准正态分布：</p>
 <script type="math/tex; mode=display">
 \begin{aligned}
 &\because x_T=\sqrt{\bar\alpha_T}x_0+\sqrt{1-\bar \alpha_T}z，其中x_0\sim q(x_0),\ z\sim\mathcal N(0,I)\\
@@ -434,7 +434,7 @@ x_t&=\sqrt{1-\beta_t}x_{t-1}+\sqrt{\beta_t}z_1，其中z_1\sim\mathcal N(0,I)，
 &\therefore\lim_{T\to\infty}\bar\alpha_T\to0\\
 &\therefore\lim_{T\to\infty}x_T\to z\\
 &\therefore\lim_{T\to\infty}x_T\sim\mathcal N(0,I)
-\end{aligned}</script><p>ds；而在计算的过程中不可能真的算到无穷，因此 $T$ 可以使 $\bar\alpha_t$ 取得一个小数字的时候即可，因而通过我们对“小数字”的认定，就可以算出 $T$。</p>
+\end{aligned}</script><p>&emsp;&emsp;而在计算的过程中不可能真的算到无穷，因此 $T$ 可以使 $\bar\alpha_t$ 取得一个小数字的时候即可，因而通过我们对“小数字”的认定，就可以算出 $T$。</p>
 <h4 id="逆扩散过程"><a href="#逆扩散过程" class="headerlink" title="逆扩散过程"></a>逆扩散过程</h4><ul>
 <li>逆扩散过程即从标准正态分布采样出 $x_T$，通过预测函数 $p_\theta$ 反推出 $x_0$ 的过程，其从 $x_t\to x_{t-1}$ 的过程表示为 $p_\theta(x_{t-1}|x_t)$</li>
 <li>同样由于每一步的结果只和前一步有关，因此可以视为一个马尔科夫过程</li>
@@ -452,7 +452,7 @@ p_\theta(x_{t-1}|x_{t})=\mathcal N(x_{t-1};\mu_\theta(x_t,t),\Sigma_\theta)\tag 
 </ul>
 </li>
 </ul>
-<h5 id="后验扩散条件概率-q-x-t-1-x-t-x-0-的表示"><a href="#后验扩散条件概率-q-x-t-1-x-t-x-0-的表示" class="headerlink" title="后验扩散条件概率 $q(x_{t-1}|x_t,x_0)$ 的表示"></a>后验扩散条件概率 $q(x_{t-1}|x_t,x_0)$ 的表示</h5><p>ds；我们希望通过 $x_t$ 直接在无参的情况下求得 $x_{t-1}$，但是很难求解 $q(x_{t-1}|x_t)$，不过如果再给我们一个 $x_0$ 直观上就可以实现了，因此我们尝试探索一下 $q(x_{t-1}|x_t,x_0)$，化简这个表达式的目的是直接从 $x_t$ 得到 $x_{t-1}$ 的均值，并且期望通过一个网络就能够预测所有的逆扩散过程，说白了就是写出 $p_\theta(x_{t-1}|x_t)$ 的期望输出用于构造损失。记 $q(x_{t-1}|x_t,x_0)\sim\mathcal N(x_{t-1};\tilde\mu_t(x_t,x_0),\tilde\beta_tI)$，则有：</p>
+<h5 id="后验扩散条件概率-q-x-t-1-x-t-x-0-的表示"><a href="#后验扩散条件概率-q-x-t-1-x-t-x-0-的表示" class="headerlink" title="后验扩散条件概率 $q(x_{t-1}|x_t,x_0)$ 的表示"></a>后验扩散条件概率 $q(x_{t-1}|x_t,x_0)$ 的表示</h5><p>&emsp;&emsp;我们希望通过 $x_t$ 直接在无参的情况下求得 $x_{t-1}$，但是很难求解 $q(x_{t-1}|x_t)$，不过如果再给我们一个 $x_0$ 直观上就可以实现了，因此我们尝试探索一下 $q(x_{t-1}|x_t,x_0)$，化简这个表达式的目的是直接从 $x_t$ 得到 $x_{t-1}$ 的均值，并且期望通过一个网络就能够预测所有的逆扩散过程，说白了就是写出 $p_\theta(x_{t-1}|x_t)$ 的期望输出用于构造损失。记 $q(x_{t-1}|x_t,x_0)\sim\mathcal N(x_{t-1};\tilde\mu_t(x_t,x_0),\tilde\beta_tI)$，则有：</p>
 <script type="math/tex; mode=display">
 \begin{aligned}
 求解后验概率q(x_{t-1}|x_t,x_0)&=q(x_t|x_{t-1},x_0)\frac{q(x_{t-1}|x_0)}{q(x_t|x_0)}，将分母乘过去，左右均为q(x_t,x_{t-1}|x_0)\\
@@ -460,14 +460,14 @@ p_\theta(x_{t-1}|x_{t})=\mathcal N(x_{t-1};\mu_\theta(x_t,t),\Sigma_\theta)\tag 
 &=\mathcal N(x_t;\sqrt{1-\beta_t}x_{t-1},\beta_tI)\cdot\frac{\mathcal N(x_{t-1};\sqrt{\bar\alpha_{t-1}}x_0,(1-\bar\alpha_{t-1})I)}{\mathcal N(x_t;\sqrt{\bar\alpha_t}x_0,(1-\bar\alpha_t)I)}，根据式(7)(8)进行替换\\
 &\propto \exp(-\frac 1 2(\frac{(x_t-\sqrt{\alpha_t}x_{t-1})^2}{\beta_t}+\frac{(x_{t-1}-\sqrt{\bar\alpha_{t-1}}x_0)^2}{1-\bar \alpha_{t-1}}-\frac{(x_t-\sqrt{\bar\alpha_t}x_0)^2}{1-\bar \alpha_{t}})，按照高斯分布进行展开后化简即可\\
 &=\exp(-\frac 1 2((\underbrace{\frac{\alpha_t}{\beta_t}+\frac{1}{1-\bar\alpha_{t-1}}}_{A})x_{t-1}^2-(\underbrace{\frac{2\sqrt{\alpha_t}}{\beta_t}x_t+\frac{2\sqrt{\bar\alpha_{t-1}}}{1-\bar\alpha_{t-1}}x_0}_B)x_{t-1}+\underbrace{\frac{x_t^2}{\beta_t}+\frac{\bar\alpha_{t-1}}{1-\bar\alpha_{t-1}}-\frac{(x_t-\sqrt{\bar\alpha_t}x_0)^2}{1-\bar \alpha_{t}}}_C))\\
-\end{aligned}\tag 9</script><p>ds；注意到，$\forall a,b,ax^2+bx=a(x+\frac{b}{2a})^2+C$，又由高斯分布概率密度公式，式 $(9)$ 可以描述为 $e^{-\frac 1 2 A(x+\frac{B}{2A})^2}\cdot e^{C’}$， 因此对标高斯分布，可以得出：$\tilde\mu_t=-\frac {B}{2A}, \tilde\sigma_t^2=\frac 1 A$，化简之后为：$\tilde\mu_t=\frac{\sqrt{\alpha_t}(1-\bar\alpha_{t-1})}{1-\bar\alpha_t}x_t+\frac{\sqrt{\bar\alpha_{t-1}}(1-\alpha_t)}{1-\bar\alpha_t}x_0$，$\tilde \beta_t=\frac{1-\bar\alpha_{t-1}}{1-\bar\alpha_t}\cdot\beta_t$。</p>
-<p>ds；对于上面的结果，我们发现 $\tilde\beta_{t}$ 就是个常数，也就对应了之前中间状态小节中的第二个常数的尝试值（加粗处）</p>
-<p>ds；又由式 $(8)$，得到 $x_0=\frac 1 {\sqrt{\bar\alpha_t}}(x_t-\sqrt{1-\bar\alpha_t}z_t)$，带入式 $(9)$，可得最终的化简结果：</p>
+\end{aligned}\tag 9</script><p>&emsp;&emsp;注意到，$\forall a,b,ax^2+bx=a(x+\frac{b}{2a})^2+C$，又由高斯分布概率密度公式，式 $(9)$ 可以描述为 $e^{-\frac 1 2 A(x+\frac{B}{2A})^2}\cdot e^{C’}$， 因此对标高斯分布，可以得出：$\tilde\mu_t=-\frac {B}{2A}, \tilde\sigma_t^2=\frac 1 A$，化简之后为：$\tilde\mu_t=\frac{\sqrt{\alpha_t}(1-\bar\alpha_{t-1})}{1-\bar\alpha_t}x_t+\frac{\sqrt{\bar\alpha_{t-1}}(1-\alpha_t)}{1-\bar\alpha_t}x_0$，$\tilde \beta_t=\frac{1-\bar\alpha_{t-1}}{1-\bar\alpha_t}\cdot\beta_t$。</p>
+<p>&emsp;&emsp;对于上面的结果，我们发现 $\tilde\beta_{t}$ 就是个常数，也就对应了之前中间状态小节中的第二个常数的尝试值（加粗处）</p>
+<p>&emsp;&emsp;又由式 $(8)$，得到 $x_0=\frac 1 {\sqrt{\bar\alpha_t}}(x_t-\sqrt{1-\bar\alpha_t}z_t)$，带入式 $(9)$，可得最终的化简结果：</p>
 <script type="math/tex; mode=display">
 \begin{cases}
 \tilde\mu_t=\frac 1 {\sqrt{\alpha_t}}(x_t-\frac{\beta_t}{\sqrt{1-\bar\alpha_t}}z_t)\\
 \tilde\sigma_t^2=\frac{1-\bar\alpha_{t-1}}{1-\bar\alpha_t}\cdot\beta_t
-\end{cases}\tag{10}</script><h5 id="最大似然估计目标函数-p-theta-及优化"><a href="#最大似然估计目标函数-p-theta-及优化" class="headerlink" title="最大似然估计目标函数 $p_\theta$ 及优化"></a>最大似然估计目标函数 $p_\theta$ 及优化</h5><p>ds；和 VAE 基本保持一致，这里对 $p_\theta$ 的优化也是通过最大似然的方式寻找下界，然后最大化下界并分解为多个优化目标然后给出损失函数。在求解的过程略有不同，VAE 是最大化 $\log p_\theta(x)$，而 DDPM 是最小化 $-\log p_\theta(x)$（其实没啥区别），其具体的优化过程为：</p>
+\end{cases}\tag{10}</script><h5 id="最大似然估计目标函数-p-theta-及优化"><a href="#最大似然估计目标函数-p-theta-及优化" class="headerlink" title="最大似然估计目标函数 $p_\theta$ 及优化"></a>最大似然估计目标函数 $p_\theta$ 及优化</h5><p>&emsp;&emsp;和 VAE 基本保持一致，这里对 $p_\theta$ 的优化也是通过最大似然的方式寻找下界，然后最大化下界并分解为多个优化目标然后给出损失函数。在求解的过程略有不同，VAE 是最大化 $\log p_\theta(x)$，而 DDPM 是最小化 $-\log p_\theta(x)$（其实没啥区别），其具体的优化过程为：</p>
 <script type="math/tex; mode=display">
 \begin{aligned}
 最小化:-\log p_\theta(x_0)&\leq-\log p_\theta(x_0)+D_{KL}(q(x_{1:T}|x_0)||p_\theta(x_{1:T}|x_0))，因为KL散度一定>0\\
@@ -476,7 +476,7 @@ p_\theta(x_{t-1}|x_{t})=\mathcal N(x_{t-1};\mu_\theta(x_t,t),\Sigma_\theta)\tag 
 &=-\log p_\theta(x_0)+\mathbb E_{x_{1:T}\sim q}[\log \frac{q(x_{1:T}|x_0)}{p_\theta(x_{0:T})}+\log p_\theta(x_0)]，\log的展开\\
 &=\mathbb E_{x_{1:T}\sim q}[\log \frac{q(x_{1:T}|x_0)}{p_\theta(x_{0:T})}]，消项\\
 &\leq \mathbb E_{x_{0:T}\sim q}[\log \frac{q(x_{1:T}|x_0)}{p_\theta(x_{0:T})}]:=L_{VLB}
-\end{aligned}\tag{11}</script><p>ds；故而我们只需要最小化 $L_{VLB}$ 节课，而对于 $L_{VLB}$，有：</p>
+\end{aligned}\tag{11}</script><p>&emsp;&emsp;故而我们只需要最小化 $L_{VLB}$ 节课，而对于 $L_{VLB}$，有：</p>
 <script type="math/tex; mode=display">
 \begin{aligned}
 最小化:L_{VLB}&=\mathbb E_{x_{0:T}\sim q}[\log \frac{q(x_{1:T}|x_0)}{p_\theta(x_{0:T})}]\\
@@ -491,19 +491,19 @@ p_\theta(x_{t-1}|x_{t})=\mathcal N(x_{t-1};\mu_\theta(x_t,t),\Sigma_\theta)\tag 
 &=\mathbb E_{x_{0:T}\sim q}[\log\frac{q(x_{T}|x_0)}{p_\theta(x_T)}+ \sum_{t=2}^T\log \frac{ q(x_{t-1}|x_t,x_0)}{p_\theta(x_{t-1}|x_t)} +\log \frac {q(x_0|x1,x_0)} {p_\theta(x_0|x_1)}]，因为q(x_0|x1,x_0)=1\\
 &=\mathbb E_{x_{0:T}\sim q}[\log\frac{q(x_{T}|x_0)}{p_\theta(x_T)}+ \sum_{t=2}^T\log \frac{ q(x_{t-1}|x_t,x_0)}{p_\theta(x_{t-1}|x_t)}]，合并至一处\\
 &=\mathbb  E_{x_{0:T-1}\sim q}[\underbrace{D_{KL}(q(x_{T}|x_0)||p_\theta(x_T))}_{L_0}]+ E_{x_{0,T}\sim q}[\sum_{t=1}^T\underbrace{D_{KL}( q(x_{t-1}|x_t,x_0)||p_\theta(x_{t-1}|x_t))}_{L_t}]，对第一项积 x_T，第二项积x_{1:T-1}
-\end{aligned}\tag{12}</script><p>ds；对于 $L_t$，其在宏观上表示了预测图和扩散过程图的分布一致性，由于我们假设这两个分布都是高斯分布，因此代入高斯分布下的 $KL$ 散度计算公式将会得到一个很复杂的式子，但是式 $(10)$ 注意到我们可以直接用 $\tilde\beta_t\ \mathrm{or}\ \beta_t$ 直接 $\beta_t$ 作为方差，因此其实只需要最小化带有 $\mu$ 的部分，只保留高斯 $KL$ 散度的 $\mu$ 之后的化简结果为</p>
+\end{aligned}\tag{12}</script><p>&emsp;&emsp;对于 $L_t$，其在宏观上表示了预测图和扩散过程图的分布一致性，由于我们假设这两个分布都是高斯分布，因此代入高斯分布下的 $KL$ 散度计算公式将会得到一个很复杂的式子，但是式 $(10)$ 注意到我们可以直接用 $\tilde\beta_t\ \mathrm{or}\ \beta_t$ 直接 $\beta_t$ 作为方差，因此其实只需要最小化带有 $\mu$ 的部分，只保留高斯 $KL$ 散度的 $\mu$ 之后的化简结果为</p>
 <script type="math/tex; mode=display">
-L_t=\mathbb E_q[\frac 1{2\sigma_t^2}||\tilde\mu_t(x_t,x_0)-\mu_\theta(x_t,t)||]\tag{13}</script><p>ds；事实上由式 $(10)$，有 $\tilde\mu_t=\frac 1 {\sqrt{\alpha_t}}(x_t-\frac{\beta_t}{\sqrt{1-\bar\alpha_t}}z_t)$，因此我们对于 $\mu_\theta$ 的优化目标也应该是这个式子，考虑到重参数技巧，我们实际估计的是正态分布 $z_\theta(x_t,t)$，其表达式应当写成</p>
+L_t=\mathbb E_q[\frac 1{2\sigma_t^2}||\tilde\mu_t(x_t,x_0)-\mu_\theta(x_t,t)||]\tag{13}</script><p>&emsp;&emsp;事实上由式 $(10)$，有 $\tilde\mu_t=\frac 1 {\sqrt{\alpha_t}}(x_t-\frac{\beta_t}{\sqrt{1-\bar\alpha_t}}z_t)$，因此我们对于 $\mu_\theta$ 的优化目标也应该是这个式子，考虑到重参数技巧，我们实际估计的是正态分布 $z_\theta(x_t,t)$，其表达式应当写成</p>
 <script type="math/tex; mode=display">
-\mu_\theta(x_t,t)=\frac 1 {\sqrt{\alpha_t}}(x_t-\frac{\beta_t}{\sqrt{1-\bar\alpha_t}}z_\theta(x_t,t))\tag{14}</script><p>ds；据此，将式 $(8),\ (10),\ (14)$ 代入式 $(13)$，得出 $L_t$ 的最终优化目标为</p>
+\mu_\theta(x_t,t)=\frac 1 {\sqrt{\alpha_t}}(x_t-\frac{\beta_t}{\sqrt{1-\bar\alpha_t}}z_\theta(x_t,t))\tag{14}</script><p>&emsp;&emsp;据此，将式 $(8),\ (10),\ (14)$ 代入式 $(13)$，得出 $L_t$ 的最终优化目标为</p>
 <script type="math/tex; mode=display">
 \begin{aligned}
 L_t&=\mathbb E_z[\frac{\beta_t^2}{2\sigma_t^2\alpha_t(1-\bar\alpha_t)}||z-z_\theta(x_t,t)||^2]，代入式(10),(14)\\
 &=\mathbb E_z[\frac{\beta_t^2}{2\sigma_t^2\alpha_t(1-\bar\alpha_t)}||z-z_\theta(\sqrt{\bar\alpha_t}x_0+\sqrt{1-\bar \alpha_t}z,t)||^2]，代入式(8)
-\end{aligned}\tag{15}</script><p>ds；丢掉不影响训练的常数，损失函数就可以写为：</p>
+\end{aligned}\tag{15}</script><p>&emsp;&emsp;丢掉不影响训练的常数，损失函数就可以写为：</p>
 <script type="math/tex; mode=display">
-L_t=\mathbb E_{x_0,t,z}[||z-z_\theta(\sqrt{\bar\alpha_t}x_0+\sqrt{1-\bar \alpha_t}z,t)||^2]\tag{16}</script><p>ds；其中，$x_0,t$ 均为已知的输入，$z$ 是标准正态分布，直白来说，我们最小化 $L_t$ 的目的就是使逆扩散过程中预测出的中间过程和扩散过程产生的对应过程特征图均值一致，而方差以不学习的方式直接给出。</p>
-<p>ds；对于 $L_0$，其本质上和 VAE 中式 $(6)$ 一致，</p>
+L_t=\mathbb E_{x_0,t,z}[||z-z_\theta(\sqrt{\bar\alpha_t}x_0+\sqrt{1-\bar \alpha_t}z,t)||^2]\tag{16}</script><p>&emsp;&emsp;其中，$x_0,t$ 均为已知的输入，$z$ 是标准正态分布，直白来说，我们最小化 $L_t$ 的目的就是使逆扩散过程中预测出的中间过程和扩散过程产生的对应过程特征图均值一致，而方差以不学习的方式直接给出。</p>
+<p>&emsp;&emsp;对于 $L_0$，其本质上和 VAE 中式 $(6)$ 一致，</p>
 <h3 id="网络实现"><a href="#网络实现" class="headerlink" title="网络实现"></a>网络实现</h3><h3 id="论文结果"><a href="#论文结果" class="headerlink" title="论文结果"></a>论文结果</h3>
     </div>
 
