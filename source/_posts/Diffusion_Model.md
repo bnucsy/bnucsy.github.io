@@ -2,6 +2,7 @@
 title: Diffusion_Model
 categories: [paper, cv]
 mathjax: true
+date: 2022-10-16 09:31:37
 ---
 
 <h2><center> Denoising Diffusion Probabilistic Models </center></h2>

@@ -2,6 +2,7 @@
 title: 毕设进度记录
 categories: [paper, mypaper]
 mathjax: true
+date: 2022-08-13 09:31:37
 ---
 
 ## <center>基于单张RGB图像的光场表征</center>

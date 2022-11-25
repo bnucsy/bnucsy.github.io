@@ -2,6 +2,7 @@
 title: HR_Dual_GAN
 categories: [paper, cv, hr]
 mathjax: true
+date: 2022-10-14 09:31:37
 ---
 
 ## Dual-GAN: Joint BVP and Noise Modeling for Remote PhysiologicalMeasurement

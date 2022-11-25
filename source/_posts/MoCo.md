@@ -2,6 +2,7 @@
 title: MoCo_V1_V2_V3
 categories: [paper, cv]
 mathjax: true
+date: 2022-08-16 09:31:37
 ---
 
 ## [Momentum_Contrast_for_Unsupervised_Visual_Representation_Learning](https://openaccess.thecvf.com/content_CVPR_2020/papers/He_Momentum_Contrast_for_Unsupervised_Visual_Representation_Learning_CVPR_2020_paper.pdf) 【目标检测、图像分割】 CVPR2020

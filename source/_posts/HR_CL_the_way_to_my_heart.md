@@ -2,6 +2,7 @@
 title: HR_CL_the_way_to_my_heart
 categories: [paper, cv, hr]
 mathjax: true
+date: 2022-10-14 09:31:37
 ---
 
 ## The Way to my Heart is through Contrastive Learning:Remote Photoplethysmography from Unlabelled Video

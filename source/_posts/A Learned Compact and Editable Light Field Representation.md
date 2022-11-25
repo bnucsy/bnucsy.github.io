@@ -2,6 +2,7 @@
 title: A Learned Compact and Editable Light Field Representation
 categories: [paper, cv]
 mathjax: true
+date: 2022-08-13 09:31:37
 ---
 
 ## [A Learned Compact and Editable Light Field Representation](https://arxiv.org/abs/2103.11314)【光场压缩、编辑传播】【arxiv】
@@ -120,5 +121,4 @@ mathjax: true
 
 &emsp; &emsp;我们可以看到，无论是颜色编辑、颜色转换、阴影去除、风格转换、对比增强等针对2D图片的编辑方法，在本模型的支持下均完成了对于重建光场的一致性传播。
  <img src='https://img-blog.csdnimg.cn/f7655d1624894b87a117e25801a7b14d.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16' width=110% align='center'></img>
-
 

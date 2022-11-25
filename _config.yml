@@ -119,3 +119,9 @@ symbols_count_time:
   time: true
   total_symbols: false
   total_time: false
+
+search: 
+  path: search.xml
+  field: post
+  format: html
+  limit: 10000

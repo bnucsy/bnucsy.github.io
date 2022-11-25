@@ -2,6 +2,7 @@
 title: Meta-rPPG
 categories: [paper, cv, hr]
 mathjax: true
+date: 2022-10-15 09:31:37
 ---
 
 <h2><center> Meta-rPPG: Remote Heart Rate Estimation Using a Transductive Meta-Learner </center></h2>

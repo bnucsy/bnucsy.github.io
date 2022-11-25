@@ -2,6 +2,7 @@
 title: LeetCode-761. 特殊的二进制序列
 categories: [code, LeetCode]
 mathjax: true
+date: 2022-08-13 09:31:37
 ---
 
 ## LeetCode-[761. 特殊的二进制序列](https://leetcode.cn/problems/special-binary-string/)

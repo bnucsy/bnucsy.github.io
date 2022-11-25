@@ -2,6 +2,7 @@
 title: 基于transformer的光场超分辨率重建
 categories: [paper, cv]
 mathjax: true
+date: 2022-08-13 09:31:37
 ---
 
 ## [Light Field Image Super-Resolution With Transformers](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9695363)【光场超分】【SLP】

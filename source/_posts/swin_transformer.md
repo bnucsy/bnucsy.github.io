@@ -2,6 +2,7 @@
 title: Swin_Transformer
 categories: [paper, cv]
 mathjax: true
+date: 2022-08-17 09:31:37
 ---
 
 ## [Swin_Transformer_Hierarchical_Vision_Transformer_Using_Shifted_Windows](https://arxiv.org/abs/2103.14030) 【图像分类、目标检测、语义分割】 ICCV
@@ -53,7 +54,7 @@ mathjax: true
 
 &emsp;&emsp;这里的部分是整个工作最重要的部分，在这里讲述了窗口自注意力机制的计算方式，以及如何进行 shift window，包括之后的移位回位以及掩码设置。整体来说，对于上一个输入 $Z^{i-1}$，需要经过 $\rm LayerNorm, WMSA,Add,SWMSA,MLP$ 这些操作才能得到 $Z^{i+1}$。也就是每一个 swinTransformerBlock 需要做两次自注意力的计算。具体地，这个过程可以用如下公式表示，其中 $\hat Z$ 是中间变量：
 $$
-\hat Z^{i}=W\_MSA(LN(Z^{i-1}))+Z^{i-1}
+\hat Z^{i}=W\_MSA(LN(Z^{i-1}))+Z^{i-1}
 $$
 
 $$

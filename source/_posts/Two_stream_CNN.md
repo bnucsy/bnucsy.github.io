@@ -2,6 +2,7 @@
 title: Two_stream_CNN
 categories: [paper, cv, video]
 mathjax: true
+date: 2022-08-18 09:31:37
 ---
 
 ## [Two-stream convolutional networks for action recognition in videos](https://proceedings.neurips.cc/paper/2014/file/00ec53c4682d36f5c4359f4ae7bd7ba1-Paper.pdf) 【视频动作识别】 NIPS2014

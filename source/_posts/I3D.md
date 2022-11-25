@@ -2,6 +2,7 @@
 title: I3D
 categories: [paper, cv, video]
 mathjax: true
+date: 2022-08-15 09:31:37
 ---
 
 ## [Quo Vadis, Action Recognition? A New Model and the Kinetics Dataset](https://openaccess.thecvf.com/content_cvpr_2017/papers/Carreira_Quo_Vadis_Action_CVPR_2017_paper.pdf) 【视频动作识别】 CVPR2017

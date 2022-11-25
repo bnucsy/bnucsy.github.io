@@ -2,6 +2,7 @@
 title: AutoHR
 categories: [paper, cv, hr]
 mathjax: true
+date: 2022-10-14 09:31:37
 ---
 
 <h2><center> AutoHR: A Strong End-to-end Baseline for Remote Heart Rate Measurement with Neural Searching </center></h2>

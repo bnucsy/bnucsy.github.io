@@ -2,6 +2,7 @@
 title: MAE_源码级精读
 categories: [paper, cv]
 mathjax: true
+date: 2022-08-16 09:31:37
 ---
 
 ## [Masked Autoencoders Are Scalable Vision Learners](url) 【图像分类、语义分割、目标检测】 CVPR2022

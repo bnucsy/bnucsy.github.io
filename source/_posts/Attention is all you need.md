@@ -2,6 +2,7 @@
 title: 原始transformer
 categories: [paper, nlp]
 mathjax: true
+date: 2022-08-15 09:31:37
 ---
 
 ## [attention is all you need](https://papers.nips.cc/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf)【机器翻译】【NIPS】

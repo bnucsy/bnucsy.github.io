@@ -2,6 +2,7 @@
 title: video_transformers
 categories: [paper, cv, video]
 mathjax: true
+date: 2022-08-19 09:31:37
 ---
 
 <h2><center>视频理解综述-从 I3D 到 video transformers</center></h2>

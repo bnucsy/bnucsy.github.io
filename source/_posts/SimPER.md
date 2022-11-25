@@ -2,6 +2,7 @@
 title: SimPer
 categories: [paper, cv, hr]
 mathjax: true
+date: 2022-9-14 09:31:37
 ---
 
 <h2><center> SIMPER: SIMPLE SELF-SUPERVISED LEARNING OF PERIODIC TARGETS </center></h2>

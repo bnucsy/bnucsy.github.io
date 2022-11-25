@@ -2,6 +2,7 @@
 title: AN IMAGE IS WORTH 16X16 WORDS
 categories: [paper, cv]
 mathjax: true
+date: 2022-08-18 09:31:37
 ---
 
 ## [AN IMAGE IS WORTH 16X16 WORDS](https://arxiv.org/abs/2010.11929)  【图像分类】 ICLR

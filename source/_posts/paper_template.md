@@ -2,6 +2,7 @@
 title: XXXX
 categories: [template]
 mathjax: true
+date: 2022-08-12 09:31:37
 ---
 
 <h2><center> paper_name </center></h2>

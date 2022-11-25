@@ -2,6 +2,7 @@
 title: LeetCode-XX XXXX
 categories: [template]
 mathjax: true
+date: 2022-08-12 09:31:37
 ---
 
 ## LeetCode-XX XXXX

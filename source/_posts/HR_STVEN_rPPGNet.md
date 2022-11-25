@@ -2,6 +2,7 @@
 title: HR_STVEN_rPPGNet
 categories: [paper, cv, hr]
 mathjax: true
+date: 2022-10-13 09:31:37
 ---
 
 <h2><center>Remote Heart Rate Measurement from Highly Compressed Facial Videos: an End-to-end Deep Learning Solution with Video Enhancement</center></h2>

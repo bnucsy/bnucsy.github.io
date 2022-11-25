@@ -2,6 +2,7 @@
 title: represent-light-field-with-a-single-image
 categories: [paper, mypaper]
 mathjax: true
+date: 2022-08-14 09:31:37
 ---
 
 ## [Represent LightField With A Single Image](https://gitee.com/bnucsy/represent-light-field-with-a-single-rgb-image)【光场压缩】【not published】
