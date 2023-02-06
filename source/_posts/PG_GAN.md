@@ -1,5 +1,5 @@
 ---
-title: PG_GAN
+title: PGGAN
 categories: [paper, cv]
 mathjax: true
 date: 2023-01-04 09:31:37
@@ -15,7 +15,7 @@ date: 2023-01-04 09:31:37
 
 ### 概览
 
-![image-20230104212316211](PG_GAN/image-20230104212316211.png)
+![image-20230105204451398](PG_GAN/image-20230105204451398.png)
 
 <!-- more -->
 
