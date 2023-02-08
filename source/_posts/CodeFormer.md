@@ -129,7 +129,21 @@ ds；需要注意的是，对于 VQGAN，其 transformer 需要预测的序列�
 
 ![image-20230208214441190](CodeFormer/image-20230208214441190.png)
 
-ds；整个网络结构很好理解，类比于 VQGAN，仍然是
+ds；在本文中，一些符号被重新命名，HQ 输入图像记为 $I_h$，编码器，解码器，判别器分别为 $E,\ G,\ D$，通过编码器之后的隐编码记为 $Z_h\in\mathbb R^{m\times n\times d}$，码表记为 $\mathcal C =\{c_k\in\mathbb R^d\}_{k=0}^N$，量化之后的隐编码记为 $Z_c\in\mathbb R^{m\times n\times d}$，量化之后的码表下标序列为 $s\in\{0,...,N-1\}^{m\cdot n}$，通过解码器之后的重建 HQ 图像记为 $I_{rec}$。
+
+ds；整个网络结构很好理解，类比于 VQGAN，采用了三阶段的训练方式，第一阶段训练 VQVAE，如上图 (a) 所示，训练的损失函数为：
+$$
+L_{codebook}=L_1+L_{per}+L_{code}+\lambda_{adv}\cdot L_{adv}
+$$
+ds；其中，$L_1$ 是重建损失，使用 L1Loss，$L_{per}$ 是感知损失，使用 VGG19 计算，$L_{code}$ 是码表量化损失，按照 $||sg[Z_h]-Z_c||_2^2+\beta||sg[Z_c]-Z_h||_2^2$ 计算，$L_{adv}$ 是对抗损失，按照 $\log D(I_h)+\log(1-D(I_{rec}))$ 计算，$\lambda_{rec}=0.8$。
+
+ds；第二阶段训练 transformer，具体来说，将 LQ 的输入 $I_l$ 进入编码器之后的隐编码 $Z_l\in\mathbb R^{m\times n\times d}$ 拉平为向量 $Z_l^v\in\mathbb R^{(m\cdot n)\times d}$，然后输入标准的 transformer 结构，位置编码使用 sin 相对编码，预测出的结果为用于重建 HQ 图像的 codebook 下标序列 $\hat s$，训练过程的损失函数为：
+$$
+L_{tf}=\lambda_{s}\cdot L_{s}+L_{code'}
+$$
+ds；其中，$L_s$ 即为预测出的 $\hat s$ 和真实 HQ 图像的量化序列 $s$ 的交叉熵损失，$\sum\limits_{i=0}^{mn-1}-si\log(\hat s_i)$，$L_{code'}$ 即为在 LQ 预测下的量化损失，其只用来优化 $E_L$，$L_{code'}=||Z_l-sg[Z_c]||_2^2$。
+
+ds；第三阶段
 
 ### 损失
 
