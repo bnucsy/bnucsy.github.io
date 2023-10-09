@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"bnucsy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Video-based Remote Physiological Measurement via Self-supervised Learning   【心率监测】【arxiv2022】【paper】【code】 摘要&amp;emsp;&amp;emsp;本文是基于对比学习进行 rppg 信号估计的又一 SOTA，在 UBFC、PURE、DEAP、MMVS 上展示了最好的性能。鉴于目前的 rppg 对比学习网">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Video-based_rppg_SSL">
+<meta property="og:url" content="http://bnucsy.github.io/Video-based_rppg_SSL/index.html">
+<meta property="og:site_name" content="CSY&#39;s blog">
+<meta property="og:description" content="Video-based Remote Physiological Measurement via Self-supervised Learning   【心率监测】【arxiv2022】【paper】【code】 摘要&amp;emsp;&amp;emsp;本文是基于对比学习进行 rppg 信号估计的又一 SOTA，在 UBFC、PURE、DEAP、MMVS 上展示了最好的性能。鉴于目前的 rppg 对比学习网">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://bnucsy.github.io/Video-based_rppg_SSL/image-20221202123712050.png">
+<meta property="og:image" content="http://bnucsy.github.io/Video-based_rppg_SSL/image-20221202123712050.png">
+<meta property="og:image" content="http://bnucsy.github.io/Video-based_rppg_SSL/image-20221202124426153.png">
+<meta property="og:image" content="http://bnucsy.github.io/Video-based_rppg_SSL/image-20221202124505577.png">
+<meta property="og:image" content="http://bnucsy.github.io/Video-based_rppg_SSL/image-20221203155035139.png">
+<meta property="og:image" content="http://bnucsy.github.io/Video-based_rppg_SSL/image-20221203155556125.png">
+<meta property="og:image" content="http://bnucsy.github.io/Video-based_rppg_SSL/image-20221203155536102.png">
+<meta property="article:published_time" content="2022-12-02T01:31:37.000Z">
+<meta property="article:modified_time" content="2022-12-03T07:59:05.765Z">
+<meta property="article:author" content="ShuYang Chu">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://bnucsy.github.io/Video-based_rppg_SSL/image-20221202123712050.png">
+
+<link rel="canonical" href="http://bnucsy.github.io/Video-based_rppg_SSL/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Video-based_rppg_SSL | CSY's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CSY's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/bnucsy/" class="github-corner" title="Follow me on Github" aria-label="Follow me on Github" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://bnucsy.github.io/Video-based_rppg_SSL/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ShuYang Chu">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CSY's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Video-based_rppg_SSL
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-12-02 09:31:37" itemprop="dateCreated datePublished" datetime="2022-12-02T09:31:37+08:00">2022-12-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-12-03 15:59:05" itemprop="dateModified" datetime="2022-12-03T15:59:05+08:00">2022-12-03</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper/" itemprop="url" rel="index"><span itemprop="name">paper</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper/cv/" itemprop="url" rel="index"><span itemprop="name">cv</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper/cv/hr/" itemprop="url" rel="index"><span itemprop="name">hr</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/Video-based_rppg_SSL/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/Video-based_rppg_SSL/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>7.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>7 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2><center> Video-based Remote Physiological Measurement via Self-supervised Learning </center></h2>
+
+<p>【心率监测】【arxiv2022】【<a target="_blank" rel="noopener" href="http://arxiv.org/abs/2210.15401">paper</a>】【<a target="_blank" rel="noopener" href="https://github.com/yuezijie/Video-based-Remote-Physiological-Measurement-via-Self-supervised-Learning">code</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文是基于对比学习进行 rppg 信号估计的又一 SOTA，在 UBFC、PURE、DEAP、MMVS 上展示了最好的性能。鉴于目前的 rppg 对比学习网络结构基本都基于孪生网络，在数据增强和代理任务上进行创新，本文主要采样的方法有：正样本：来自空间增强的 anchor $p_1$ 和 anchor 在同一个 video 的邻居 $p_2$，负样本：来自 LFA 模块 $n$，该模块可以在视觉不变的基础上进行频率重采样，代理任务：对比 $p_1$ 和 $p_2$ 拉进距离，对比 $p_1$ 和 $n$ 拉远距离，backbone：基于混合专家模型的 ResNet3D。并且对于多样的样本提出了多样的损失。</p>
+<p>&emsp;&emsp;整体来说起作用的我认为最可能是 LFA，该模块可以生成大量的负样本，或许负样本的数量是 CL 的关键。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Video-based_rppg_SSL/image-20221202123712050.png" alt="image-20221202123712050" style="zoom:80%;"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>一种新的正样本获取策略：时间上的邻居</li>
+<li>一种新的负样本获取策略：基于学习的 LFA 模块，用于生成不同频率但人物一致的视频</li>
+<li>一种基于混合专家模型的 backbone</li>
+<li>对正样本间、正负样本间的不同损失函数 CFAL、FCL、FRCL</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/Video-based_rppg_SSL/image-20221202123712050.png" alt="image-20221202123712050" style="zoom:80%;"></p>
+<h4 id="前向过程"><a href="#前向过程" class="headerlink" title="前向过程"></a>前向过程</h4><ul>
+<li>对于输入的视频 $X$，首先将其裁剪为多个 clip，每个 $T$ 帧，然后随机选择其中一个 clip 作为主 clip $X^a$，而其他的 clip 作为邻居 $X^b$，此时的 $X^b$ 也是正样本的一员<ul>
+<li>在实现的过程中，每个输入产生三个邻居，这些正样本之间互相不重合帧，记为 $X^b_1,\ X^b_2,\ X^b_3$</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">load_img</span>(<span class="params">filepath, scale, video_length</span>):</span><br><span class="line">    <span class="built_in">list</span> = os.listdir(filepath)</span><br><span class="line">    imglen = <span class="built_in">len</span>(<span class="built_in">list</span>)</span><br><span class="line">    begin = random.randrange(<span class="number">0</span>, <span class="built_in">int</span>(imglen-(video_length*<span class="number">4</span>)))</span><br><span class="line">    whole_video = []</span><br><span class="line">    count = [<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(begin, begin + (video_length*<span class="number">4</span>)):</span><br><span class="line"></span><br><span class="line">        img = cv2.imread(os.path.join(filepath, <span class="string">&#x27;face_&#123;0&#125;.png&#x27;</span>.<span class="built_in">format</span>(i)))</span><br><span class="line">        img = cv2.resize(img, (scale, scale))</span><br><span class="line"></span><br><span class="line">        whole_video.append(img)</span><br><span class="line">    whole_video = np.array(whole_video)</span><br><span class="line"></span><br><span class="line">    whole_video = whole_video.reshape(</span><br><span class="line">        (<span class="number">4</span>, video_length, whole_video.shape[<span class="number">1</span>], whole_video.shape[<span class="number">2</span>], whole_video.shape[<span class="number">3</span>]))</span><br><span class="line">    a = random.choice(count)</span><br><span class="line">    <span class="built_in">input</span> = whole_video[a]</span><br><span class="line">    count.remove(a)</span><br><span class="line">    neighbor1 = whole_video[count[<span class="number">0</span>]]</span><br><span class="line">    neighbor2 = whole_video[count[<span class="number">1</span>]]</span><br><span class="line">    neighbor3 = whole_video[count[<span class="number">2</span>]]</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">input</span>, neighbor1, neighbor2, neighbor3</span><br></pre></td></tr></table></figure>
+<ul>
+<li>同时输入的还有一系列的频率 $R$，这个频率数组控制了期望 LFA 模块后的 video 与原 clip 的频率比，$R$ 中的值随机在 $(0.3,0.8)\cup(1.2,1.7)$ 之中产生</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">frequency_ratio</span>():</span><br><span class="line">  ratio_interval1 = np.random.uniform(<span class="number">0.3</span>, <span class="number">0.8</span>)</span><br><span class="line">  ratio_interval2 = np.random.uniform(<span class="number">1.2</span>, <span class="number">1.7</span>)</span><br><span class="line">  full_interval = np.stack((ratio_interval1, ratio_interval2))</span><br><span class="line">  random_ratio = np.random.choice(full_interval)</span><br><span class="line">  <span class="keyword">return</span> random_ratio</span><br></pre></td></tr></table></figure>
+<ul>
+<li>对于 $X^a$，执行以下两种增强策略：<ul>
+<li>将 $X^a$ 和 $R$ 输入 LFA 模块，得到负样本 $X^n$，这应当是本文的关键，即大量的有效负样本<ul>
+<li>重建之后为了保证视觉一致性，需要通过重建损失 $L_{rec}=\mathrm {MSE}(X^a,X^n)$</li>
+</ul>
+</li>
+<li>将 $X^a$ 进行空间上的数据增强，具体来说就只包括旋转和反转，得到正样本 $X^p$<ul>
+<li>在实现的过程中，每个 $X^a$ 生成两个正样本，记为 $X^p_1,\ X^p_2$</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>对于之前得到的所有正负样本：$X^b,\ X^p,\ X^n$，将他们全部通过 rppg 估计网络 REA 模块，分别得到输出 $Y^b,\ Y^p,\ Y^n$</li>
+<li>为了拉进正样本之间的距离以及拉远正负样本之间的距离，同时限制 LFA 的学习，需要过以下 3 个损失<ul>
+<li>用于拉进同视频增强后的正样本距离，同时与负样本拉远距离，需要通过 $L_{FCL}=f_1(Y^p_1,\ Y^p_2,\ Y^n)$<ul>
+<li>有一说一，其他的两个 loss 算是新的，这个 loss 最多算是重写了一下 InfoNCE</li>
+</ul>
+</li>
+<li>用于拉进增强后正样本与邻域正样本的距离，需要通过 $L_{CFAL}=f_2(Y^p_1,\ Y^p_2,\ Y^b_1,\ Y^b_2,\ Y^b_3)$</li>
+<li>用于限制正负样本对之间的信号比与 $R$ 一致，也就是为了 LFA 的学习，需要通过 $L_{FRCL}=f_3(R,\ Y^p_1,\ Y^p_2,\ Y^n)$</li>
+</ul>
+</li>
+<li>将所有 loss 求和之后进行梯度回传，loss 之间不设权重调整项</li>
+</ul>
+<h4 id="LFA-模块"><a href="#LFA-模块" class="headerlink" title="LFA 模块"></a>LFA 模块</h4><p><img src="/Video-based_rppg_SSL/image-20221202124426153.png" alt="image-20221202124426153" style="zoom:50%;"></p>
+<p>&emsp;&emsp;LFA 模块是生成负样本的关键，其正向过程如下：</p>
+<ul>
+<li>对于输入的 $X^a$，首先经过 3D 卷积和 Res3D，得到 $s^a_1$</li>
+<li>再将 $s^a_1$ 进行降采样两次分别得到 $s^a_2,\ s^a_3$，所有的 $s_i^a$ 和从 $R$ 中 sample 出的 $r_i$ 共同输入 FMB 模块<ul>
+<li>对于每个 FMB 模块，首先将 $s^a$ 进行全局池化和卷积得到 $z$，然后将 $r_i$ 填充至和 $z$ 等长（其实输入的时候就是等长）</li>
+<li>然后 cat $r_i$ 和 $z$，并经过一个 Res 块和 LSTM，输出之后和之前的输入 $s^a$ 做按位乘法后输出</li>
+<li>FMB 的伪代码如下：</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">FMB</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, s_a, ratio, video_length</span>):</span><br><span class="line">        <span class="built_in">super</span>(FMB, self).__init__()</span><br><span class="line">        self.mod_gap = nn.AdaptiveAvgPool3d((video_length, <span class="number">1</span>, <span class="number">1</span>))</span><br><span class="line">        self.mod_conv1d = nn.Conv1d(</span><br><span class="line">            in_channels=base_filter, out_channels=<span class="number">1</span>, kernel_size=<span class="number">3</span>, stride=<span class="number">1</span>, padding=<span class="number">1</span>)</span><br><span class="line">        self.mod_res1d = ResnetBlock1D(</span><br><span class="line">            <span class="number">2</span>, kernel_size=<span class="number">3</span>, stride=<span class="number">1</span>, padding=<span class="number">1</span>, bias=<span class="literal">True</span>, activation=<span class="string">&#x27;relu&#x27;</span>, norm=<span class="literal">None</span>)</span><br><span class="line">        self.mod_lstm = nn.LSTM(<span class="number">2</span>, <span class="number">1</span>, num_layers=<span class="number">1</span>, batch_first=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, <span class="built_in">input</span>, ratio</span>):</span><br><span class="line">        s_a = self.mod_gap(s_a)</span><br><span class="line">        s_a = s_a.squeeze(<span class="number">3</span>)</span><br><span class="line">        s_a = s_a.squeeze(<span class="number">3</span>)</span><br><span class="line">        z = self.mod_conv1d(s_a)</span><br><span class="line">        r_i = ratio.unsqueeze(<span class="number">1</span>)</span><br><span class="line">        fuse = torch.cat((z, r_i), <span class="number">1</span>)</span><br><span class="line">        m_i = self.mod_res1d(fuse)</span><br><span class="line">        m_i = m_i.transpose(<span class="number">1</span>, <span class="number">2</span>)</span><br><span class="line">        m_i = self.mod_lstm(m_i)[<span class="number">0</span>]</span><br><span class="line">        m_i = m_i.view(B, <span class="number">1</span>, T, <span class="number">1</span>, <span class="number">1</span>)</span><br><span class="line">        s_n = torch.mul(s_a, m_i)</span><br><span class="line">        <span class="keyword">return</span> s_n</span><br></pre></td></tr></table></figure>
+<ul>
+<li>对于三个 FMB 模块的输出分别按照降采样的程度进行上采样，整体上算是个类 U-net 的结构</li>
+</ul>
+<h4 id="REA-模块"><a href="#REA-模块" class="headerlink" title="REA 模块"></a>REA 模块</h4><p><img src="/Video-based_rppg_SSL/image-20221202124505577.png" alt="image-20221202124505577" style="zoom:80%;"></p>
+<p>&emsp;&emsp;REA 模块是一个基于混合专家模型的 rppg 估计网络，所谓混合专家模型（MOE），本质上像是集成学习一样的策略，即对不同的子问题有不同的网络（专家模型）进行拟合，最终给各个网络（专家模型）赋值权重得到输出。</p>
+<p>&emsp;&emsp;对于 REA 模块，其将输入的视频经过一个 resnet 之后进行分割，将一个 clip 按照空间区域划分为 L 个子空间（L=4），每个空间经过同样结构但不共享参数的局部专家模型得到对应空间的输出，并且给每个专家模型赋值不同的权重，这些权重来自于另一个模型 $\cal G$，整个模型的前向过程由上图给出，蛮清晰的，实现也比较简单。</p>
+<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;上述前向过程之中总共出现了四个损失函数 $\cal L_{vr},\ L_{fc},\ L_{fr},\ L_{fa}$，分别对应：Video reconstruction loss，Frequency contrastive loss，Frequency ratio consistency loss，Cross-video frequency agreement loss，他们的表达式分别如下：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&\rm \mathcal L_{vr}=MSE(X^n, X^a)\tag 1\\
+&\rm \mathcal L_{fc}=\log (1+\frac{\exp(d(y_1^p,y_2^p)/\tau)}{\sum_{i=1}^k(\exp(d(y_1^p,y_i^n)/\tau)+\exp(d(y_2^p,y_i^n)/\tau))})\tag 2\\
+&\rm \mathcal L_{fr}=\frac1{2k}\sum_{i=1}^k\left|\frac{P(y_i^n)}{P(y_1^p)}-r_i \right|+\left|\frac{P(y_i^n)}{P(y_2^p)}-r_i \right|\tag 3\\
+&\rm\mathcal L_{fa} =\frac 1 {2J} ∑^J_{j=1} d(y^p_1 , y^b_ j ) + d(y^p_ 2 , y^b_ j )\tag 4
+\end{align}</script><p>&emsp;&emsp;其中，$(2)$ 是对 InfoNCE 损失的重写，基本的表示方式也参考了 InfoNCE（$-\log\frac{\exp(q·k_+/\tau)}{\sum_{i=0}^{K}\exp(q·k_i/\tau)}$），$(3)$ 是度量两个正样本和负样本的频率比是否和预设的 $R$ 一致，用来限制 LFA 的学习，$(4)$ 是用来拉进正样本之间距离的。</p>
+<p>&emsp;&emsp;总体来说 $\mathcal L=\mathcal L_{vr} +\mathcal L_{fc}+\mathcal L_{fr}+\mathcal L_{fa}$，需要注意的是，这里的正样本包括增强样本和邻居样本，但是和负样本拉远距离的只包括增强样本，邻居样本不和负样本拉远距离，作者在文中提到如果都拉远的话效果会变差，结果上来说这有点反直觉，也难以解释。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">FRCL</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, Fs, min_hr, max_hr</span>):</span><br><span class="line">        <span class="built_in">super</span>(FRCL, self).__init__()</span><br><span class="line">        self.Fs = Fs</span><br><span class="line">        self.min_hr = min_hr</span><br><span class="line">        self.max_hr = max_hr</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, neg_rppgarr, pos_rppg1, pos_rppg2, ratio_array</span>):</span><br><span class="line">        loss = <span class="number">0</span></span><br><span class="line">        count = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">        poshr1 = predict_heart_rate(pos_rppg1[<span class="number">0</span>].detach(</span><br><span class="line">        ).cpu().numpy(), self.Fs, self.min_hr, self.max_hr)</span><br><span class="line"></span><br><span class="line">        poshr2 = predict_heart_rate(pos_rppg2[<span class="number">0</span>].detach(</span><br><span class="line">        ).cpu().numpy(), self.Fs, self.min_hr, self.max_hr)</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(neg_rppgarr)):</span><br><span class="line">            neghr = predict_heart_rate(neg_rppgarr[i][<span class="number">0</span>].detach().cpu().numpy(), self.Fs, self.min_hr, self.max_hr)</span><br><span class="line"></span><br><span class="line">            loss += np.<span class="built_in">abs</span>(neghr/poshr1-ratio_array[<span class="number">0</span>][i][<span class="number">0</span>].detach().cpu().numpy()) +\</span><br><span class="line">                np.<span class="built_in">abs</span>(neghr/poshr2-ratio_array[<span class="number">0</span>][i][<span class="number">0</span>].detach().cpu().numpy())</span><br><span class="line">            count += <span class="number">2</span></span><br><span class="line">        loss = loss/count</span><br><span class="line">        <span class="keyword">return</span> loss</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">CFAL</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, Fs, high_pass=<span class="number">2.5</span>, low_pass=<span class="number">0.4</span></span>):</span><br><span class="line">        <span class="built_in">super</span>(CFAL, self).__init__()</span><br><span class="line">        <span class="comment"># PSD_MSE</span></span><br><span class="line">        self.norm_psd = CalculateNormPSD(Fs, high_pass, low_pass)</span><br><span class="line">        self.distance_func = nn.MSELoss()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, pos_rppg1, pos_rppg2, neighbor_rppg1, neighbor_rppg2, neighbor_rppg3</span>):</span><br><span class="line">        posfre1 = self.norm_psd(pos_rppg1)</span><br><span class="line">        posfre2 = self.norm_psd(pos_rppg2)</span><br><span class="line">        neifre1 = self.norm_psd(neighbor_rppg1)</span><br><span class="line">        neifre2 = self.norm_psd(neighbor_rppg2)</span><br><span class="line">        neifre3 = self.norm_psd(neighbor_rppg3)</span><br><span class="line"></span><br><span class="line">        loss = self.distance_func(posfre1, neifre1)+self.distance_func(posfre1, neifre2)+self.distance_func(posfre1, neifre3)\</span><br><span class="line">            + self.distance_func(posfre2, neifre1)+self.distance_func(posfre2, neifre2)+self.distance_func(posfre2, neifre3)</span><br><span class="line">        loss = loss/<span class="number">6</span></span><br><span class="line">        <span class="keyword">return</span> loss</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">FCL</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, Fs, high_pass=<span class="number">2.5</span>, low_pass=<span class="number">0.4</span>, tau=<span class="number">0.08</span></span>):</span><br><span class="line">        <span class="built_in">super</span>(FCL, self).__init__()</span><br><span class="line">        <span class="comment"># PSD_MSE</span></span><br><span class="line">        self.norm_psd = CalculateNormPSD(Fs, high_pass, low_pass)</span><br><span class="line">        self.distance_func = nn.MSELoss()</span><br><span class="line">        self.tau = tau</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, neg_rppgarr, pos_rppg1, pos_rppg2</span>):</span><br><span class="line"></span><br><span class="line">        posfre1 = self.norm_psd(pos_rppg1)</span><br><span class="line">        posfre2 = self.norm_psd(pos_rppg2)</span><br><span class="line">        pos_dis = torch.exp(self.distance_func(posfre1, posfre2)/self.tau)</span><br><span class="line">        neg_dis_total = <span class="number">0</span></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(neg_rppgarr)):</span><br><span class="line">            negfre = self.norm_psd(neg_rppgarr[i])</span><br><span class="line">            neg_dis = torch.exp(self.distance_func(posfre1, negfre) / self.tau)+torch.exp(self.distance_func(posfre2, negfre) / self.tau)</span><br><span class="line">            neg_dis_total += neg_dis</span><br><span class="line"></span><br><span class="line">        loss = torch.log10(pos_dis/neg_dis_total+<span class="number">1</span>)</span><br><span class="line">        <span class="keyword">return</span> loss</span><br></pre></td></tr></table></figure>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文总共在 UBFC，PURE，DEAP，MMVS 上测试了效果，结果如下图所示，可以看出相比于 the way to my heart 好了不少，现在比较有竞争力的 SSL 方法也就是这一篇以及 oulu 的一篇 contrast phys，可以看出慢慢地在追赶上有监督的方法了。</p>
+<p><img src="/Video-based_rppg_SSL/image-20221203155035139.png" alt="image-20221203155035139"></p>
+<p>&emsp;&emsp;除了心率实验之外，本文也延续在 UBFC 上测试了基于 rppg 信号的各个指标的估计值</p>
+<p><img src="/Video-based_rppg_SSL/image-20221203155556125.png" alt="image-20221203155556125"></p>
+<p>&emsp;&emsp;以及跨数据集测试</p>
+<p><img src="/Video-based_rppg_SSL/image-20221203155536102.png" alt="image-20221203155536102"></p>
+<p>&emsp;&emsp;总体来说，本文的效果非常地好，虽然还没发，不过应该很快就能见会，问题在于：不论是这一篇还是之前的对比学习任务，以及简单化处理的 Siamese rppg，似乎都偏爱于 UBFC、PURE 这一类简单的数据集，而这篇文章做出来的时候已经有更难的 VIPL 数据集了，但是却完全没有在 VIPL 上做测试，让人不得不怀疑 SSL 方法是否仅能适用于简单的数据集。</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>ShuYang Chu
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://bnucsy.github.io/Video-based_rppg_SSL/" title="Video-based_rppg_SSL">http://bnucsy.github.io/Video-based_rppg_SSL/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/Siamese-rPPG/" rel="prev" title="Siamese-rPPG">
+      <i class="fa fa-chevron-left"></i> Siamese-rPPG
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/Contrast-Phys/" rel="next" title="Contrast-Phys">
+      Contrast-Phys <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> Video-based Remote Physiological Measurement via Self-supervised Learning </span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E8%A7%88"><span class="nav-text">概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E6%96%B0"><span class="nav-text">创新</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C"><span class="nav-text">网络</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%89%8D%E5%90%91%E8%BF%87%E7%A8%8B"><span class="nav-text">前向过程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#LFA-%E6%A8%A1%E5%9D%97"><span class="nav-text">LFA 模块</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#REA-%E6%A8%A1%E5%9D%97"><span class="nav-text">REA 模块</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8D%9F%E5%A4%B1"><span class="nav-text">损失</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-text">结果</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ShuYang Chu</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ShuYang Chu</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'gSZuY7rr1fsTF5DTHs68r5lu-gzGzoHsz',
+      appKey     : 'JqjUXxwDxPg9qbRlCyMx3gkg',
+      placeholder: "在这里写下评论",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

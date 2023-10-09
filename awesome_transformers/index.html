@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"bnucsy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="transformer_implements   摘要&amp;emsp;&amp;emsp;在 视频行为识别 &#x2F; 视频实例分割 &#x2F; 视频超分辨率 等领域具备一定效果的 transformer backbone 概览 TeViT UniFormer">
+<meta property="og:type" content="article">
+<meta property="og:title" content="transformer_implements">
+<meta property="og:url" content="http://bnucsy.github.io/awesome_transformers/index.html">
+<meta property="og:site_name" content="CSY&#39;s blog">
+<meta property="og:description" content="transformer_implements   摘要&amp;emsp;&amp;emsp;在 视频行为识别 &#x2F; 视频实例分割 &#x2F; 视频超分辨率 等领域具备一定效果的 transformer backbone 概览 TeViT UniFormer">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://bnucsy.github.io/awesome_transformers/image-20230308095622857.png">
+<meta property="og:image" content="http://bnucsy.github.io/awesome_transformers/image-20230308103204639.png">
+<meta property="og:image" content="http://bnucsy.github.io/awesome_transformers/image-20230314164352127.png">
+<meta property="og:image" content="http://bnucsy.github.io/awesome_transformers/image-20230310160622692.png">
+<meta property="og:image" content="http://bnucsy.github.io/awesome_transformers/image-20230314175746208.png">
+<meta property="article:published_time" content="2023-03-01T01:31:37.000Z">
+<meta property="article:modified_time" content="2023-04-14T12:51:59.101Z">
+<meta property="article:author" content="ShuYang Chu">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://bnucsy.github.io/awesome_transformers/image-20230308095622857.png">
+
+<link rel="canonical" href="http://bnucsy.github.io/awesome_transformers/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>transformer_implements | CSY's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CSY's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/bnucsy/" class="github-corner" title="Follow me on Github" aria-label="Follow me on Github" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://bnucsy.github.io/awesome_transformers/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ShuYang Chu">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CSY's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          transformer_implements
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-03-01 09:31:37" itemprop="dateCreated datePublished" datetime="2023-03-01T09:31:37+08:00">2023-03-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-04-14 20:51:59" itemprop="dateModified" datetime="2023-04-14T20:51:59+08:00">2023-04-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper/" itemprop="url" rel="index"><span itemprop="name">paper</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper/cv/" itemprop="url" rel="index"><span itemprop="name">cv</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/awesome_transformers/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/awesome_transformers/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2><center> transformer_implements </center></h2>
+
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;在 视频行为识别 / 视频实例分割 / 视频超分辨率 等领域具备一定效果的 transformer backbone</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><ul>
+<li>TeViT</li>
+<li>UniFormer</li>
+</ul>
+<span id="more"></span>
+<hr>
+<h4 id="TeViT-Temporally-Efficient-Vision-Transformer-for-Video-Instance-Segmentation"><a href="#TeViT-Temporally-Efficient-Vision-Transformer-for-Video-Instance-Segmentation" class="headerlink" title="TeViT : Temporally Efficient Vision Transformer for Video Instance Segmentation"></a>TeViT : Temporally Efficient Vision Transformer for Video Instance Segmentation</h4><p>CVPR2022Oral 视频语义分割 <a target="_blank" rel="noopener" href="https://ieeexplore.ieee.org/document/9879803/">paper</a> <a target="_blank" rel="noopener" href="https://github.com/hustvl/TeViT">code</a></p>
+<h5 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h5><ul>
+<li>一种信使 token+移位的时间维度特征融合方法</li>
+<li>多尺度的金字塔结构，生成多个不同尺度的特征图用于下一步分割头</li>
+</ul>
+<h5 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h5><p><img src="/awesome_transformers/image-20230308095622857.png" alt="image-20230308095622857" style="zoom:50%;"></p>
+<p>&emsp;&emsp;对于基于 transformer 的特征提取 backbone，串行地打四个不同 size 的 patch，将得到的 token 经过 embeding 输入网络，从而生成 4 个比原图像降采样 4,8,16,32 的特征图序列 $\{F_i^1,F_i^2,F_i^3,F_i^4\}_{i=1}^T$，每个 $F$ 都表示了 T 帧中不同感受野的特征，用于下一步的分类/回归任务。</p>
+<p>&emsp;&emsp;对于每个尺度下的 backbone，其具体操作如下：</p>
+<ul>
+<li>对一个 T 帧的 token $x_i\to(\frac{HW}{P^2},C)$，配备 M 个信使 token $m_i\to(M,C)$，两者 concat 之后为 $\{x_i,m_i\}_{i=1}^T\to(T,\frac{HW}{P^2}+M,C)$</li>
+<li>对于配备好信使 token 的新数据，在经过 backbone 的时候，每两个 MHSA+FFN 为一次循环，对每一次循环的操作如下：<ul>
+<li><img src="/awesome_transformers/image-20230308103204639.png" alt="image-20230308103204639" style="zoom:33%;"></li>
+<li>图中绿色部分代表信使 token，蓝色部分代表原始的 token，上下维度表示时间维度（图中显示为 5 帧），左右维度表示信使分组个数（图中显示为 4 组，注意，每组不见得只有一个信使 token），前后维度表示 channel</li>
+<li>在每轮循环中，第一个 MHSA+FFN 直接在 $\{x_i,m_i\}_{i=1}^T$ 上进行，目的是使所有的 $m$ 都学到自己对应原始 token 的信息</li>
+<li>接着进行 shift，位移的是信使 token，按组进行 shift，具体方式为逐组地上下位移，位移步长为 1122···</li>
+<li>再进行第二个 MHSA+FFN，和上一步一样的目的，交换不同帧序列的信息 token，以交换帧间信息</li>
+<li>接着进行反向 shift，即将之前 shift 的内容再换回去，该设计旨在随着网络的深入保持稳定的时间接受场</li>
+</ul>
+</li>
+<li>将此时输出的原始 token 记为特征序列 $\{F_i\}\to(T,\frac{HW}{P^2},C)$，此时得到的特征还原至 $(T,C,\frac H P,\frac WP)$ 接着打 patch，得到更小尺度的特征，如此循环四次，最终得到 4,8,16,32 的降采样序列（即 patch size 分别取 4,2,2,2）</li>
+<li>遵循 PVT，将四个特征序列 $\{F_i^{1,2,3,4}\}^T$ 输入 STQI（时空查询交互头，即上图的右半部分）这部分是任务导向的。</li>
+</ul>
+<h4 id="UniFormer-Unified-Transformer-for-Efficient-Spatiotemporal-Representation-Learning"><a href="#UniFormer-Unified-Transformer-for-Efficient-Spatiotemporal-Representation-Learning" class="headerlink" title="UniFormer : Unified Transformer for Efficient Spatiotemporal Representation Learning"></a>UniFormer : Unified Transformer for Efficient Spatiotemporal Representation Learning</h4><p>ICLR2022 视频动作识别 <a target="_blank" rel="noopener" href="http://arxiv.org/abs/2201.04676">paper</a> <a target="_blank" rel="noopener" href="https://github.com/Sense-X/UniFormer">code</a></p>
+<h5 id="特点-1"><a href="#特点-1" class="headerlink" title="特点"></a>特点</h5><ul>
+<li>提出一种基于关系聚合器的注意力结构，在形式上统一了 Conv 和 transformer，在取得大部分 transformer 架构结果的基础上加了 efficient</li>
+<li>通过 4 stage 的设置使其具备了多尺度信息</li>
+</ul>
+<h5 id="网络-1"><a href="#网络-1" class="headerlink" title="网络"></a>网络</h5><p><img src="/awesome_transformers/image-20230314164352127.png" alt="image-20230314164352127" style="zoom:50%;"></p>
+<p>&emsp;&emsp;具体来说，本文首先分析了 timesformer 在行为识别上的表现，展示了训练好的 timesformer 在第三层的输出，包括时间注意力和空间注意力，可以发现的结论是：对于第三层的输出，某个 patch 在时间上只对上下帧具备 att，在空间上只对临近位置有 att，从而得出一个结论：前期的浅层网络应当关注局部信息，而后期深层网络关注全局信息，使用纯 transformer 架构相当于前期用了较大的计算资源做了 Conv 的事情，故而应当对 transformer 的 att 计算方式进行额外的设计。</p>
+<p><img src="/awesome_transformers/image-20230310160622692.png" alt="image-20230310160622692" style="zoom: 50%;"></p>
+<p>&emsp;&emsp;因此本文设计了一种“统一化”的 transformer 注意力计算，其实大概就是用一种描述统一地描述了 conv 和标准 transformer，至于 DPE 和 FFN，实际上创新性不大，或许用处是有的。具体来说，在 4 个 stage 中，前两个做局部 transformer，后两个做全局 transformer。</p>
+<ul>
+<li>对于每一个 stage，输入的 $X_{in}$ 首先经过 PE 打 patch，目的是降采样，此时使用 DWConv，目的是尽可能减少计算量</li>
+<li>从上计算出 $X$，$X=DPE(X_{in})+X_{in}$</li>
+<li>将 $X$ 输入 MHRA（多头关系聚合器），具体来说，首先将 $X$ reshape 成 $(L=T\times H\times W,C)$，又分为 $N$ 个头，然后首先通过一个linear 进行等维度的映射，得到 $V_n(X)\to(L,\frac C N)$，目的是聚合上下文信息，同时这个值就可以看做 transformer 中的 $V$</li>
+<li>接着需要将 $A_n$ 和 $V_n$ 做乘法，作为第 $n$ 个头的输出结果，$A_n$ 的计算方式与 global 或者 local 有关：<ul>
+<li>对于 local，$A_n(X_i,X_j)=a_n^{i-j},\ j\in\Omega^{t\times h\times w}$，含义为在一个小的邻域范围 $\Omega$ 内对两个 token 之间的 att 矩阵计算为一个常数，这个常数基于学习得到，基本上实现了类似 Conv 的信息聚合方式</li>
+<li>对于 global，$A_n(X_i,X_j)=\frac{e^{Q_n(X_i)K_n(X_j)^T}}{\Sigma_{j’\in\Omega_{T\times H\times W}}e^{Q_n(X_i)K_n(X_j)^T}}$，含义为在全部 token 范围内对两个 token 之间的 att 矩阵表示为 Q 与 K 之间的 $QK^T$ 与 Q 和所有 K 之间的 $\sum QK^T$ 比值，在计算复杂度上，事实上对于原本的 transformer，也需要计算任意 $i,j$ 之间的 $Q^TK$ 结果</li>
+</ul>
+</li>
+<li>无论是对 local 还是 global，$A_n$ 都表示注意力矩阵 $QK^T$，只不过将 Conv 的计算逻辑使用注意力矩阵的方式重新表述了</li>
+<li>对于多头的结果，$A_nV_n$ 其实就是 $QK^TV$，从代码来看，softmax 和 scale 一个不少，上述 global 的公式表述也有问题，其实就是标准 att 计算过程，将多头的结果 Concat，之后和 U 相乘，也是 transformer 的标准操作</li>
+<li>输出的结果 $Y$ 记为 $Y=MHRA(Norm(X))+X$，并输入 FFN，FFN 如上图，很好理解</li>
+</ul>
+<p>&emsp;&emsp;由此得到的四个特征图用于下游任务，值得一提的是 efficient 的结果，看上去相对于 timesformer 取得基本一致的 acc 的时候算力小很多。</p>
+<p><img src="/awesome_transformers/image-20230314175746208.png" alt="image-20230314175746208"></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>ShuYang Chu
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://bnucsy.github.io/awesome_transformers/" title="transformer_implements">http://bnucsy.github.io/awesome_transformers/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/Anchor_based_colorization/" rel="prev" title="Anchor_based_colorization">
+      <i class="fa fa-chevron-left"></i> Anchor_based_colorization
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/Orthogonal_VQGAN/" rel="next" title="Orthogonal_VQGAN">
+      Orthogonal_VQGAN <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> transformer_implements </span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E8%A7%88"><span class="nav-text">概览</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#TeViT-Temporally-Efficient-Vision-Transformer-for-Video-Instance-Segmentation"><span class="nav-text">TeViT : Temporally Efficient Vision Transformer for Video Instance Segmentation</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%89%B9%E7%82%B9"><span class="nav-text">特点</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C"><span class="nav-text">网络</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#UniFormer-Unified-Transformer-for-Efficient-Spatiotemporal-Representation-Learning"><span class="nav-text">UniFormer : Unified Transformer for Efficient Spatiotemporal Representation Learning</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%89%B9%E7%82%B9-1"><span class="nav-text">特点</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C-1"><span class="nav-text">网络</span></a></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ShuYang Chu</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ShuYang Chu</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'gSZuY7rr1fsTF5DTHs68r5lu-gzGzoHsz',
+      appKey     : 'JqjUXxwDxPg9qbRlCyMx3gkg',
+      placeholder: "在这里写下评论",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

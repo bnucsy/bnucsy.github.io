@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"bnucsy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Towards Robust Blind Face Restoration with Codebook Lookup Transformer   【盲人脸重建】【NIPS2022】【paper】【code】 摘要&amp;emsp;&amp;emsp;本文借鉴 VQGAN 的思想细化了其应用领域并进行了启发式的改造，将条件生成限制到盲人脸重建，通过增加 CFT 模块优化过度平滑的问题，并且将采样器去掉，作为必选">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CodeFormer">
+<meta property="og:url" content="http://bnucsy.github.io/CodeFormer/index.html">
+<meta property="og:site_name" content="CSY&#39;s blog">
+<meta property="og:description" content="Towards Robust Blind Face Restoration with Codebook Lookup Transformer   【盲人脸重建】【NIPS2022】【paper】【code】 摘要&amp;emsp;&amp;emsp;本文借鉴 VQGAN 的思想细化了其应用领域并进行了启发式的改造，将条件生成限制到盲人脸重建，通过增加 CFT 模块优化过度平滑的问题，并且将采样器去掉，作为必选">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://bnucsy.github.io/CodeFormer/image-20230208213428701.png">
+<meta property="og:image" content="http://bnucsy.github.io/CodeFormer/image-20230208195628508.png">
+<meta property="og:image" content="http://bnucsy.github.io/CodeFormer/image-20230208205107336.png">
+<meta property="og:image" content="http://bnucsy.github.io/CodeFormer/image-20230208205307160.png">
+<meta property="og:image" content="http://bnucsy.github.io/CodeFormer/image-20230208205636427.png">
+<meta property="og:image" content="http://bnucsy.github.io/CodeFormer/image-20230208205940844.png">
+<meta property="og:image" content="http://bnucsy.github.io/CodeFormer/image-20230208215258931.png">
+<meta property="og:image" content="http://bnucsy.github.io/CodeFormer/image-20230208214441190.png">
+<meta property="og:image" content="http://bnucsy.github.io/CodeFormer/image-20230209100444849.png">
+<meta property="og:image" content="http://bnucsy.github.io/CodeFormer/image-20230209100801049.png">
+<meta property="og:image" content="http://bnucsy.github.io/CodeFormer/image-20230209100935785.png">
+<meta property="article:published_time" content="2023-02-09T01:31:37.000Z">
+<meta property="article:modified_time" content="2023-02-09T02:27:39.822Z">
+<meta property="article:author" content="ShuYang Chu">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://bnucsy.github.io/CodeFormer/image-20230208213428701.png">
+
+<link rel="canonical" href="http://bnucsy.github.io/CodeFormer/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>CodeFormer | CSY's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CSY's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/bnucsy/" class="github-corner" title="Follow me on Github" aria-label="Follow me on Github" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://bnucsy.github.io/CodeFormer/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ShuYang Chu">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CSY's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          CodeFormer
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2023-02-09 09:31:37 / 修改时间：10:27:39" itemprop="dateCreated datePublished" datetime="2023-02-09T09:31:37+08:00">2023-02-09</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper/" itemprop="url" rel="index"><span itemprop="name">paper</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper/cv/" itemprop="url" rel="index"><span itemprop="name">cv</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/CodeFormer/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/CodeFormer/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2><center> Towards Robust Blind Face Restoration with Codebook Lookup Transformer </center></h2>
+
+<p>【盲人脸重建】【NIPS2022】【<a target="_blank" rel="noopener" href="http://arxiv.org/abs/2206.11253">paper</a>】【<a target="_blank" rel="noopener" href="https://github.com/sczhou/CodeFormer">code</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文借鉴 VQGAN 的思想细化了其应用领域并进行了启发式的改造，将条件生成限制到盲人脸重建，通过增加 CFT 模块优化过度平滑的问题，并且将采样器去掉，作为必选项在重建图像时优化隐编码。由于 CFT 模块可选，因此在一定程度上避免了如 GPEN 的跳跃连接，防止过差的 LQ 影响重建质量。其本质与其说参考了更多的盲图重建工作，倒不如说参考了 VQ 系列的工作。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/CodeFormer/image-20230208213428701.png" alt="image-20230208213428701"></p>
+<span id="more"></span>
+<hr>
+<h3 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h3><h4 id="VQVAE"><a href="#VQVAE" class="headerlink" title="VQVAE"></a>VQVAE</h4><p><a target="_blank" rel="noopener" href="http://arxiv.org/abs/1711.00937">Neural Discrete Representation Learning</a>  NIPS2017</p>
+<p><img src="/CodeFormer/image-20230208195628508.png" alt="image-20230208195628508"></p>
+<p>&emsp;&emsp;所谓 VQVAE，即矢量量化（Vector Quantized）VAE，其基础仍是 VAE，其具备和 VAE 基本一致的训练过程，只是在 Encoder $q$ 编码出 latent code $z_e$ 之后并不直接给 Decoder，而是经过通过一个码本 CodeBook 进行量化，得到离散的编码表示 $z_q$，再输入 Decoder $p$ 生成重建图像 $p(x|z_q)$。</p>
+<p>&emsp;&emsp;首先，论文本身上，其区别于 VAE，基于量化的编码可以很好地避免隐空间在采样重建时出现崩溃，但是同时由于 codebook 的限制，采样的多样性也相应减弱了，这种量化的思想更适用于重建（生成）质量大于多样性的场景，比如盲图重建。对于原文来说，VQVAE 主要进行图像重建、条件生成、语音生成，其中重建效果甚至不如好的 AE，条件生成结果更是和 CGAN 比不了，更不用提最近的 GAN。语音重建是 VQVAE 卖点之一，其宣称自己证明了深度学习模型可以无监督地从音频里学到语义。和盲图重建无关，就不展开了。</p>
+<h5 id="backbone"><a href="#backbone" class="headerlink" title="backbone"></a>backbone</h5><p>&emsp;&emsp;codebook 和量化过程可以描述为：</p>
+<ul>
+<li>codebook 实际上是向量的集合，其 shape 为：$(m\cdot n)\times d$ ，其中 $m,\ n,\ d$ 是原图经过编码器得到的隐编码 $z_e$ 的 shape<ul>
+<li>该集合有 $m\cdot n$ 个元素，每个元素是连续的 $(1,d)$ 的向量，元素下标范围是 $[0,m\cdot n)$，必须为整数</li>
+<li>codebook 中每个元素的初始值随机生成，在训练的过程中不断优化，优化目标是量化过程中损失最少的信息</li>
+</ul>
+</li>
+<li>量化过程为：<ul>
+<li>对于编码器的输出 $z_e\to(m,n,d)$，对其中的 $z_e[i,j]$ 有：<ul>
+<li>$z_q[i,j] = e_k,\ \ where\ \ k=arg\min_j||z_e[i,j]-e_j||_2$，从而输出 $z_q\to(m,n,d)$</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>&emsp;&emsp;其网络训练过程主要可以被描述为：</p>
+<ul>
+<li>正向传播<ul>
+<li>输入原图 $x$，经过编码器 E 得到 $z_e$</li>
+<li>$z_e$ 和 codebook 进行最近邻查询，将 $z_e$ 量化为 $z_q$</li>
+<li>$z_q$ 经过解码器 D 得到重建图像 $p(z_q)$</li>
+</ul>
+</li>
+<li>反向传播<ul>
+<li>$L=\log p(x|z_q(x))+||sg[z_e(x)]-e||_2^2+\beta||z_e(x)-sg[e]||_2^2$</li>
+<li>其中，第一项为重建损失，也是 VAE 的 ELBO 中的一项，使用 L1 或者 L2 损失度量重建图像质量</li>
+<li>第二项和第三项为优化量化过程中的信息损耗，其中 $sg$ 表示 detach，即分别优化编码器 E 和码本 codebook</li>
+</ul>
+</li>
+</ul>
+<p>&emsp;&emsp;相对于 VAE 来说，ELBO 缺少了 KL 散度的度量项，这是因为 $z$ 并非高斯分布，实际上，$z$ 的分布是离散的分类分布，具体可以描述为：</p>
+<script type="math/tex; mode=display">
+q(z=k|x)=\begin{cases}
+1\ \ \ \ \rm{for} \ k=arg\min_j||z_e(x)-e_j||_2\\
+0\ \ \ \ \rm{otherwise}
+\end{cases}</script><p>&emsp;&emsp;以此分布推理 KL 散度可以得到最终的结果为 $\log K$，$K=m\cdot n$。</p>
+<h5 id="从分类分布中采样"><a href="#从分类分布中采样" class="headerlink" title="从分类分布中采样"></a>从分类分布中采样</h5><p>&emsp;&emsp;对已经训练好的 backbone，按照 VAE 的思路接下来只需要使用解码器 $p$ 然后从高斯分布中采样隐编码 $z$ 就可以了，但是明显可以看到，$z$ 并不属于高斯分布，因此需要额外构建一种采样方式，本文采用的方式为 PixelCNN。</p>
+<p>&emsp;&emsp;PixelCNN 是自回归模型的一种，事实上使用任意一种自回归模型均可。所谓自回归模型，即模型接收当前位置前的序列并预测当前位置的值，类似于语言生成。对于 PixelCNN，具体的实现方式为采用卷积的方式进行 mask。</p>
+<p><img src="/CodeFormer/image-20230208205107336.png" alt="image-20230208205107336" style="zoom:50%;"></p>
+<p>&emsp;&emsp;上图表示了卷积核的卷积过程，对于黑色位置，卷积核只能看到灰色区域内的像素点，得到红色的像素分布并以此预测黑色位置像素，卷积核具体设计为下图：</p>
+<p><img src="/CodeFormer/image-20230208205307160.png" alt="image-20230208205307160" style="zoom:50%;"></p>
+<p>&emsp;&emsp;因为之后再 VQGAN 之中 PixelCNN 就使用 GPT-2 的 transformer 架构代替了，因此不再专门精读 PixelCNN。</p>
+<p>&emsp;&emsp;下图展示了使用 IN 训练的 PixelCNN 和 VQVAE 以不同的类别采样的结果，可以看到还是比较差的，只能说是初具雏形。</p>
+<p><img src="/CodeFormer/image-20230208205636427.png" alt="image-20230208205636427"></p>
+<h4 id="VQGAN"><a href="#VQGAN" class="headerlink" title="VQGAN"></a>VQGAN</h4><p><a target="_blank" rel="noopener" href="http://arxiv.org/abs/2012.09841">Taming Transformers for High-Resolution Image Synthesis</a>  CVPR2021</p>
+<p><img src="/CodeFormer/image-20230208205940844.png" alt="image-20230208205940844"></p>
+<p>&emsp;&emsp;VQGAN 针对 VQVAE 进行了两方面的改进：</p>
+<ul>
+<li>在原本的 AE 大框架下加入了判别器 D</li>
+<li>使用 transformer 架构代替了 PixelCNN</li>
+</ul>
+<p>&emsp;&emsp;相对于 VQVAE，VQGAN 在训练阶段只是多了一个 GAN 损失，其中量化损失描述为：</p>
+<script type="math/tex; mode=display">
+L_{VQ}(E,G,Z)=||x-\hat x^2||^2+||sg[E(x)]-z_q||_2^2+||sg[z_q]-E(x)||_2^2</script><p>&emsp;&emsp;其中，第一项 MSE 即为重建损失 $L_{rec}$，后两项和 VQVAE 一致。</p>
+<p>&emsp;&emsp;VQGAN 对抗（交叉熵损失）损失描述为：</p>
+<script type="math/tex; mode=display">
+L_{GAN}(\{E,G,Z\},D)=\log D(x)+\log(1-D(\hat x))</script><p>&emsp;&emsp;总损失描述为：</p>
+<script type="math/tex; mode=display">
+L_Q=arg\min_{E,G,Z}\max_D\mathbb E_{x\sim p(x)}[L_{VQ}+\lambda L_{GAN}]\\
+\mathrm {where}\ \  \lambda=\frac{\nabla_{G_L}[L_{rec}]}{\nabla_{G_L}[L_{GAN}]+\delta}</script><p>&emsp;&emsp;其中，$\nabla_{G_L}$ 表示损失关于 G 的最后一层的梯度，$\delta=10^{-6}$。</p>
+<p>&emsp;&emsp;对于采样部分，transformer 的训练方式为：对已经量化的序列进行预测，使用交叉熵函数学习如何把 codebook 映射到合理的分布，假设量化之后的序列为 $s$，则 transformer $p$ 预测序列 $s$ 可以表述为： $p(s)=\Pi_ip(s_i|s&lt;i)$，训练损失描述为：</p>
+<script type="math/tex; mode=display">
+L_{transformer}=\mathbb E_{x\sim p(x)}[-\log p(s)]</script><p>&emsp;&emsp;即对所有的 $x$ 采样之后预测出所有的 codebook 序列。</p>
+<p>&emsp;&emsp;需要注意的是，对于 VQGAN，其 transformer 需要预测的序列仍然较长，为了能够生成更高分辨率的图像，需要对 transformer 进行滑动窗口的方式进行预测，其示意图如下：</p>
+<p><img src="/CodeFormer/image-20230208215258931.png" alt="image-20230208215258931"></p>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>基于 transformer 的全局感知能力保证了更好的重建质量和保真度</li>
+<li>可控特征变换模块，以此解决 codebook 带来的多样性降低问题</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/CodeFormer/image-20230208214441190.png" alt="image-20230208214441190"></p>
+<p>&emsp;&emsp;在本文中，一些符号被重新命名，HQ 输入图像记为 $I_h$，编码器，解码器，判别器分别为 $E,\ G,\ D$，通过编码器之后的隐编码记为 $Z_h\in\mathbb R^{m\times n\times d}$，码表记为 $\mathcal C =\{c_k\in\mathbb R^d\}_{k=0}^N$，量化之后的隐编码记为 $Z_c\in\mathbb R^{m\times n\times d}$，量化之后的码表下标序列为 $s\in\{0,…,N-1\}^{m\cdot n}$，通过解码器之后的重建 HQ 图像记为 $I_{rec}$。</p>
+<p>&emsp;&emsp;整个网络结构很好理解，类比于 VQGAN，采用了三阶段的训练方式，<strong>第一阶段</strong>训练 VQVAE，如上图 (a) 所示，训练的损失函数为：</p>
+<script type="math/tex; mode=display">
+L_{codebook}=L_1+L_{per}+L_{code}+\lambda_{adv}\cdot L_{adv}</script><p>&emsp;&emsp;其中，$L_1$ 是重建损失，使用 L1Loss，$L_{per}$ 是感知损失，使用 VGG19 计算，$L_{code}$ 是码表量化损失，按照 $||sg[Z_h]-Z_c||_2^2+\beta||sg[Z_c]-Z_h||_2^2$ 计算，$L_{adv}$ 是对抗损失，按照 $\log D(I_h)+\log(1-D(I_{rec}))$ 计算，$\lambda_{rec}=0.8$。</p>
+<p>&emsp;&emsp;<strong>第二阶段</strong>训练 transformer，具体来说，将 LQ 的输入 $I_l$ 进入编码器之后的隐编码 $Z_l\in\mathbb R^{m\times n\times d}$ 拉平为向量 $Z_l^v\in\mathbb R^{(m\cdot n)\times d}$，然后输入标准的 transformer 结构，位置编码使用 sin 相对编码，预测出的结果为用于重建 HQ 图像的 codebook 下标序列 $\hat s$，训练过程的损失函数为：</p>
+<script type="math/tex; mode=display">
+L_{tf}=\lambda_{s}\cdot L_{s}+L_{code'}</script><p>&emsp;&emsp;其中，$L_s$ 即为预测出的 $\hat s$ 和真实 HQ 图像的量化序列 $s$ 的交叉熵损失，$\sum\limits_{i=0}^{mn-1}-si\log(\hat s_i)$，$L_{code’}$ 即为在 LQ 预测下的量化损失，其只用来优化 $E_L$，$L_{code’}=||Z_l-sg[Z_c]||_2^2$。</p>
+<p>&emsp;&emsp;编解码器由 12 个残差模块和 5 个上下采样模块组成，因此压缩比为 $32^2$，对于 codebook，$N=1024,\ d=256$，这个序列长度允许使用 transformer 直接进行全局建模。</p>
+<p>&emsp;&emsp;<strong>第三阶段</strong>参照 <a target="_blank" rel="noopener" href="https://arxiv.org/pdf/1804.02815.pdf">SFTGAN</a> 的 SFTlayer 设计，具体如上图所示，其中淡淡色的方块是卷积的组合，$\alpha,\ \beta$ 相当于 SFT 的 $\gamma,\ \beta$，相当于 style，通过乘和加的操作实现了仿射变换，即风格嵌入，这些淡淡色的方块的目标即为融合 $F_e$ 和 $F_d$ 的风格。</p>
+<p>&emsp;&emsp;第三阶段的训练过程是在已经训练好的二阶段模型上进行微调，前向过程中调整的是解码器 $D_H$ 每一层的特征，具体来说对于某个层的特征 $F_d$，有，$\hat F_d=F_d+(\alpha\odot F_d+\beta)\times w$，其中 $\alpha,\beta=\mathcal {P}_\theta(c(F_d,F_e))$，其中，$\cal P$ 表示一系列的卷积组合。其损失函数是一二阶段的损失函数之和（除去和 code 相关的部分），梯度回传时更新除了码表之外的全部。</p>
+<p>&emsp;&emsp;在训练的过程中全部设置 $w=1$ 以保证模型学习到融合特征的能力，在推理的过程中设置 $w=0$ 能够最好地保证重建质量，在 $[0,1]$ 之间的调整则可以产生连续变化的生成结果，增加了多样性。</p>
+<p><img src="/CodeFormer/image-20230209100444849.png" alt="image-20230209100444849"></p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文首先在 Celeb-A，LFW，WebPhoto，WIDER 数据集上分别测试了性能，以 LPIPS，FID，NIQE，IDS，PSNR，SSIM 作为指标显示了模型优越的性能，对比的模型中不包括 VQGAN</p>
+<p><img src="/CodeFormer/image-20230209100801049.png" alt="image-20230209100801049"></p>
+<p>&emsp;&emsp;另一方面本文测试了和 VQGAN 在预测 codebook 序列上的正确性，由于 transformer 结构，准确度提升了很多（但是这里的 transformer 就是普通的 transformer，是否可以针对 transformer 的架构进行改进？）</p>
+<p><img src="/CodeFormer/image-20230209100935785.png" alt="image-20230209100935785"></p>
+<p>&emsp;&emsp;最后本文还论证了在第二阶段锁定解码器的必要性，通过测试是否在第二阶段更新解码器，得出结论：在第二阶段微调解码器会破坏学习到的先验知识。然后将本文的网络应用于了人脸图像修补，人脸图像上色等任务，同样取得了不错的结果。</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>ShuYang Chu
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://bnucsy.github.io/CodeFormer/" title="CodeFormer">http://bnucsy.github.io/CodeFormer/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/GPEN/" rel="prev" title="GPEN">
+      <i class="fa fa-chevron-left"></i> GPEN
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/Anchor_based_colorization/" rel="next" title="Anchor_based_colorization">
+      Anchor_based_colorization <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> Towards Robust Blind Face Restoration with Codebook Lookup Transformer </span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E8%A7%88"><span class="nav-text">概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86"><span class="nav-text">前置知识</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#VQVAE"><span class="nav-text">VQVAE</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#backbone"><span class="nav-text">backbone</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BB%8E%E5%88%86%E7%B1%BB%E5%88%86%E5%B8%83%E4%B8%AD%E9%87%87%E6%A0%B7"><span class="nav-text">从分类分布中采样</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#VQGAN"><span class="nav-text">VQGAN</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E6%96%B0"><span class="nav-text">创新</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C"><span class="nav-text">网络</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-text">结果</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ShuYang Chu</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ShuYang Chu</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'gSZuY7rr1fsTF5DTHs68r5lu-gzGzoHsz',
+      appKey     : 'JqjUXxwDxPg9qbRlCyMx3gkg',
+      placeholder: "在这里写下评论",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

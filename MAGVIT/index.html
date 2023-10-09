@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"bnucsy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="MAGVIT: Masked Generative Video Transformer   【视频生成】【arxiv】【paper】【code】 摘要&amp;emsp;&amp;emsp;本文提出了一种基于 3DCNN 的 VQGAN 和多任务优化的视频生成器。其中 3DCNN 的网络由图像预训练的 2D 网络中心膨胀而来。所谓多任务优化，即通过不同的 mask 模拟不同的条件任务（包括帧插值、帧预测等十种）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MAGVIT">
+<meta property="og:url" content="http://bnucsy.github.io/MAGVIT/index.html">
+<meta property="og:site_name" content="CSY&#39;s blog">
+<meta property="og:description" content="MAGVIT: Masked Generative Video Transformer   【视频生成】【arxiv】【paper】【code】 摘要&amp;emsp;&amp;emsp;本文提出了一种基于 3DCNN 的 VQGAN 和多任务优化的视频生成器。其中 3DCNN 的网络由图像预训练的 2D 网络中心膨胀而来。所谓多任务优化，即通过不同的 mask 模拟不同的条件任务（包括帧插值、帧预测等十种）">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://bnucsy.github.io/MAGVIT/image-20230417203930207.png">
+<meta property="og:image" content="http://bnucsy.github.io/MAGVIT/image-20230417203944064.png">
+<meta property="og:image" content="http://bnucsy.github.io/MAGVIT/image-20230418164802591.png">
+<meta property="og:image" content="http://bnucsy.github.io/MAGVIT/image-20230418165556463.png">
+<meta property="og:image" content="http://bnucsy.github.io/MAGVIT/image-20230418165945029.png">
+<meta property="og:image" content="http://bnucsy.github.io/MAGVIT/image-20230418170349596.png">
+<meta property="og:image" content="http://bnucsy.github.io/MAGVIT/image-20230418170646469.png">
+<meta property="og:image" content="http://bnucsy.github.io/MAGVIT/image-20230418170727129.png">
+<meta property="article:published_time" content="2023-04-17T01:31:37.000Z">
+<meta property="article:modified_time" content="2023-04-18T09:08:24.316Z">
+<meta property="article:author" content="ShuYang Chu">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://bnucsy.github.io/MAGVIT/image-20230417203930207.png">
+
+<link rel="canonical" href="http://bnucsy.github.io/MAGVIT/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>MAGVIT | CSY's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CSY's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/bnucsy/" class="github-corner" title="Follow me on Github" aria-label="Follow me on Github" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://bnucsy.github.io/MAGVIT/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ShuYang Chu">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CSY's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          MAGVIT
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-04-17 09:31:37" itemprop="dateCreated datePublished" datetime="2023-04-17T09:31:37+08:00">2023-04-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-04-18 17:08:24" itemprop="dateModified" datetime="2023-04-18T17:08:24+08:00">2023-04-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper/" itemprop="url" rel="index"><span itemprop="name">paper</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper/cv/" itemprop="url" rel="index"><span itemprop="name">cv</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/MAGVIT/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/MAGVIT/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.6k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2><center> MAGVIT: Masked Generative Video Transformer </center></h2>
+
+<p>【视频生成】【arxiv】【<a target="_blank" rel="noopener" href="http://arxiv.org/abs/2212.05199">paper</a>】【<a target="_blank" rel="noopener" href="https://github.com/MAGVIT/magvit">code</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种基于 3DCNN 的 VQGAN 和多任务优化的视频生成器。其中 3DCNN 的网络由图像预训练的 2D 网络中心膨胀而来。所谓多任务优化，即通过不同的 mask 模拟不同的<strong>条件任务</strong>（包括帧插值、帧预测等十种），另外加上<strong>自重建任务</strong>进行联合优化。其中<strong>条件任务</strong>又分为：1.预测完全不存在的帧，2.预测部分存在的帧。因此第二部分可以描述为使用多任务构造损失函数联合优化 VQGAN 的下标重建 transformer。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/MAGVIT/image-20230417203930207.png" alt="image-20230417203930207"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>先训练 2D-VQGAN 再膨胀为 3D-VQGAN 的策略</li>
+<li>对视频进行多任务 mask 联合优化的策略</li>
+</ul>
+<h4 id="tricks"><a href="#tricks" class="headerlink" title="tricks"></a>tricks</h4><ul>
+<li>使用中心膨胀获得 3D 预训练权重</li>
+<li>对视频的每一帧计算感知损失</li>
+<li>在 GAN 的损失函数上加入 LeCam 正则化</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/MAGVIT/image-20230417203944064.png" alt="image-20230417203944064"></p>
+<p>&emsp;&emsp;上图中，3D-VQ Encoder 将视频量化为离散的标记，而 3D-VQ  Decoder 将它们映射回像素空间。在每个训练步骤中对任务 $\rho$ 进行采样（共十种任务），并通过裁剪和填充原始视频来构建其条件输入 $c$，其中绿色表示 GT 像素，白色表示填充，橙色表示 GT tokens。使用用 3D-VQ Encoder 量化条件输入，并选择非填充部分（橙色）作为条件标记。掩码 token 序列（即图中 COMMIT Masking）结合了条件 tokens、[MASK] tokens 和 GT tokens，并以任务提示符和类令牌作为前缀（$[\rho,c]$，直接 Concat）。transformer 通过三个目标学习预测可视标记:细化条件标记、预测屏蔽标记和重构输入标记。</p>
+<p>&emsp;&emsp;本文提出的 MAGVIT 是一个两阶段的模型，首先训练一个 3DCNN 的 VQGAN，第二阶段再通过多任务 mask 学习一个 transformer 预测 token。</p>
+<p>&emsp;&emsp;第一阶段将编码器和解码器分别描述为 $f_\tau:V\to z,\ f_{\tau^{-1}}:z\to V$。第一阶段训练的 VQGAN 由 2DCNN 的预训练模型膨胀得到，在图像上训练的 2D-VQVAE 遵循如下优化模式： </p>
+<ul>
+<li>$I$ 表示图像，$z$ 表示图像经过编码器 VQ 之后的下标序列，长度为 N</li>
+<li>$m$ 为 mask，是一个二元向量，对于 $m$ 的每一个值为 $x\to x/[mask]$，经过 mask 的 $m(z)$ 记作 $\bar z$</li>
+<li>训练时，$m$ 从先验分布 $p_\mu$ 之中采样，即其中 $x\to[mask]$ 占比遵循余弦调度函数 $\gamma(\cdot)$<ul>
+<li>采样的具体操作为：</li>
+<li>从 $U(0,1)$ 中均值采样 mask 分数 $s$ 和一个中间变量 $r$，使用 $r$ 计算 $\lceil \gamma(r)N\rceil$，这个值表明小于阈值 $s^<em>$ 的 $s_i\in s$ 的个数，以此确定阈值 $s^</em>$</li>
+<li>得到 $m_i(x)=[mask]\ \ \ \ if\ \ \ \ s_i\leq s^*\ \ \ \ else\ \ \ \ x$</li>
+</ul>
+</li>
+<li>优化目标为：$L_{mask}(z; θ) = E_{m∼p_\mu} [∑_{\bar z_i =[MASK]} − \log p_θ(z_i | [c, \bar z]) ]$</li>
+</ul>
+<p>&emsp;&emsp;3D-VQVAE 采用中心膨胀的方式获得预训练的权重，<strong>这样可以在 GAN 的训练中快速达到稳定状态</strong>。同时在视频训练时<strong>将 VGGLoss 应用于每一帧的图像</strong>上，在 GANLoss 中<strong>加入了 <a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2104.03310.pdf">LeCam 正则化（CVPR2021）</a></strong> 用以稳定对抗训练。</p>
+<p>&emsp;&emsp;第二阶段的训练采用多任务 mask 的方法进行建模，原文称之为：内部令牌的条件屏蔽建模（<strong>CO</strong>nditional <strong>M</strong>asked <strong>M</strong>odeling by <strong>I</strong>nterior <strong>T</strong>okens ）简记为 COMMIT 方法。在训练时从十种不同的条件生成任务中进行采样，具体来说任务包括：帧预测(FP)、帧插值(FI)、中央外绘(OPC)、垂直外绘(OPV)、水平外绘(OPH)、动态外绘(OPD)、中央补绘(IPC)和动态补绘(IPD)、类条件生成(CG)、类条件帧预测(CFP)。其中每个任务的具体定义见原文 P12 附录 B.1。</p>
+<p>&emsp;&emsp;在第二阶段的训练过程中，其整体逻辑与第一阶段训练图像 2D-VQ 一致，但在细节上略有改动：</p>
+<ul>
+<li>首先采样原视频 $V$，采样一个任务提示符 $\rho$，并根据 $\rho$ 生成对应的 mask 任务视频 $\tilde V$</li>
+<li>记 $z=f_\tau(V),\ \tilde z = f_\tau (\tilde V)$，得到对应 tokens 的 mask 结果 $m_i$：<img src="/MAGVIT/image-20230418164802591.png" alt="image-20230418164802591" style="zoom:40%;"><ul>
+<li>其中 ispad(·) 表示是否为全填充，对应至上图 backbone 之中，表示为全白色的 token </li>
+</ul>
+</li>
+<li>一阶段图像的loss描述为：$L_{mask}(z; θ) = E_{m∼p_\mu} [∑_{\bar z_i =[MASK]} − \log p_θ(z_i | [c, \bar z]) ]$，因此据此写出视频的描述应为：$L(V; θ) = E_{\rho,\tilde V}[ E_{m∼p_M} [∑_i − \log p_θ(z_i | [\rho,c, \bar z]) ]]$<ul>
+<li>其中用 $p_M$ 而非 $p_\mu$ 是因为在当前的 $m_i$ 获取方式下，其分布已经和图像层面不一致了，故用一个新的符号</li>
+<li>此式按照 $m_i$ 的三种不同取值可以拆分为三个部分：<img src="/MAGVIT/image-20230418165556463.png" alt="image-20230418165556463" style="zoom:40%;"></li>
+<li>这三部分分别表示了：1.条件生成（10种具体任务的某些帧）2.完全预测（10种具体任务的某些帧）3.视频重建（单独的任务+10种具体任务的某些帧）</li>
+</ul>
+</li>
+</ul>
+<h3 id="推理"><a href="#推理" class="headerlink" title="推理"></a>推理</h3><p><img src="/MAGVIT/image-20230418165945029.png" alt="image-20230418165945029" style="zoom:50%;"></p>
+<p>&emsp;&emsp;推理的过程中采用上图的推理方式，具体来说是：COMMIT 解码从 $m_i$ 入手，在 $m_i$ 和对应的 $s_i$ 的指导下，通过在每一步替换一部分新生成的 token 来执行向输出 token 的条件转换过程（具体的替换个数由更新 $s^*$ 的值确定，而这个值由 $t$ 确定，$t$ 表示第几步，总共 $K$ 步，$K$ 手动选择），并最终预测所有 token。</p>
+<p>&emsp;&emsp;下图展示另一个边界预测任务下的 7 步推理可视化过程：</p>
+<p><img src="/MAGVIT/image-20230418170349596.png" alt="image-20230418170349596" style="zoom: 50%;"></p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><ul>
+<li>在视频生成上针对 UCF-101 的 FVD</li>
+</ul>
+<p><img src="/MAGVIT/image-20230418170646469.png" alt="image-20230418170646469" style="zoom:50%;"></p>
+<ul>
+<li>在帧预测任务上针对 K600 和 BAIR 的 FVD</li>
+</ul>
+<p><img src="/MAGVIT/image-20230418170727129.png" alt="image-20230418170727129" style="zoom:50%;"></p>
+<p>&emsp;&emsp;更多的结果可视化见网站：<a target="_blank" rel="noopener" href="https://magvit.cs.cmu.edu">https://magvit.cs.cmu.edu</a></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>ShuYang Chu
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://bnucsy.github.io/MAGVIT/" title="MAGVIT">http://bnucsy.github.io/MAGVIT/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/MoCoGAN_HD/" rel="prev" title="MoCoGAN_HD">
+      <i class="fa fa-chevron-left"></i> MoCoGAN_HD
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/TATS/" rel="next" title="TATS">
+      TATS <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> MAGVIT: Masked Generative Video Transformer </span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E8%A7%88"><span class="nav-text">概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E6%96%B0"><span class="nav-text">创新</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#tricks"><span class="nav-text">tricks</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C"><span class="nav-text">网络</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%A8%E7%90%86"><span class="nav-text">推理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-text">结果</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ShuYang Chu</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ShuYang Chu</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'gSZuY7rr1fsTF5DTHs68r5lu-gzGzoHsz',
+      appKey     : 'JqjUXxwDxPg9qbRlCyMx3gkg',
+      placeholder: "在这里写下评论",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

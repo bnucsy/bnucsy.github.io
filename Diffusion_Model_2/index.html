@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"bnucsy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="diffusion theories   摘要&amp;emsp;&amp;emsp;本文将承接上文的 DDPM，继续介绍其他的扩散模型理论，以及对扩散模型扩展的探索：  SMLD（NIPS2019）：Generative modeling by estimating gradients of the data distribution SDE（ICLR2021）：Score-Based Generative">
+<meta property="og:type" content="article">
+<meta property="og:title" content="diffusion models 2">
+<meta property="og:url" content="http://bnucsy.github.io/Diffusion_Model_2/index.html">
+<meta property="og:site_name" content="CSY&#39;s blog">
+<meta property="og:description" content="diffusion theories   摘要&amp;emsp;&amp;emsp;本文将承接上文的 DDPM，继续介绍其他的扩散模型理论，以及对扩散模型扩展的探索：  SMLD（NIPS2019）：Generative modeling by estimating gradients of the data distribution SDE（ICLR2021）：Score-Based Generative">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://bnucsy.github.io/Diffusion_Model_2/image-20230504200127087.png">
+<meta property="og:image" content="http://bnucsy.github.io/Diffusion_Model_2/langevin.gif">
+<meta property="og:image" content="http://bnucsy.github.io/Diffusion_Model_2/image-20230504203718065.png">
+<meta property="og:image" content="http://bnucsy.github.io/Diffusion_Model_2/image-20230504204758364.png">
+<meta property="og:image" content="http://bnucsy.github.io/Diffusion_Model_2/image-20230505121220625.png">
+<meta property="og:image" content="http://bnucsy.github.io/Diffusion_Model_2/perturb_vp.gif">
+<meta property="og:image" content="http://bnucsy.github.io/Diffusion_Model_2/image-20230507160801692.png">
+<meta property="og:image" content="http://bnucsy.github.io/Diffusion_Model_2/denoise_vp.gif">
+<meta property="article:published_time" content="2023-05-04T01:31:37.000Z">
+<meta property="article:modified_time" content="2023-09-12T06:01:48.518Z">
+<meta property="article:author" content="ShuYang Chu">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://bnucsy.github.io/Diffusion_Model_2/image-20230504200127087.png">
+
+<link rel="canonical" href="http://bnucsy.github.io/Diffusion_Model_2/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>diffusion models 2 | CSY's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CSY's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/bnucsy/" class="github-corner" title="Follow me on Github" aria-label="Follow me on Github" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://bnucsy.github.io/Diffusion_Model_2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ShuYang Chu">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CSY's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          diffusion models 2
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-05-04 09:31:37" itemprop="dateCreated datePublished" datetime="2023-05-04T09:31:37+08:00">2023-05-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-09-12 14:01:48" itemprop="dateModified" datetime="2023-09-12T14:01:48+08:00">2023-09-12</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper/" itemprop="url" rel="index"><span itemprop="name">paper</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper/cv/" itemprop="url" rel="index"><span itemprop="name">cv</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/Diffusion_Model_2/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/Diffusion_Model_2/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>7.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>7 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2><center> diffusion theories </center></h2>
+
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文将承接上文的 <a href>DDPM</a>，继续介绍其他的扩散模型理论，以及对扩散模型扩展的探索：</p>
+<ul>
+<li>SMLD（NIPS2019）：Generative modeling by estimating gradients of the data distribution</li>
+<li>SDE（ICLR2021）：Score-Based Generative Modeling through Stochastic Differential Equations</li>
+<li>DDIM（ICLR2021）：Denoising Diffusion Implicit Models</li>
+<li></li>
+</ul>
+<span id="more"></span>
+<hr>
+<h3 id="SMLD-Generative-modeling-by-estimating-gradients-of-the-data-distribution"><a href="#SMLD-Generative-modeling-by-estimating-gradients-of-the-data-distribution" class="headerlink" title="SMLD : Generative modeling by estimating gradients of the data distribution"></a>SMLD : Generative modeling by estimating gradients of the data distribution</h3><p>【图像生成】【NIPS2019】【<a target="_blank" rel="noopener" href="https://proceedings.neurips.cc/paper/2019/file/3001ef257407d5a371a96dcd947c7d93-Paper.pdf">paper</a>】【<a target="_blank" rel="noopener" href="https://github.com/ermongroup/ncsn">code</a>】</p>
+<h4 id="前置说明"><a href="#前置说明" class="headerlink" title="前置说明"></a>前置说明</h4><p>&emsp;&emsp;SMLD 全名为 Score Matching Langevin Dynamics，即基于分数匹配的郎之万采样方法，其主要提出了 NCSN。NCSN 全名为 Noise Conditional Score Network，即以噪声为条件的分数（预测）网络。本文提出了一种基于分数匹配的加噪-去噪过程，同时采用郎之万采样进行逐次迭代，是扩散模型的基础理论之一。</p>
+<p>&emsp;&emsp;在阅读本方法时，最好一直带着三个疑问：1.为什么要向样本中添加噪声，2.噪声是怎么样被添加至样本的，3.噪声是如何被去除的。</p>
+<ul>
+<li><strong>什么是 score？</strong></li>
+</ul>
+<p>&emsp;&emsp;所谓的 score，定义为数据分布的对数的梯度。对于一个数据分布 $p(x)$，其 score 为 $\nabla_x\log p(x)$。这是数学上的定义，形象化地表示下，假如 $p(x)$ 如下图（左）所示，则其 score 如下图（右）所示。这个 score 的作用是方便采样，具体来说，假如从 $p(x)$ 某个随机位置开始采样，其初始值大概率没有在高密度位置，此时只需要按照梯度逐步前进，将会逐渐到达高密度区域。</p>
+<p><img src="/Diffusion_Model_2/image-20230504200127087.png" alt="image-20230504200127087" style="zoom:50%;"></p>
+<ul>
+<li><strong>什么是 郎之万采样？</strong></li>
+</ul>
+<p>&emsp;&emsp;郎之万采样就是一种采样方式，其来源于郎之万动力学 Langevin dynamics，也就是扩散模型中去噪的迭代过程，具体来说，给出一个分布 $p(x)$ 的分数，对其的采样过程为：$x_t=x_{t-1}+\frac\epsilon2\nabla_x\log p(x_{t-1})+\sqrt\epsilon z_t$，其中，$\epsilon$ 表示步长，即每次走几步，$z_t\sim N(0,I)$ 表示标准正态分布（噪声），整个过程可以看做，对于初始点 $x_{t-1}$，下一步将在其基础上移动 $\frac\epsilon2$ 步的梯度，并且伴随一个低阶的噪声扰动。</p>
+<p><img src="/Diffusion_Model_2/langevin.gif" alt="img" style="zoom:50%;"></p>
+<h4 id="优化设计（扩散-逆扩散过程）"><a href="#优化设计（扩散-逆扩散过程）" class="headerlink" title="优化设计（扩散-逆扩散过程）"></a>优化设计（扩散-逆扩散过程）</h4><h5 id="低密度不准确问题"><a href="#低密度不准确问题" class="headerlink" title="低密度不准确问题"></a>低密度不准确问题</h5><p>&emsp;&emsp;我们可以看出来，如果我们有一个非常准确的分数时就可以进行好的采样，但是估计分数也就是在估计分布，没有办法直观地进行获取，而是需要一个神经网络进行逼近，即 $\min\ E_{p(x)}[||s_\theta(x)-\nabla_x\log p(x)||_2^2]$。但是在估计分数时有着天然的问题（即使我们已知分布）：当数据分布比较集中（方差较小）时，空间中会存在大量的低密度区域，在这些区域中没有足够的样本对分数进行估计。这种情况如下图所示：</p>
+<p><img src="/Diffusion_Model_2/image-20230504203718065.png" alt="image-20230504203718065" style="zoom: 33%;"></p>
+<h5 id="使用退火郎之万采样"><a href="#使用退火郎之万采样" class="headerlink" title="使用退火郎之万采样"></a>使用退火郎之万采样</h5><p>&emsp;&emsp;本文额外引入了一个探讨：当目标数据分布是由两个不同的分布之和时，能否准确进行不同分布的采样？考虑这样一个混合分布：$p(x)=\pi p_1(x)+(1-\pi)p_2(x)$，其中 $\pi$ 为常数，则 $\nabla_x\log p(x)=\nabla_x\log p_1(x)+\nabla_x\log p_2(x)$，也就是说，虽然混合分布 $p(x)$ 本身与 $\pi$ 有关系，但是其 score 却与 $\pi$ 无关，这将极大地限制从混合分布中进行正确采样。</p>
+<p>&emsp;&emsp;本文进行了这样的实验：用不同的方法从混合高斯分布中获取样本。(a) 精确抽样。(b) 使用精确分数的郎之万采样进行抽样。(c)使用退火郎之万采样进行抽样。显然，朗之万动力学不正确地估计了两种模式之间的相对权值，而退火朗之万动力学则忠实地恢复了相对权值。</p>
+<p><img src="/Diffusion_Model_2/image-20230504204758364.png" alt="image-20230504204758364" style="zoom: 50%;"></p>
+<h5 id="NCSN：加噪与训练"><a href="#NCSN：加噪与训练" class="headerlink" title="NCSN：加噪与训练"></a>NCSN：加噪与训练</h5><ul>
+<li>加噪方式</li>
+</ul>
+<p>&emsp;&emsp;既然我们已经明确在分布集中时难以准确估计 score，那么我们就要对其进行加噪，通过使其具备更广的分布从而能够准确估计 score，这也就回答了第一个问题。但是这也会带来一些额外的问题：加入了较大的噪声之后，我们估计出的分布将会和真实分布差距较大。</p>
+<p>&emsp;&emsp;为了解决加噪之后难以去除的问题，我们通过这样的方式加入噪声：预设一个公比小于 1 的等比数列 $\{\sigma_i\}_i^L$，将其每一项分别作为正态分布的噪声 $N(0,\sigma^2I)$ 加入原始数据分布 $p(x)$ 之中以获取新数据分布 $q_\sigma(\tilde x)$，则 $q_\sigma(\tilde x)\sim\int p(x)N(\tilde x|x,\sigma^2I)dx$。此时我们的目的就是利用分数估计网络逼近 $q_\sigma(\tilde x)$，不过此时我们将对应的方差 $\sigma$ 也输入至分数网络之中：$s_\theta(\tilde x,\sigma)\simeq \nabla_{\tilde x}\log q_\sigma(\tilde x)$。</p>
+<p>&emsp;&emsp;这种加噪方式很好地平衡了上述两个难题，通过先加入大噪声使数据分布更广泛，从而获取原本低密度区域的正确分数估计，再逐步缩小加噪方差，直至最终可以收敛到和原数据分布基本一致。这种以 $\sigma_i$ 作为条件的分数估计网络就称为 NCSN。</p>
+<ul>
+<li>训练方式</li>
+</ul>
+<p>&emsp;&emsp;在训练的过程中，由于 $\sigma$ 总共有 $L$ 个，那么计算 loss 时自然所有的都需要考虑在内，为了推理出整体形式，首先考虑对于某一个 $\sigma\in\{\sigma_i\}_i^L$</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&\because q_\sigma(\tilde x|x)=N(\tilde x|x,\sigma^2 I)（因为是直接在原始数据分布上加高斯噪声）\\
+&\therefore\nabla_{\tilde x}\log q_\sigma(\tilde x|x)=-\frac{\tilde x-x}{\sigma^2}（展开计算可得）\\
+&\therefore L(\theta;\sigma)=\mathbb E_{p(x)}\mathbb E_{\tilde x\sim N(x,\sigma^2I)}[\|s_\theta(\tilde x,\sigma)+\frac{\tilde x-x}{\sigma^2}\|_2^2]
+\end{align}</script><p>&emsp;&emsp;因此若考虑全部的 $\sigma$，损失函数应该写为：$L(\theta;\{\sigma_i\}_i^L)=\frac1L\sum\limits_{i=1}^L\lambda(\sigma_i)L(\theta;\sigma_i)$。其中，$\lambda(\sigma_i)$ 用于平衡各个方差之间的数量级，在合理的假设下，平衡之后的损失应当不受到 $\sigma_i$ 的级数的影响。作者指出在训练到收敛之后 $|s_\theta(x,\sigma)|_2\propto \frac1\sigma$，因此设 $\lambda(\sigma_i)=\sigma_i^2$，以此消除由 $\sigma$ 数值带来的影响。</p>
+<h5 id="NCSN-的推理过程"><a href="#NCSN-的推理过程" class="headerlink" title="NCSN 的推理过程"></a>NCSN 的推理过程</h5><p>&emsp;&emsp;使用退火郎之万采样对数据进行多次迭代，具体来说，当 score 被近似正确估计时执行下列步骤。其关键的见解在于：<strong>将 $\sigma$ 从大到小进行迭代，大的 $\sigma_i$ 可以使低密度区域更少，但逼近 $p(x)$ 效果不好，尽管如此，以此为 score 进行 $x_t$ 的郎之万采样也会大致地向高密度区域前进。通过这种方式，尽管大的 $\sigma_i$ 不够精确，但足以使 $x_{t+1}$ 进入 $\sigma_{i+1}$ 的 score 准确估计区域。</strong></p>
+<p><img src="/Diffusion_Model_2/image-20230505121220625.png" alt="image-20230505121220625" style="zoom: 40%;"></p>
+<hr>
+<h3 id="SDE-Score-Based-Generative-Modeling-through-Stochastic-Differential-Equations"><a href="#SDE-Score-Based-Generative-Modeling-through-Stochastic-Differential-Equations" class="headerlink" title="SDE : Score-Based Generative Modeling through Stochastic Differential Equations"></a>SDE : Score-Based Generative Modeling through Stochastic Differential Equations</h3><p>【图像生成】【ICLR2021】【<a target="_blank" rel="noopener" href="http://arxiv.org/abs/2011.13456">paper</a>】【<a target="_blank" rel="noopener" href="https://colab.research.google.com/drive/120kYYBOVa1i0TD85RjlEkFjaWDxSFUx3?usp=sharing#scrollTo=qW1HaPZb9gDM">code</a>】</p>
+<h4 id="前置说明-1"><a href="#前置说明-1" class="headerlink" title="前置说明"></a>前置说明</h4><p>&emsp;&emsp;所谓 SDE，即随机微分方程（Stochastic Differential Equations），常用来对随机过程进行建模，对于微分方程来说，常微分方程 ODE 的一般形式为：$dy=f(x)dx$，通常可以使用对 $dx$ 积分的方式求解 $f(y)$，随机微分方程 SDE 的一般形式为：$dx_t=f(x_t,t)dt+g(x_t,t)dw_t$，其中 $w_t$ 表示随机项。本文旨在使用 SDE 构造出一个一致性的扩散模型 pipeline，以指导后续的扩散模型构造。</p>
+<h4 id="加噪过程"><a href="#加噪过程" class="headerlink" title="加噪过程"></a>加噪过程</h4><p>&emsp;&emsp;当噪声尺度的数量接近无穷大时，我们基本上会随着噪声水平的不断增加而扰乱数据分布。在这种情况下，噪声扰动过程是一个连续时间随机过程，如下所示</p>
+<p><img src="/Diffusion_Model_2/perturb_vp.gif" alt="img"></p>
+<p>&emsp;&emsp;这个过程使用 SDE 描述为</p>
+<script type="math/tex; mode=display">
+dx=f(x,t)dt+g(t)dw</script><p>&emsp;&emsp;其中，作者将 $f(*,t)$ 称为漂移系数，$g(t)$ 称为扩散系数，对于一个 $dt$ 内的 $dx$，前半部分描述了一个确定的移动，后半部分则表示了一个噪声，在单位时间 $dt$ 内的 $dx$ 变化如下图所示：</p>
+<p><img src="/Diffusion_Model_2/image-20230507160801692.png" alt="image-20230507160801692" style="zoom: 33%;"></p>
+<p> &emsp;&emsp;在上式中，SDE 的具体形式（指 $f(x,t),\ g(t)$ 的表达式）是手工设计的，接下来我们将首先探索一下不使用具体形式的抽象化推理，然后将给 $f(x,t),\ g(t)$ 赋值具体表达式并以此推理出 DDPM 与 SMLD 两种具体扩散模型。</p>
+<h4 id="去噪过程"><a href="#去噪过程" class="headerlink" title="去噪过程"></a>去噪过程</h4><p>&emsp;&emsp;<strong>在有限数量的噪声尺度下，我们可以通过使用退火 Langevin 动力学</strong>反转扰动过程来生成样本，即，使用 Langevin 动力学从每个噪声扰动分布中顺序采样。对于无限噪声尺度，我们可以通过使用反向 SDE 类似地反转样本生成的扰动过程。</p>
+<p><img src="/Diffusion_Model_2/denoise_vp.gif" alt="img"></p>
+<p>&emsp;&emsp;为了能够得到逆向过程的 SDE 方差，我们需要对正向过程 $dx=f(x,t)dt+g(t)dw$ 进行推理，推理过程如下：</p>
+<ul>
+<li><p>首先，离散化扩散过程 SDE，$dx=x_{t+\Delta t}-x_t,\ dt=\Delta t$，得到：</p>
+<ul>
+<li><script type="math/tex; mode=display">
+x_{t+\Delta t}-x_t=f(x_t,t)dt+g(t)\sqrt{\Delta t}\epsilon,\ \epsilon\sim N(0,I)\tag 1</script></li>
+<li><p>这里有两个需要注意的点：1.在函数 $f$ 内，$x\to x_t$ 而非 $x_{t+\Delta t}$ 是因为这里我们是扩散过程，是给出 $x_t$ 求 $x_{t+\Delta t}$ 的过程；2.扩散项的 $dw$ 变成了 $\sqrt{\Delta t}\epsilon$，这个$\Delta t$ 加根号是结论性的，有<a target="_blank" rel="noopener" href="https://kexue.fm/archives/9209#%E9%9A%8F%E6%9C%BA%E5%BE%AE%E5%88%86">非官方的解释</a>。</p>
+</li>
+</ul>
+</li>
+<li><p>由上式可得</p>
+<ul>
+<li><script type="math/tex; mode=display">
+p(x_{t+\Delta t}|x_t)\sim N(x_t+f(x_t,t)dt,\ g^2(t)\Delta t)\propto \exp (-\frac{\|x_{t+\Delta t}-x_t-f(x_t,t)\Delta t\|_2^2}{2g^2(t)\Delta t})\tag 2</script></li>
+</ul>
+</li>
+<li><p>为了进行逆扩散过程，我们需要知道 $p(x_t|x_{t+\Delta t})$ 因此可以列出贝叶斯公式</p>
+<ul>
+<li><script type="math/tex; mode=display">
+p(x_t|x_{t+\Delta t})=\frac{p(x_{t+\Delta t}|x_t)p(x_t)}{p(x_{t+\Delta t})}\tag 3</script></li>
+</ul>
+</li>
+<li><p>若此时将式 $2$ 代入式 $3$，则会保留一项 $\frac{p(x_t)}{p(x_{t+\Delta t})}$ 无法消去，因此先尝试处理此项</p>
+<ul>
+<li><script type="math/tex; mode=display">
+\frac{p(x_t)}{p(x_{t+\Delta t})}=\exp(\log p(x_t) - \log p(x_t|x_{t+\Delta t}))\tag 4</script></li>
+<li><p>对 $\log p(x_{t+\Delta t})$ 在 $x_t$ 处进行泰勒展开，得</p>
+</li>
+<li><script type="math/tex; mode=display">
+\log p(x_{t+\Delta t})\simeq\log p(x_t)+(x_{t+\Delta t}-x_t)\nabla_{x_t}\log p(x_t)+\Delta t\frac{\partial }{\partial t}\log p(x_t)\tag 5</script><ul>
+<li>需要注意的是，在上式展开时应采用多元泰勒展开方式进行，不然可能会漏掉最后一项（漏不漏不影响结果就是了）</li>
+</ul>
+</li>
+<li><p>将式 $5$ 代入式 $4$，得</p>
+</li>
+<li><script type="math/tex; mode=display">
+\frac{p(x_t)}{p(x_{t+\Delta t})}\simeq\exp(-(x_{t+\Delta t}-x_t)\nabla_{x_t}\log p(x_t)-\Delta t\frac{\partial }{\partial t}\log p(x_t))\tag 6</script></li>
+</ul>
+</li>
+<li><p>因此将式 $2$ 和式 $6$ 一起代入式 $3$，即可得到</p>
+<ul>
+<li><script type="math/tex; mode=display">
+p(x_t|x_{t+\Delta t})\propto\exp (-\frac{\|x_{t+\Delta t}-x_t-f(x_t,t)\Delta t\|_2^2}{2g^2(t)\Delta t}-(x_{t+\Delta t}-x_t)\nabla_{x_t}\log p(x_t)-\Delta t\frac{\partial }{\partial t}\log p(x_t))\tag 7</script></li>
+</ul>
+</li>
+<li><p>在 SDE 扩散模型的假设中，$\Delta t\to0$，不难看出上式具备 $\mathcal O(1/\Delta t),\ \mathcal O(1),\ \mathcal O(\Delta t)$ 的部分，因此可以令 $\mathcal O(\Delta t)$ 的部分约去，同时以 $x_{t+\Delta t}-x_t$ 为一个整体 $\Delta X$，可以将 $7$ 化简为</p>
+<ul>
+<li><script type="math/tex; mode=display">
+p(x_t|x_{t+\Delta t})\propto\exp (-\frac{\Delta X^2-2\Delta Xf(x_t,t)\Delta t}{2g^2(t)\Delta t}-\Delta X\nabla_{x_t}\log p(x_t))\tag 8</script></li>
+<li><p>对上式进行配方，然后去掉 $\mathcal O(\Delta t)$ 可得</p>
+</li>
+<li><script type="math/tex; mode=display">
+p(x_t|x_{t+\Delta t})\propto\exp (-\frac{1}{2g^2(t)\Delta t}\|\Delta X-(f(x_t,t)\Delta t -2g^2(t)\Delta t \nabla_{x_t}\log p(x_t))\|_2^2)\tag 9</script></li>
+</ul>
+</li>
+<li><p>此时，由于我们应该从输入 $x_{t+\Delta t}$ 得到 $x_t$，在保证正确性的情况下（因为 $\mathcal O(\Delta t)\to 0$）对式 $9$ 进行简单的换元</p>
+<ul>
+<li><script type="math/tex; mode=display">
+p(x_t|x_{t+\Delta t})\propto\exp (-\frac{1}{2g^2({t+\Delta t})\Delta t}\|\Delta X-(f(x_{t+\Delta t},t)\Delta t -2g^2({t+\Delta t})\Delta t \nabla_{x_t}\log p(x_{t+\Delta t}))\|_2^2)\tag {10}</script></li>
+<li><p>将此式变换为正态分布可以写成</p>
+</li>
+<li><script type="math/tex; mode=display">
+p(x_t|x_{t+\Delta t})\sim N(x_{t+\Delta t}-f(x_{t+\Delta t},t)\Delta t +2g^2({t+\Delta t})\Delta t \nabla_{x_t}\log p(x_{t+\Delta t}),\ g^2({t+\Delta t})\Delta tI)\tag {11}</script></li>
+</ul>
+</li>
+<li><p>写成离散形式的 $x_{t+\Delta t}$ 与 $x_t$ 的关系为</p>
+<ul>
+<li><script type="math/tex; mode=display">
+x_t-x_{t+\Delta t}=f(x_{t+\Delta t},t)\Delta t -2g^2({t+\Delta t})\Delta t\nabla_{x_t}\log p(x_{t+\Delta t})+g(t+\Delta t)\sqrt{\Delta t}\epsilon,\ \epsilon\sim N(0,I)\tag {12}</script></li>
+</ul>
+</li>
+<li><p>将式 $12$ 写为微分形式为</p>
+<ul>
+<li><script type="math/tex; mode=display">
+dx=[f(x,t)-g^2(t)\nabla_x\log p(x_t)]dt+g(t)dw\tag {13}</script></li>
+</ul>
+</li>
+</ul>
+<p>&emsp;&emsp;由此，我们就得到了逆扩散过程的 SDE 公式。为了计算反向 SDE，我们需要估计 $\nabla_x\log p(x_t)$，为此，我们训练一个基于时间依赖分数的模型 $s_\theta({x}, t)$，这样 ${s}_\theta({x}, t) \approx \nabla_{x} \log p_t({x})$。这类似于基于噪声条件分数的模型 ${s}_\theta({x}, i)$ 用于有限噪声。</p>
+<p>&emsp;&emsp;我们的训练目标 $s_\theta({x}, t)$ 是 Fisher 散度的连续加权组合，由下式给出</p>
+<script type="math/tex; mode=display">
+\begin{equation} \mathbb{E}_{t \in \mathcal{U}(0, T)}\mathbb{E}_{p_t(\mathbf{x})}[\lambda(t) \| \nabla_\mathbf{x} \log p_t(\mathbf{x}) - \mathbf{s}_\theta(\mathbf{x}, t) \|_2^2], \end{equation} \tag {14}</script><p>&emsp;&emsp;其中，$\mathcal{U}(0, T)$ 表示时间间隔内的均匀分布 $[0,T]$， $\lambda: \mathbb{R} \to \mathbb{R}_{&gt;0}$ 是正加权函数。通常我们使用 $\lambda(t) \propto 1/ \mathbb{E}[| \nabla_{\mathbf{x}(t)} \log p(\mathbf{x}(t) \mid \mathbf{x}(0))|_2^2]$ 以平衡不同分数匹配损失随时间的大小。由此便可以展开训练。</p>
+<h4 id="VP-SDE-和-VE-SDE"><a href="#VP-SDE-和-VE-SDE" class="headerlink" title="VP-SDE 和 VE-SDE"></a>VP-SDE 和 VE-SDE</h4><p>&emsp;&emsp;对于原始式子式 $1$，当我们令 $f(x,t)=0,\ g(t)=\frac{d}{dt}\sigma_t^2$ 时，SDE 被称为 VE（方差爆炸）SDE，也就对应着 SMLD 分数扩散模型，由此可以推出 VE-SDE 的更新公式为：$x_{t+\Delta t}=x_t+\sqrt{\sigma_{t+\Delta t}^2-\sigma_t^2}\epsilon$。</p>
+<p>&emsp;&emsp;对于原始式子式 $1$，当我们令 $\{\bar\beta_i\}_1^T=\{T\beta_i\}_1^T$，$\beta(\frac iT)=\bar\beta_i$，$f(x,t)=-\frac12\beta(t)x_t,\ g(t)=\sqrt{\beta(t)}$ 时，SDE 被称为 VP（方差收缩）SDE，也就对应着 DDPM 去噪扩散模型，由此可以推出 VP-SDE 的更新公式为：$x_{t+\Delta t}=\sqrt{1-\beta_{t+\Delta t}}x_t+\sqrt{\beta_{t+\Delta t}}\epsilon$。</p>
+<hr>
+<h3 id="DDIM"><a href="#DDIM" class="headerlink" title="DDIM :"></a>DDIM :</h3>
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>ShuYang Chu
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://bnucsy.github.io/Diffusion_Model_2/" title="diffusion models 2">http://bnucsy.github.io/Diffusion_Model_2/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/pctpose/" rel="prev" title="pctpose">
+      <i class="fa fa-chevron-left"></i> pctpose
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/LTML/" rel="next" title="LTML">
+      LTML <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> diffusion theories </span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SMLD-Generative-modeling-by-estimating-gradients-of-the-data-distribution"><span class="nav-text">SMLD : Generative modeling by estimating gradients of the data distribution</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%89%8D%E7%BD%AE%E8%AF%B4%E6%98%8E"><span class="nav-text">前置说明</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BC%98%E5%8C%96%E8%AE%BE%E8%AE%A1%EF%BC%88%E6%89%A9%E6%95%A3-%E9%80%86%E6%89%A9%E6%95%A3%E8%BF%87%E7%A8%8B%EF%BC%89"><span class="nav-text">优化设计（扩散-逆扩散过程）</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BD%8E%E5%AF%86%E5%BA%A6%E4%B8%8D%E5%87%86%E7%A1%AE%E9%97%AE%E9%A2%98"><span class="nav-text">低密度不准确问题</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E9%80%80%E7%81%AB%E9%83%8E%E4%B9%8B%E4%B8%87%E9%87%87%E6%A0%B7"><span class="nav-text">使用退火郎之万采样</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#NCSN%EF%BC%9A%E5%8A%A0%E5%99%AA%E4%B8%8E%E8%AE%AD%E7%BB%83"><span class="nav-text">NCSN：加噪与训练</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#NCSN-%E7%9A%84%E6%8E%A8%E7%90%86%E8%BF%87%E7%A8%8B"><span class="nav-text">NCSN 的推理过程</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SDE-Score-Based-Generative-Modeling-through-Stochastic-Differential-Equations"><span class="nav-text">SDE : Score-Based Generative Modeling through Stochastic Differential Equations</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%89%8D%E7%BD%AE%E8%AF%B4%E6%98%8E-1"><span class="nav-text">前置说明</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8A%A0%E5%99%AA%E8%BF%87%E7%A8%8B"><span class="nav-text">加噪过程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8E%BB%E5%99%AA%E8%BF%87%E7%A8%8B"><span class="nav-text">去噪过程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#VP-SDE-%E5%92%8C-VE-SDE"><span class="nav-text">VP-SDE 和 VE-SDE</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DDIM"><span class="nav-text">DDIM :</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ShuYang Chu</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ShuYang Chu</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'gSZuY7rr1fsTF5DTHs68r5lu-gzGzoHsz',
+      appKey     : 'JqjUXxwDxPg9qbRlCyMx3gkg',
+      placeholder: "在这里写下评论",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

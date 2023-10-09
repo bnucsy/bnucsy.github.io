@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"bnucsy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Video-Based Remote Physiological Measurement via Cross-Verified Feature Disentangling   【心率检测】【ECCV2020】【paper】【code】 摘要&amp;emsp;&amp;emsp;本文提出了一种基于自编码器的架构的特征学习器，并且将输入的 video 表示为多尺度 STmap，通过多编码器-单解码器的方式生成编码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CVD">
+<meta property="og:url" content="http://bnucsy.github.io/CVD/index.html">
+<meta property="og:site_name" content="CSY&#39;s blog">
+<meta property="og:description" content="Video-Based Remote Physiological Measurement via Cross-Verified Feature Disentangling   【心率检测】【ECCV2020】【paper】【code】 摘要&amp;emsp;&amp;emsp;本文提出了一种基于自编码器的架构的特征学习器，并且将输入的 video 表示为多尺度 STmap，通过多编码器-单解码器的方式生成编码">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://bnucsy.github.io/CVD/image-20221107093200677.png">
+<meta property="og:image" content="http://bnucsy.github.io/CVD/image-20221107093947556.png">
+<meta property="og:image" content="http://bnucsy.github.io/CVD/image-20221107093640013.png">
+<meta property="og:image" content="http://bnucsy.github.io/CVD/image-20221107093200677.png">
+<meta property="og:image" content="http://bnucsy.github.io/CVD/image-20221107121019688.png">
+<meta property="og:image" content="http://bnucsy.github.io/CVD/image-20221107121210877.png">
+<meta property="article:published_time" content="2022-10-15T01:31:37.000Z">
+<meta property="article:modified_time" content="2022-11-25T09:32:24.017Z">
+<meta property="article:author" content="ShuYang Chu">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://bnucsy.github.io/CVD/image-20221107093200677.png">
+
+<link rel="canonical" href="http://bnucsy.github.io/CVD/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>CVD | CSY's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CSY's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/bnucsy/" class="github-corner" title="Follow me on Github" aria-label="Follow me on Github" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://bnucsy.github.io/CVD/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ShuYang Chu">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CSY's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          CVD
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-10-15 09:31:37" itemprop="dateCreated datePublished" datetime="2022-10-15T09:31:37+08:00">2022-10-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-11-25 17:32:24" itemprop="dateModified" datetime="2022-11-25T17:32:24+08:00">2022-11-25</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper/" itemprop="url" rel="index"><span itemprop="name">paper</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper/cv/" itemprop="url" rel="index"><span itemprop="name">cv</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper/cv/hr/" itemprop="url" rel="index"><span itemprop="name">hr</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/CVD/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/CVD/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2><center> Video-Based Remote Physiological Measurement via Cross-Verified Feature Disentangling </center></h2>
+
+<p>【心率检测】【ECCV2020】【<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2007.08213.pdf">paper</a>】【<a target="_blank" rel="noopener" href="https://github.com/nxsEdson/CVD-Physiological-Measurement">code</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种基于自编码器的架构的特征学习器，并且将输入的 video 表示为多尺度 STmap，通过多编码器-单解码器的方式生成编码不同特征的编码器，同时通过交叉验证解离（CVD）的策略训练。同时对解码出的特征估计时使用了可以输出多种生理信号的估计器，是结合了自编码器、解离表征、rppg 估计网络的 SOTA。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/CVD/image-20221107093200677.png" alt="image-20221107093200677" style="zoom:80%;"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>MSTmap（多尺度 STmap）的提出</li>
+<li>新的训练策略 CVD（交叉验证解离）</li>
+<li>一种用于估计 rppg 信号和 HR 信号的双头网络</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><h4 id="MSTmap"><a href="#MSTmap" class="headerlink" title="MSTmap"></a>MSTmap</h4><p>&emsp;&emsp;首先介绍 STmap，所谓 STmap，即时空图。由于在心率估计中，人脸 ROI 区域蕴含的信息相比于环境信息来说更加重要，因此试着将输入的 video 通过某种<strong>非学习的策略</strong>变成仅含有人脸信息的色彩特征图，以便于接下来的估计网络学习这些特征（正是因为在 RhythmNet 和 CVD 中都含有这一部分，一些工作认为这样的处理将整个网络变成了非端到端的架构）。</p>
+<p><img src="/CVD/image-20221107093947556.png" alt="image-20221107093947556"></p>
+<p>&emsp;&emsp;其具体的处理为：1.通过开源工具 <a target="_blank" rel="noopener" href="https://github.com/seetaface/SeetaFaceEngine">SeetaFace</a> 标定人脸的关键点，将输入的 video 的每一帧都对齐至同一个位置并且进行 crop 使得人脸位于中央，此时 $video\to(T,H,W,C)$，2.将现在的 video 按照空间维度将每帧分解为 $n$ 个块，将每个块按照 YUV 通道展开，记每个块中的像素点个数为 $c$，这里的 $c=\frac{HW}n$，这里的结果进行一个重排，在不改变维度的情况下就成为了 STmap，此时的 $STmap\to(T,n,c)$。</p>
+<p><img src="/CVD/image-20221107093640013.png" alt="image-20221107093640013" style="zoom:67%;"></p>
+<p>&emsp;&emsp;所谓多尺度 STmap，即相对于在 RhythmNet 中的 STmap 多了环境信息。具体来说，首先利用开源工具 <a target="_blank" rel="noopener" href="https://github.com/seetaface/SeetaFaceEngine">SeetaFace</a> 标定第 $t$ 帧人脸上信息量最大的 $n$ 个 ROI 区域，将这 $n$ 个区域进行排列组合总共形成 $2^n-1$ 个图像（除了所有 ROI 均不存在的情况）。同时将第 $t$ 帧的图像进行通道分解为 RGBYUV 共六个，之后和 ROI 组合进行笛卡尔积，考虑每一帧，最终得到多尺度 STmap 的 shape 为 $(T,6,2^n-1)$。</p>
+<h4 id="前向过程"><a href="#前向过程" class="headerlink" title="前向过程"></a>前向过程</h4><p><img src="/CVD/image-20221107093200677.png" alt="image-20221107093200677" style="zoom:80%;"></p>
+<p>&emsp;&emsp;网络比较复杂，因此这里对着图介绍。网络进行联合训练，直接算出所有的 loss，求和之后进行梯度回传。首先介绍前向过程。</p>
+<ul>
+<li>将输入的 video clip 进行预处理，得到 MSTmap，具体地，对于一对视频 $v_1,v_2$，生成的时空图分别记为 MSTmap $M_1,\ M_2$，实现中这一对视频由随机下标在同一个 batch 内取得。</li>
+<li>将 $M_1,\ M_2$ 分别通过两个不同的编码器 $E_n,\ E_p$ 得到 4 个值 $f_{p1},\ f_{n1},\ f_{p2},\ f_{n2}$ ，其中 $p$ 下标代表生理信号，$n$ 下标代表非生理信号</li>
+<li>将得到的 4 个信号组合进入解码器 $D$，得到 4 个解码之后的特征 $M_1,\ pseudo\ M_1,\ M_2,\ pseudo\ M_2$，其中 $M_1,\ M_2$ 即为正常的编解码器的输出，用于监督训练 AE；其中 $\ pseudo\ M_1,\ pseudo\ M_2$ 代表使用不对应的生理特征和非生理特征组合得到的伪特征</li>
+<li>将两个伪特征再一次进行编码，分别通过 $E_n,\ E_p$，得到四个输出 $f_{pse_p1},\ f_{pse_n1},\ f_{pse_p2},\ f_{pse_n2}$，如果我们的  $E_n,\ E_p$ 能够有效分离生理和非生理特征，这里的 $f_{pse_p1}$ 应该和 $f_{p1}$ 接近，而 $f_{pse_n1}$ 反而应该和 $f_{n2}$ 接近，其他同理</li>
+<li>将得到的 $f_{pse_p1},\ f_{p1}$ 分别输入双头估计器，只取 $f_{p1}$ 生成的 rppg 信号 $s_{pre}$，并且取两个输入生成的 HR 信号 $HR_1,\ HR_{pse1}$，对 $f_{pse_p2},\ f_{p2}$ 同理。这里生成的 $s_{pre},\ HR_1$ 用于监督训练双头网络，其余的都用于进行 CVD 训练，目的是监督 $E_n,\ E_p$ 的各司其职</li>
+</ul>
+<p>&emsp;&emsp;接下来逐个介绍 loss 的计算。</p>
+<ul>
+<li>$\mathcal L_{rec}$</li>
+</ul>
+<script type="math/tex; mode=display">
+\mathcal L_{rec}=\lambda_{rec}\sum\limits_{i=1}^2||M_i-M_i'||_1</script><p>&emsp;&emsp;使用 L1Loss 限制 AE 的表征学习能力。</p>
+<ul>
+<li>$\mathcal L_{CVD}$</li>
+</ul>
+<script type="math/tex; mode=display">
+\mathcal L_{CVD}=\lambda_{cvd}\sum\limits_{i=1}^2||f_{pi}-f_{pse\_pi}||_1 +\lambda_{cvd}\sum\limits_{i=1}^2||f_{ni}-f_{pse\_n(3-i)}||_1+\sum\limits_{i=1}^2||HR_i-HR_{psei||_1}</script><p>&emsp;&emsp;这个损失函数限制各个对应的预测值相等，通过此限制强迫编码器 $E_n,\ E_p$ 各司其职。</p>
+<ul>
+<li>$\mathcal L_{pre}$</li>
+</ul>
+<script type="math/tex; mode=display">
+\mathcal L_{rppg}=1-\frac{Cov(s_{pre},s_{gt})}{\sqrt{Cov(s_{pre},s_{pre})}\sqrt{Cov(s_{gt},s_{gt})}}</script><script type="math/tex; mode=display">
+\mathcal L_{rppg\_hr}=CE(PSD(s_{pre}),HR_{gt})</script><script type="math/tex; mode=display">
+\mathcal L_{pre}=||HR_{pre}-HR_{gt} ||+\lambda_{rppg}\mathcal L_{rppg}+\mathcal L_{rppg\_hr}</script><p>&emsp;&emsp;这个函数通过限制 rppg 信号的估计准确性和心率的预测准确性强迫双头网络估计器的学习。</p>
+<p>&emsp;&emsp;总体来说，loss 由下式给出，通过之前的前向过程中的各个中间变量获得损失函数，并且对各个网络进行联合训练。在实现的过程中，backbone 为 res18，编解码器为同一个网络实现，因此代码中的前向过程和描述的过程先后性并不完全一致，但是得到的值和逻辑都一致。</p>
+<script type="math/tex; mode=display">
+\cal L=L_{rec}+L_{\rm CVD}+L_{pre}</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;和大部分余老师的论文一致，这篇论文也是主要关注于：1.消融实验，2.单数据集和跨数据集结果</p>
+<ul>
+<li>消融实验</li>
+</ul>
+<p>&emsp;&emsp;这部分探究了 a）STmap 的多尺度性，b）是否含有 MTL，c）是否含有 CVD，其中是否含有 CVD 探索了包含、不含（使用头部运动作为非生理信号解离）、不含（使用面部像素标准差作为非生理性解离）三种情况。</p>
+<p><img src="/CVD/image-20221107121019688.png" alt="image-20221107121019688" style="zoom:80%;"></p>
+<ul>
+<li>单数据集（OBF，左）和跨数据集结果（MMSE-HR，右，训练集为 VIPL-HR）</li>
+</ul>
+<p><img src="/CVD/image-20221107121210877.png" alt="image-20221107121210877" style="zoom:80%;"></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>ShuYang Chu
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://bnucsy.github.io/CVD/" title="CVD">http://bnucsy.github.io/CVD/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/Meta-rppg/" rel="prev" title="Meta-rPPG">
+      <i class="fa fa-chevron-left"></i> Meta-rPPG
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/Privacy_Phys/" rel="next" title="Privacy-Phys">
+      Privacy-Phys <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> Video-Based Remote Physiological Measurement via Cross-Verified Feature Disentangling </span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E8%A7%88"><span class="nav-text">概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E6%96%B0"><span class="nav-text">创新</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C"><span class="nav-text">网络</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#MSTmap"><span class="nav-text">MSTmap</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%89%8D%E5%90%91%E8%BF%87%E7%A8%8B"><span class="nav-text">前向过程</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-text">结果</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ShuYang Chu</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ShuYang Chu</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'gSZuY7rr1fsTF5DTHs68r5lu-gzGzoHsz',
+      appKey     : 'JqjUXxwDxPg9qbRlCyMx3gkg',
+      placeholder: "在这里写下评论",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
