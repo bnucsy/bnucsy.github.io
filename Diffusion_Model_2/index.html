@@ -36,7 +36,7 @@
 <meta property="og:image" content="http://bnucsy.github.io/Diffusion_Model_2/image-20230507160801692.png">
 <meta property="og:image" content="http://bnucsy.github.io/Diffusion_Model_2/denoise_vp.gif">
 <meta property="article:published_time" content="2023-05-04T01:31:37.000Z">
-<meta property="article:modified_time" content="2023-09-12T06:01:48.518Z">
+<meta property="article:modified_time" content="2023-10-09T15:05:41.791Z">
 <meta property="article:author" content="ShuYang Chu">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://bnucsy.github.io/Diffusion_Model_2/image-20230504200127087.png">
@@ -225,7 +225,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-09-12 14:01:48" itemprop="dateModified" datetime="2023-09-12T14:01:48+08:00">2023-09-12</time>
+                <time title="修改时间：2023-10-09 23:05:41" itemprop="dateModified" datetime="2023-10-09T23:05:41+08:00">2023-10-09</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -268,7 +268,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>7.9k</span>
+              <span>7.8k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -293,8 +293,6 @@
 <ul>
 <li>SMLD（NIPS2019）：Generative modeling by estimating gradients of the data distribution</li>
 <li>SDE（ICLR2021）：Score-Based Generative Modeling through Stochastic Differential Equations</li>
-<li>DDIM（ICLR2021）：Denoising Diffusion Implicit Models</li>
-<li></li>
 </ul>
 <span id="more"></span>
 <hr>
@@ -430,8 +428,7 @@ dx=[f(x,t)-g^2(t)\nabla_x\log p(x_t)]dt+g(t)dw\tag {13}</script></li>
 \begin{equation} \mathbb{E}_{t \in \mathcal{U}(0, T)}\mathbb{E}_{p_t(\mathbf{x})}[\lambda(t) \| \nabla_\mathbf{x} \log p_t(\mathbf{x}) - \mathbf{s}_\theta(\mathbf{x}, t) \|_2^2], \end{equation} \tag {14}</script><p>&emsp;&emsp;其中，$\mathcal{U}(0, T)$ 表示时间间隔内的均匀分布 $[0,T]$， $\lambda: \mathbb{R} \to \mathbb{R}_{&gt;0}$ 是正加权函数。通常我们使用 $\lambda(t) \propto 1/ \mathbb{E}[| \nabla_{\mathbf{x}(t)} \log p(\mathbf{x}(t) \mid \mathbf{x}(0))|_2^2]$ 以平衡不同分数匹配损失随时间的大小。由此便可以展开训练。</p>
 <h4 id="VP-SDE-和-VE-SDE"><a href="#VP-SDE-和-VE-SDE" class="headerlink" title="VP-SDE 和 VE-SDE"></a>VP-SDE 和 VE-SDE</h4><p>&emsp;&emsp;对于原始式子式 $1$，当我们令 $f(x,t)=0,\ g(t)=\frac{d}{dt}\sigma_t^2$ 时，SDE 被称为 VE（方差爆炸）SDE，也就对应着 SMLD 分数扩散模型，由此可以推出 VE-SDE 的更新公式为：$x_{t+\Delta t}=x_t+\sqrt{\sigma_{t+\Delta t}^2-\sigma_t^2}\epsilon$。</p>
 <p>&emsp;&emsp;对于原始式子式 $1$，当我们令 $\{\bar\beta_i\}_1^T=\{T\beta_i\}_1^T$，$\beta(\frac iT)=\bar\beta_i$，$f(x,t)=-\frac12\beta(t)x_t,\ g(t)=\sqrt{\beta(t)}$ 时，SDE 被称为 VP（方差收缩）SDE，也就对应着 DDPM 去噪扩散模型，由此可以推出 VP-SDE 的更新公式为：$x_{t+\Delta t}=\sqrt{1-\beta_{t+\Delta t}}x_t+\sqrt{\beta_{t+\Delta t}}\epsilon$。</p>
-<hr>
-<h3 id="DDIM"><a href="#DDIM" class="headerlink" title="DDIM :"></a>DDIM :</h3>
+
     </div>
 
     
@@ -467,8 +464,8 @@ dx=[f(x,t)-g^2(t)\nabla_x\log p(x_t)]dt+g(t)dw\tag {13}</script></li>
       <i class="fa fa-chevron-left"></i> pctpose
     </a></div>
       <div class="post-nav-item">
-    <a href="/LTML/" rel="next" title="LTML">
-      LTML <i class="fa fa-chevron-right"></i>
+    <a href="/paper_template/" rel="next" title="XXXX">
+      XXXX <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -529,7 +526,7 @@ dx=[f(x,t)-g^2(t)\nabla_x\log p(x_t)]dt+g(t)dw\tag {13}</script></li>
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> diffusion theories </span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SMLD-Generative-modeling-by-estimating-gradients-of-the-data-distribution"><span class="nav-text">SMLD : Generative modeling by estimating gradients of the data distribution</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%89%8D%E7%BD%AE%E8%AF%B4%E6%98%8E"><span class="nav-text">前置说明</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BC%98%E5%8C%96%E8%AE%BE%E8%AE%A1%EF%BC%88%E6%89%A9%E6%95%A3-%E9%80%86%E6%89%A9%E6%95%A3%E8%BF%87%E7%A8%8B%EF%BC%89"><span class="nav-text">优化设计（扩散-逆扩散过程）</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BD%8E%E5%AF%86%E5%BA%A6%E4%B8%8D%E5%87%86%E7%A1%AE%E9%97%AE%E9%A2%98"><span class="nav-text">低密度不准确问题</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E9%80%80%E7%81%AB%E9%83%8E%E4%B9%8B%E4%B8%87%E9%87%87%E6%A0%B7"><span class="nav-text">使用退火郎之万采样</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#NCSN%EF%BC%9A%E5%8A%A0%E5%99%AA%E4%B8%8E%E8%AE%AD%E7%BB%83"><span class="nav-text">NCSN：加噪与训练</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#NCSN-%E7%9A%84%E6%8E%A8%E7%90%86%E8%BF%87%E7%A8%8B"><span class="nav-text">NCSN 的推理过程</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SDE-Score-Based-Generative-Modeling-through-Stochastic-Differential-Equations"><span class="nav-text">SDE : Score-Based Generative Modeling through Stochastic Differential Equations</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%89%8D%E7%BD%AE%E8%AF%B4%E6%98%8E-1"><span class="nav-text">前置说明</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8A%A0%E5%99%AA%E8%BF%87%E7%A8%8B"><span class="nav-text">加噪过程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8E%BB%E5%99%AA%E8%BF%87%E7%A8%8B"><span class="nav-text">去噪过程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#VP-SDE-%E5%92%8C-VE-SDE"><span class="nav-text">VP-SDE 和 VE-SDE</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DDIM"><span class="nav-text">DDIM :</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> diffusion theories </span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SMLD-Generative-modeling-by-estimating-gradients-of-the-data-distribution"><span class="nav-text">SMLD : Generative modeling by estimating gradients of the data distribution</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%89%8D%E7%BD%AE%E8%AF%B4%E6%98%8E"><span class="nav-text">前置说明</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BC%98%E5%8C%96%E8%AE%BE%E8%AE%A1%EF%BC%88%E6%89%A9%E6%95%A3-%E9%80%86%E6%89%A9%E6%95%A3%E8%BF%87%E7%A8%8B%EF%BC%89"><span class="nav-text">优化设计（扩散-逆扩散过程）</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BD%8E%E5%AF%86%E5%BA%A6%E4%B8%8D%E5%87%86%E7%A1%AE%E9%97%AE%E9%A2%98"><span class="nav-text">低密度不准确问题</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E9%80%80%E7%81%AB%E9%83%8E%E4%B9%8B%E4%B8%87%E9%87%87%E6%A0%B7"><span class="nav-text">使用退火郎之万采样</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#NCSN%EF%BC%9A%E5%8A%A0%E5%99%AA%E4%B8%8E%E8%AE%AD%E7%BB%83"><span class="nav-text">NCSN：加噪与训练</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#NCSN-%E7%9A%84%E6%8E%A8%E7%90%86%E8%BF%87%E7%A8%8B"><span class="nav-text">NCSN 的推理过程</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SDE-Score-Based-Generative-Modeling-through-Stochastic-Differential-Equations"><span class="nav-text">SDE : Score-Based Generative Modeling through Stochastic Differential Equations</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%89%8D%E7%BD%AE%E8%AF%B4%E6%98%8E-1"><span class="nav-text">前置说明</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8A%A0%E5%99%AA%E8%BF%87%E7%A8%8B"><span class="nav-text">加噪过程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8E%BB%E5%99%AA%E8%BF%87%E7%A8%8B"><span class="nav-text">去噪过程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#VP-SDE-%E5%92%8C-VE-SDE"><span class="nav-text">VP-SDE 和 VE-SDE</span></a></li></ol></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -543,7 +540,7 @@ dx=[f(x,t)-g^2(t)\nabla_x\log p(x_t)]dt+g(t)dw\tag {13}</script></li>
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-count">58</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
