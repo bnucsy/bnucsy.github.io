@@ -77,6 +77,102 @@ O(u_i, x) = ||D(u_i,x)-D(u_c,x+(u_c-u_i)\times D(u_i,x))||_1</script><p>&emsp;&e
       </categories>
   </entry>
   <entry>
+    <title>Anchor_based_colorization</title>
+    <url>/Anchor_based_colorization/</url>
+    <content><![CDATA[<h2><center> Disentangled Image Colorization via Global Anchors </center></h2>
+
+<p>【图像上色】【TOG2022】【<a href="https://dl.acm.org/doi/10.1145/3550454.3555432">paper</a>】【<a href="https://github.com/MenghanXia/DisentangledColorization">code</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;对于图像上色问题，其具备两个特性：1. 任意像素点的色彩值具备不确定性，2.逻辑上属于同一个物体的像素点在上色之后应当具有一致性。归结来看，第一个特性即为色彩分布，需要预测一个具体切合理的色彩分布概率，这个问题可以转化为颜色分类问题，第二个特性即为空间一致性，需要一个可以用于区分不同位置色彩是否一致的数据，这个问题可以转化为聚类问题。本文从上述两个特性入手，一方面使用SPixNet等方法对图像进行分割，并将分割的子“超像素”进行聚类从而解决空间一致性，另一方面在同类的“超像素”上应用分类器预测出的色彩值。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Anchor_based_colorization/image-20230211202429399.png" alt="image-20230211202429399"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>解离了颜色一致性和不确定性的特征</li>
+<li>使用像素分割+聚类的方式解决色彩一致性问题</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/Anchor_based_colorization/image-20230212213822100.png" alt="image-20230212213822100"></p>
+<p>&emsp;&emsp;总结性质地讲，上图中各个符号/网络都有其含义</p>
+<ul>
+<li>$L$，输入的灰度图 $(N,C,H,W)$</li>
+<li>SPixNet，用于从 $L$ 中提取基于像素属于周边超像素的概率信息 $A (N,9,H,W)$，表示每个像素位于哪个相邻的超像素</li>
+<li>Backbone，用于从 $L$ 中提取基于像素的特征信息 $F (N,64,H,W)$，表示基于像素的特征图</li>
+<li>SP-Pooling，用于使用像素到超像素的关联图 $A$ 池化基于像素的特征信息 $F$，获得基于超像素的特征信息 $F_s (N,64,H’,W’)$<ul>
+<li>同时获取的还有基于超像素的色彩信息 $C_s (N,2,H’,W’)$，基于超像素的位置信息 $L_s (N,64,H’,W’)$</li>
+<li>这里的 $H’, W’ = H/16, W/16$，具体和池化尺寸有关</li>
+</ul>
+</li>
+<li>Probabilitic Color Modeler，用于从基于超像素的信息 $F_s,C_s,L_s$ 中估计超像素的颜色预测值 $P_s (N,313,H’,W’)$，313 指色彩分类，该值回传用以计算超像素色彩和 GT 的 loss</li>
+<li>Anchor Locator，用于从基于超像素的信息 $F_s,C_s,L_s$ 中估计超像素的聚类信息，生成掩码 $M_s (N,1,H’,W’)$，第二维表示属于哪一个聚类</li>
+<li>Color Generator，使用基于超像素的色彩概率预测以及基于超像素的聚类信息，生成空间一致，色彩确定的最终超像素色彩特征 $F_s’$ $(N,64,H’,W’)$，该特征直接通过 MLP 映射至 $(N,2,H’,W’)$ 作为超像素的色彩回传，用以计算 loss</li>
+<li>SP-Diffusion，使用基于像素属于周边超像素的概率信息 A 引导关于超像素的特征 $F_s’$ 进行向像素的扩散，生成含有上述所有信息的、基于像素的特征 $F’ (N,2,H,W)$，该结果可以作为最终输出</li>
+<li>RefineNet，对 $F’$ 进行进一步的色彩增强，增强的监督方式为使 VGGLoss 更小，从图像上看可以解决无聚类中心导致的无色彩 / 多聚类中心导致的色彩不一致问题</li>
+</ul>
+<h4 id="前向"><a href="#前向" class="headerlink" title="前向"></a>前向</h4><p>&emsp;&emsp;首先介绍<strong>超像素</strong>，其为比一般像素更大的“软像素”，通常初始化时将各个<strong>超像素</strong>均匀地分配为方格，接着对于某个<strong>像素</strong>位置，其可能位于其本身所在的<strong>超像素</strong>或者周围八个<strong>超像素</strong>之中，因此对于一个<strong>像素</strong> $p$，其有可能位于 9 个<strong>超像素</strong> $s$ 中。通过不停地迭代细致化<strong>超像素</strong>的边界，即可得到<strong>超像素</strong>分割图。</p>
+<p><img src="/Anchor_based_colorization/image-20230213170955533.png" alt="image-20230213170955533" style="zoom: 33%;"></p>
+<ul>
+<li>在训练阶段，输入包括灰度图 $L$ 和色彩图 $C$，首先经过 SPixNet 和 backbone 分别得到 $A,\ F$，这两个特征分别表示超像素图和像素特征图<ul>
+<li>所谓的 backbone 其实就是基于 CNN 的特征提取器， $A\to(N,9,H,W)$，$F\to(N,64,H,W)$</li>
+</ul>
+</li>
+<li>使用 $A$ 引导 $F$ 和 $C$ 进行池化得到含有超像素信息的特征 $F_s$，具体来说，使用属于不同相对位置的超像素的概率对特征进行加权，等价于多次 $Avgpool(Concat(F,C) \times A[i])$<ul>
+<li>$F_s$ 对应 $(F,C)$，包含两个部分，超像素特征，超像素色彩，这两部分特征均是基于超像素的。</li>
+<li>超像素的数目由分割方式决定，本文采用均匀分割成多个大小为 $S\times S$ 的超像素，$S=16$，因此 $F_s\to(N,64+2,\frac H S,\frac W S)$</li>
+<li>同时在这一步还会产生一个对超像素特征进行位置编码的位置向量 $F_p\to(N,64,H’,W’)$</li>
+<li>最终记录的也就是超像素的特征向量和位置向量，其数学表示如下</li>
+</ul>
+</li>
+</ul>
+<p><img src="/Anchor_based_colorization/image-20230214085902061.png" alt="image-20230214085902061" style="zoom:25%;"></p>
+<ul>
+<li>使用基于超像素的特征用来进行基于超像素的颜色概率预测（Probabilitic Color Modeler），具体来说<ul>
+<li>拉平超像素特征和超像素位置获得 $F_{fs},\ F_{fp}\to(H’W’,N,64)$</li>
+<li>基于 $A$ 获得了一个针对每个超像素的 mask，拉平后得到 $M_{fs}\to(N,H’W’)$</li>
+<li>输入一个 6 层的 transformer，$q=k=F_{fs}+F_{fp},\ v=F_{fs},\ mask=M_{fs}$</li>
+<li>上一步得到的输出再经过一个投射层即为图中 $P_s\to(N,313,H’,W’)$，其表示了每个超像素的色彩的分类概率</li>
+</ul>
+</li>
+<li>使用超像素色彩进行聚类（Anchor Locator），这是一个无参的过程。聚类的结果是一个 mask $(N,1,H’,W’)$，其表示了某个超像素属于哪一个类别，拉平之后为  $M_s\to(H’W’,N,1)$</li>
+<li>使用基于超像素的色彩分类预测和基于超像素的特征进行超像素色彩生成（Color Generator），具体来说<ul>
+<li>将超像素的色彩进行色彩映射（2维ab色彩空间映射至313维分类色彩）之后进行 one hot 编码，得到一个 313 维的向量，该向量本质上是由 $C_{fs}$ 生成的，因此仍由 $C_{fs}$ 代替</li>
+<li>输入一个 6 层的 transformer，$q,k,v$ 均来自于 $Embedding(F_{fs}+M_s\odot F_{fp})$ 的变形</li>
+<li>输出的值记为 $F_s’\to(N,313,H’,W’)$，其表示了超像素最终的色彩预测分类</li>
+<li>使用 $A$ 引导 $F_s’$ 进行扩散（逆池化）可以还原出基于<strong>像素</strong>的特征和位置信息，即使用超像素的特征向量和位置向量（$v_s$ 和 $l_s$）可以还原像素的对应特征 $F’\to(N,313,H,W)$：</li>
+</ul>
+</li>
+</ul>
+<p><img src="/Anchor_based_colorization/image-20230214090133667.png" alt="image-20230214090133667" style="zoom:25%;"></p>
+<ul>
+<li>最终使用 RefineNet（是一个由 CNN 构成的网络）进行微调，并将 313 的色彩分类转化为 ab 空间的色彩特征，即可以输出色彩图 $C_{pred}$</li>
+</ul>
+<h4 id="训练"><a href="#训练" class="headerlink" title="训练"></a>训练</h4><p>&emsp;&emsp;本文采用<strong>两阶段</strong>的训练，首先训练SPixNet，这个网络来自已有的工作SPixelCNN。其中与原文不同的是，原文使用 $(c)$ 预测 $(b)$ 然后使用新的 $(c)$ 作为输入，而本文则使用 $(c)$ 预测 $(b)$ 之后使用新的 $(a)$ 作为输入，其原理是图像的灰度图和RGB图具备基本一致的亮度信息，因此使用色彩图训练得到的超像素分割网络也可以分割灰度图。第一阶段的损失函数遵循 SPixelCNN 的设置，目标是：1. 使超像素还原出的像素的色彩信息和像素的 GT 色彩信息尽可能一致，2. 使每个超像素包含的像素位置信息尽可能紧凑</p>
+<p><img src="/Anchor_based_colorization/image-20230214092048596.png" alt="image-20230214092048596" style="zoom:25%;"></p>
+<p>&emsp;&emsp;第一阶段训练完成之后接着训练第二阶段，第二阶段的目标是优化剩余的所有含参网络，其目标主要包含三个：</p>
+<ul>
+<li>对每一个超像素，将 $P_s$ 和基于真实像素做池化后的 313 色彩分类类别计算交叉熵损失，此时由于超像素分割网络可以很好地进行池化和扩散，因此这里可以同步优化 backbone，Probabilitic Color Modeler</li>
+</ul>
+<p><img src="/Anchor_based_colorization/image-20230214093507049.png" alt="image-20230214093507049" style="zoom:25%;"></p>
+<ul>
+<li>对每一个超像素，将 $F_s’$ 和基于真实像素做池化后的 313 色彩分类类别计算交叉熵损失，可以优化 backbone，Probabilitic Color Modeler，Color Generator</li>
+<li>计算生成的 ab 空间图像和 GT 图像计算感知损失，可以优化 backbone，Probabilitic Color Modeler，Color Generator，RefineNet</li>
+</ul>
+<p><img src="/Anchor_based_colorization/image-20230214093919050.png" alt="image-20230214093919050" style="zoom:25%;"></p>
+<p>&emsp;&emsp;第二阶段最终的损失函数写为：</p>
+<script type="math/tex; mode=display">
+\mathcal L = \mathcal L_{dist}+\lambda\mathcal L_{color},\ \lambda=1.0</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;效果图如下：</p>
+<p><img src="/Anchor_based_colorization/image-20230214094622907.png" alt="image-20230214094622907" style="zoom:80%;"></p>
+<p>&emsp;&emsp;量化指标上，由于彩色化的目的是生成视觉上看似合理的颜色，而不是恢复 GT，那些基于 GT 的保真度度量(如PSRN、SSIM、LPIPS)不适用于评估，相反，与视觉感知相关的度量(如FID、IS 和 Colorfulness)更能反映所需的彩色化质量。</p>
+<p><img src="/Anchor_based_colorization/image-20230214103937701.png" alt="image-20230214103937701"></p>
+<p>&emsp;&emsp;消融实验上主要做了锚点的个数对超像素聚类的影响探索</p>
+<p><img src="/Anchor_based_colorization/image-20230214105919533.png" alt="image-20230214105919533" style="zoom: 50%;"></p>
+<p>&emsp;&emsp;同时在是否存在锚点分支、是否进行软像素分割、是否进行基于像素级别的增强、是否进行特征聚类四个方面分别进行了消融实验。</p>
+<p><img src="/Anchor_based_colorization/image-20230214105953306.png" alt="image-20230214105953306" style="zoom: 67%;"></p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
     <title>Arbitrary_Resolution_rPPG</title>
     <url>/Arbitrary_Resolution_rPPG/</url>
     <content><![CDATA[<h2><center> Learning Motion-Robust Remote Photoplethysmography
@@ -171,102 +267,6 @@ x_{mo}=F(Concat(h_i^b,\ h_i^f))</script><h3 id="结果"><a href="#结果" class=
         <category>paper</category>
         <category>cv</category>
         <category>hr</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>Anchor_based_colorization</title>
-    <url>/Anchor_based_colorization/</url>
-    <content><![CDATA[<h2><center> Disentangled Image Colorization via Global Anchors </center></h2>
-
-<p>【图像上色】【TOG2022】【<a href="https://dl.acm.org/doi/10.1145/3550454.3555432">paper</a>】【<a href="https://github.com/MenghanXia/DisentangledColorization">code</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;对于图像上色问题，其具备两个特性：1. 任意像素点的色彩值具备不确定性，2.逻辑上属于同一个物体的像素点在上色之后应当具有一致性。归结来看，第一个特性即为色彩分布，需要预测一个具体切合理的色彩分布概率，这个问题可以转化为颜色分类问题，第二个特性即为空间一致性，需要一个可以用于区分不同位置色彩是否一致的数据，这个问题可以转化为聚类问题。本文从上述两个特性入手，一方面使用SPixNet等方法对图像进行分割，并将分割的子“超像素”进行聚类从而解决空间一致性，另一方面在同类的“超像素”上应用分类器预测出的色彩值。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Anchor_based_colorization/image-20230211202429399.png" alt="image-20230211202429399"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>解离了颜色一致性和不确定性的特征</li>
-<li>使用像素分割+聚类的方式解决色彩一致性问题</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/Anchor_based_colorization/image-20230212213822100.png" alt="image-20230212213822100"></p>
-<p>&emsp;&emsp;总结性质地讲，上图中各个符号/网络都有其含义</p>
-<ul>
-<li>$L$，输入的灰度图 $(N,C,H,W)$</li>
-<li>SPixNet，用于从 $L$ 中提取基于像素属于周边超像素的概率信息 $A (N,9,H,W)$，表示每个像素位于哪个相邻的超像素</li>
-<li>Backbone，用于从 $L$ 中提取基于像素的特征信息 $F (N,64,H,W)$，表示基于像素的特征图</li>
-<li>SP-Pooling，用于使用像素到超像素的关联图 $A$ 池化基于像素的特征信息 $F$，获得基于超像素的特征信息 $F_s (N,64,H’,W’)$<ul>
-<li>同时获取的还有基于超像素的色彩信息 $C_s (N,2,H’,W’)$，基于超像素的位置信息 $L_s (N,64,H’,W’)$</li>
-<li>这里的 $H’, W’ = H/16, W/16$，具体和池化尺寸有关</li>
-</ul>
-</li>
-<li>Probabilitic Color Modeler，用于从基于超像素的信息 $F_s,C_s,L_s$ 中估计超像素的颜色预测值 $P_s (N,313,H’,W’)$，313 指色彩分类，该值回传用以计算超像素色彩和 GT 的 loss</li>
-<li>Anchor Locator，用于从基于超像素的信息 $F_s,C_s,L_s$ 中估计超像素的聚类信息，生成掩码 $M_s (N,1,H’,W’)$，第二维表示属于哪一个聚类</li>
-<li>Color Generator，使用基于超像素的色彩概率预测以及基于超像素的聚类信息，生成空间一致，色彩确定的最终超像素色彩特征 $F_s’$ $(N,64,H’,W’)$，该特征直接通过 MLP 映射至 $(N,2,H’,W’)$ 作为超像素的色彩回传，用以计算 loss</li>
-<li>SP-Diffusion，使用基于像素属于周边超像素的概率信息 A 引导关于超像素的特征 $F_s’$ 进行向像素的扩散，生成含有上述所有信息的、基于像素的特征 $F’ (N,2,H,W)$，该结果可以作为最终输出</li>
-<li>RefineNet，对 $F’$ 进行进一步的色彩增强，增强的监督方式为使 VGGLoss 更小，从图像上看可以解决无聚类中心导致的无色彩 / 多聚类中心导致的色彩不一致问题</li>
-</ul>
-<h4 id="前向"><a href="#前向" class="headerlink" title="前向"></a>前向</h4><p>&emsp;&emsp;首先介绍<strong>超像素</strong>，其为比一般像素更大的“软像素”，通常初始化时将各个<strong>超像素</strong>均匀地分配为方格，接着对于某个<strong>像素</strong>位置，其可能位于其本身所在的<strong>超像素</strong>或者周围八个<strong>超像素</strong>之中，因此对于一个<strong>像素</strong> $p$，其有可能位于 9 个<strong>超像素</strong> $s$ 中。通过不停地迭代细致化<strong>超像素</strong>的边界，即可得到<strong>超像素</strong>分割图。</p>
-<p><img src="/Anchor_based_colorization/image-20230213170955533.png" alt="image-20230213170955533" style="zoom: 33%;"></p>
-<ul>
-<li>在训练阶段，输入包括灰度图 $L$ 和色彩图 $C$，首先经过 SPixNet 和 backbone 分别得到 $A,\ F$，这两个特征分别表示超像素图和像素特征图<ul>
-<li>所谓的 backbone 其实就是基于 CNN 的特征提取器， $A\to(N,9,H,W)$，$F\to(N,64,H,W)$</li>
-</ul>
-</li>
-<li>使用 $A$ 引导 $F$ 和 $C$ 进行池化得到含有超像素信息的特征 $F_s$，具体来说，使用属于不同相对位置的超像素的概率对特征进行加权，等价于多次 $Avgpool(Concat(F,C) \times A[i])$<ul>
-<li>$F_s$ 对应 $(F,C)$，包含两个部分，超像素特征，超像素色彩，这两部分特征均是基于超像素的。</li>
-<li>超像素的数目由分割方式决定，本文采用均匀分割成多个大小为 $S\times S$ 的超像素，$S=16$，因此 $F_s\to(N,64+2,\frac H S,\frac W S)$</li>
-<li>同时在这一步还会产生一个对超像素特征进行位置编码的位置向量 $F_p\to(N,64,H’,W’)$</li>
-<li>最终记录的也就是超像素的特征向量和位置向量，其数学表示如下</li>
-</ul>
-</li>
-</ul>
-<p><img src="/Anchor_based_colorization/image-20230214085902061.png" alt="image-20230214085902061" style="zoom:25%;"></p>
-<ul>
-<li>使用基于超像素的特征用来进行基于超像素的颜色概率预测（Probabilitic Color Modeler），具体来说<ul>
-<li>拉平超像素特征和超像素位置获得 $F_{fs},\ F_{fp}\to(H’W’,N,64)$</li>
-<li>基于 $A$ 获得了一个针对每个超像素的 mask，拉平后得到 $M_{fs}\to(N,H’W’)$</li>
-<li>输入一个 6 层的 transformer，$q=k=F_{fs}+F_{fp},\ v=F_{fs},\ mask=M_{fs}$</li>
-<li>上一步得到的输出再经过一个投射层即为图中 $P_s\to(N,313,H’,W’)$，其表示了每个超像素的色彩的分类概率</li>
-</ul>
-</li>
-<li>使用超像素色彩进行聚类（Anchor Locator），这是一个无参的过程。聚类的结果是一个 mask $(N,1,H’,W’)$，其表示了某个超像素属于哪一个类别，拉平之后为  $M_s\to(H’W’,N,1)$</li>
-<li>使用基于超像素的色彩分类预测和基于超像素的特征进行超像素色彩生成（Color Generator），具体来说<ul>
-<li>将超像素的色彩进行色彩映射（2维ab色彩空间映射至313维分类色彩）之后进行 one hot 编码，得到一个 313 维的向量，该向量本质上是由 $C_{fs}$ 生成的，因此仍由 $C_{fs}$ 代替</li>
-<li>输入一个 6 层的 transformer，$q,k,v$ 均来自于 $Embedding(F_{fs}+M_s\odot F_{fp})$ 的变形</li>
-<li>输出的值记为 $F_s’\to(N,313,H’,W’)$，其表示了超像素最终的色彩预测分类</li>
-<li>使用 $A$ 引导 $F_s’$ 进行扩散（逆池化）可以还原出基于<strong>像素</strong>的特征和位置信息，即使用超像素的特征向量和位置向量（$v_s$ 和 $l_s$）可以还原像素的对应特征 $F’\to(N,313,H,W)$：</li>
-</ul>
-</li>
-</ul>
-<p><img src="/Anchor_based_colorization/image-20230214090133667.png" alt="image-20230214090133667" style="zoom:25%;"></p>
-<ul>
-<li>最终使用 RefineNet（是一个由 CNN 构成的网络）进行微调，并将 313 的色彩分类转化为 ab 空间的色彩特征，即可以输出色彩图 $C_{pred}$</li>
-</ul>
-<h4 id="训练"><a href="#训练" class="headerlink" title="训练"></a>训练</h4><p>&emsp;&emsp;本文采用<strong>两阶段</strong>的训练，首先训练SPixNet，这个网络来自已有的工作SPixelCNN。其中与原文不同的是，原文使用 $(c)$ 预测 $(b)$ 然后使用新的 $(c)$ 作为输入，而本文则使用 $(c)$ 预测 $(b)$ 之后使用新的 $(a)$ 作为输入，其原理是图像的灰度图和RGB图具备基本一致的亮度信息，因此使用色彩图训练得到的超像素分割网络也可以分割灰度图。第一阶段的损失函数遵循 SPixelCNN 的设置，目标是：1. 使超像素还原出的像素的色彩信息和像素的 GT 色彩信息尽可能一致，2. 使每个超像素包含的像素位置信息尽可能紧凑</p>
-<p><img src="/Anchor_based_colorization/image-20230214092048596.png" alt="image-20230214092048596" style="zoom:25%;"></p>
-<p>&emsp;&emsp;第一阶段训练完成之后接着训练第二阶段，第二阶段的目标是优化剩余的所有含参网络，其目标主要包含三个：</p>
-<ul>
-<li>对每一个超像素，将 $P_s$ 和基于真实像素做池化后的 313 色彩分类类别计算交叉熵损失，此时由于超像素分割网络可以很好地进行池化和扩散，因此这里可以同步优化 backbone，Probabilitic Color Modeler</li>
-</ul>
-<p><img src="/Anchor_based_colorization/image-20230214093507049.png" alt="image-20230214093507049" style="zoom:25%;"></p>
-<ul>
-<li>对每一个超像素，将 $F_s’$ 和基于真实像素做池化后的 313 色彩分类类别计算交叉熵损失，可以优化 backbone，Probabilitic Color Modeler，Color Generator</li>
-<li>计算生成的 ab 空间图像和 GT 图像计算感知损失，可以优化 backbone，Probabilitic Color Modeler，Color Generator，RefineNet</li>
-</ul>
-<p><img src="/Anchor_based_colorization/image-20230214093919050.png" alt="image-20230214093919050" style="zoom:25%;"></p>
-<p>&emsp;&emsp;第二阶段最终的损失函数写为：</p>
-<script type="math/tex; mode=display">
-\mathcal L = \mathcal L_{dist}+\lambda\mathcal L_{color},\ \lambda=1.0</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;效果图如下：</p>
-<p><img src="/Anchor_based_colorization/image-20230214094622907.png" alt="image-20230214094622907" style="zoom:80%;"></p>
-<p>&emsp;&emsp;量化指标上，由于彩色化的目的是生成视觉上看似合理的颜色，而不是恢复 GT，那些基于 GT 的保真度度量(如PSRN、SSIM、LPIPS)不适用于评估，相反，与视觉感知相关的度量(如FID、IS 和 Colorfulness)更能反映所需的彩色化质量。</p>
-<p><img src="/Anchor_based_colorization/image-20230214103937701.png" alt="image-20230214103937701"></p>
-<p>&emsp;&emsp;消融实验上主要做了锚点的个数对超像素聚类的影响探索</p>
-<p><img src="/Anchor_based_colorization/image-20230214105919533.png" alt="image-20230214105919533" style="zoom: 50%;"></p>
-<p>&emsp;&emsp;同时在是否存在锚点分支、是否进行软像素分割、是否进行基于像素级别的增强、是否进行特征聚类四个方面分别进行了消融实验。</p>
-<p><img src="/Anchor_based_colorization/image-20230214105953306.png" alt="image-20230214105953306" style="zoom: 67%;"></p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
       </categories>
   </entry>
   <entry>
@@ -426,72 +426,6 @@ u_{out}=\frac{\sum\limits_{(x,y)\in\Omega_c}\mathcal{I}(x,y)\cdot(1-\mathcal{U_C
       </categories>
   </entry>
   <entry>
-    <title>CVD</title>
-    <url>/CVD/</url>
-    <content><![CDATA[<h2><center> Video-Based Remote Physiological Measurement via Cross-Verified Feature Disentangling </center></h2>
-
-<p>【心率检测】【ECCV2020】【<a href="https://arxiv.org/pdf/2007.08213.pdf">paper</a>】【<a href="https://github.com/nxsEdson/CVD-Physiological-Measurement">code</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种基于自编码器的架构的特征学习器，并且将输入的 video 表示为多尺度 STmap，通过多编码器-单解码器的方式生成编码不同特征的编码器，同时通过交叉验证解离（CVD）的策略训练。同时对解码出的特征估计时使用了可以输出多种生理信号的估计器，是结合了自编码器、解离表征、rppg 估计网络的 SOTA。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/CVD/image-20221107093200677.png" alt="image-20221107093200677" style="zoom:80%;"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>MSTmap（多尺度 STmap）的提出</li>
-<li>新的训练策略 CVD（交叉验证解离）</li>
-<li>一种用于估计 rppg 信号和 HR 信号的双头网络</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><h4 id="MSTmap"><a href="#MSTmap" class="headerlink" title="MSTmap"></a>MSTmap</h4><p>&emsp;&emsp;首先介绍 STmap，所谓 STmap，即时空图。由于在心率估计中，人脸 ROI 区域蕴含的信息相比于环境信息来说更加重要，因此试着将输入的 video 通过某种<strong>非学习的策略</strong>变成仅含有人脸信息的色彩特征图，以便于接下来的估计网络学习这些特征（正是因为在 RhythmNet 和 CVD 中都含有这一部分，一些工作认为这样的处理将整个网络变成了非端到端的架构）。</p>
-<p><img src="/CVD/image-20221107093947556.png" alt="image-20221107093947556"></p>
-<p>&emsp;&emsp;其具体的处理为：1.通过开源工具 <a href="https://github.com/seetaface/SeetaFaceEngine">SeetaFace</a> 标定人脸的关键点，将输入的 video 的每一帧都对齐至同一个位置并且进行 crop 使得人脸位于中央，此时 $video\to(T,H,W,C)$，2.将现在的 video 按照空间维度将每帧分解为 $n$ 个块，将每个块按照 YUV 通道展开，记每个块中的像素点个数为 $c$，这里的 $c=\frac{HW}n$，这里的结果进行一个重排，在不改变维度的情况下就成为了 STmap，此时的 $STmap\to(T,n,c)$。</p>
-<p><img src="/CVD/image-20221107093640013.png" alt="image-20221107093640013" style="zoom:67%;"></p>
-<p>&emsp;&emsp;所谓多尺度 STmap，即相对于在 RhythmNet 中的 STmap 多了环境信息。具体来说，首先利用开源工具 <a href="https://github.com/seetaface/SeetaFaceEngine">SeetaFace</a> 标定第 $t$ 帧人脸上信息量最大的 $n$ 个 ROI 区域，将这 $n$ 个区域进行排列组合总共形成 $2^n-1$ 个图像（除了所有 ROI 均不存在的情况）。同时将第 $t$ 帧的图像进行通道分解为 RGBYUV 共六个，之后和 ROI 组合进行笛卡尔积，考虑每一帧，最终得到多尺度 STmap 的 shape 为 $(T,6,2^n-1)$。</p>
-<h4 id="前向过程"><a href="#前向过程" class="headerlink" title="前向过程"></a>前向过程</h4><p><img src="/CVD/image-20221107093200677.png" alt="image-20221107093200677" style="zoom:80%;"></p>
-<p>&emsp;&emsp;网络比较复杂，因此这里对着图介绍。网络进行联合训练，直接算出所有的 loss，求和之后进行梯度回传。首先介绍前向过程。</p>
-<ul>
-<li>将输入的 video clip 进行预处理，得到 MSTmap，具体地，对于一对视频 $v_1,v_2$，生成的时空图分别记为 MSTmap $M_1,\ M_2$，实现中这一对视频由随机下标在同一个 batch 内取得。</li>
-<li>将 $M_1,\ M_2$ 分别通过两个不同的编码器 $E_n,\ E_p$ 得到 4 个值 $f_{p1},\ f_{n1},\ f_{p2},\ f_{n2}$ ，其中 $p$ 下标代表生理信号，$n$ 下标代表非生理信号</li>
-<li>将得到的 4 个信号组合进入解码器 $D$，得到 4 个解码之后的特征 $M_1,\ pseudo\ M_1,\ M_2,\ pseudo\ M_2$，其中 $M_1,\ M_2$ 即为正常的编解码器的输出，用于监督训练 AE；其中 $\ pseudo\ M_1,\ pseudo\ M_2$ 代表使用不对应的生理特征和非生理特征组合得到的伪特征</li>
-<li>将两个伪特征再一次进行编码，分别通过 $E_n,\ E_p$，得到四个输出 $f_{pse_p1},\ f_{pse_n1},\ f_{pse_p2},\ f_{pse_n2}$，如果我们的  $E_n,\ E_p$ 能够有效分离生理和非生理特征，这里的 $f_{pse_p1}$ 应该和 $f_{p1}$ 接近，而 $f_{pse_n1}$ 反而应该和 $f_{n2}$ 接近，其他同理</li>
-<li>将得到的 $f_{pse_p1},\ f_{p1}$ 分别输入双头估计器，只取 $f_{p1}$ 生成的 rppg 信号 $s_{pre}$，并且取两个输入生成的 HR 信号 $HR_1,\ HR_{pse1}$，对 $f_{pse_p2},\ f_{p2}$ 同理。这里生成的 $s_{pre},\ HR_1$ 用于监督训练双头网络，其余的都用于进行 CVD 训练，目的是监督 $E_n,\ E_p$ 的各司其职</li>
-</ul>
-<p>&emsp;&emsp;接下来逐个介绍 loss 的计算。</p>
-<ul>
-<li>$\mathcal L_{rec}$</li>
-</ul>
-<script type="math/tex; mode=display">
-\mathcal L_{rec}=\lambda_{rec}\sum\limits_{i=1}^2||M_i-M_i'||_1</script><p>&emsp;&emsp;使用 L1Loss 限制 AE 的表征学习能力。</p>
-<ul>
-<li>$\mathcal L_{CVD}$</li>
-</ul>
-<script type="math/tex; mode=display">
-\mathcal L_{CVD}=\lambda_{cvd}\sum\limits_{i=1}^2||f_{pi}-f_{pse\_pi}||_1 +\lambda_{cvd}\sum\limits_{i=1}^2||f_{ni}-f_{pse\_n(3-i)}||_1+\sum\limits_{i=1}^2||HR_i-HR_{psei||_1}</script><p>&emsp;&emsp;这个损失函数限制各个对应的预测值相等，通过此限制强迫编码器 $E_n,\ E_p$ 各司其职。</p>
-<ul>
-<li>$\mathcal L_{pre}$</li>
-</ul>
-<script type="math/tex; mode=display">
-\mathcal L_{rppg}=1-\frac{Cov(s_{pre},s_{gt})}{\sqrt{Cov(s_{pre},s_{pre})}\sqrt{Cov(s_{gt},s_{gt})}}</script><script type="math/tex; mode=display">
-\mathcal L_{rppg\_hr}=CE(PSD(s_{pre}),HR_{gt})</script><script type="math/tex; mode=display">
-\mathcal L_{pre}=||HR_{pre}-HR_{gt} ||+\lambda_{rppg}\mathcal L_{rppg}+\mathcal L_{rppg\_hr}</script><p>&emsp;&emsp;这个函数通过限制 rppg 信号的估计准确性和心率的预测准确性强迫双头网络估计器的学习。</p>
-<p>&emsp;&emsp;总体来说，loss 由下式给出，通过之前的前向过程中的各个中间变量获得损失函数，并且对各个网络进行联合训练。在实现的过程中，backbone 为 res18，编解码器为同一个网络实现，因此代码中的前向过程和描述的过程先后性并不完全一致，但是得到的值和逻辑都一致。</p>
-<script type="math/tex; mode=display">
-\cal L=L_{rec}+L_{\rm CVD}+L_{pre}</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;和大部分余老师的论文一致，这篇论文也是主要关注于：1.消融实验，2.单数据集和跨数据集结果</p>
-<ul>
-<li>消融实验</li>
-</ul>
-<p>&emsp;&emsp;这部分探究了 a）STmap 的多尺度性，b）是否含有 MTL，c）是否含有 CVD，其中是否含有 CVD 探索了包含、不含（使用头部运动作为非生理信号解离）、不含（使用面部像素标准差作为非生理性解离）三种情况。</p>
-<p><img src="/CVD/image-20221107121019688.png" alt="image-20221107121019688" style="zoom:80%;"></p>
-<ul>
-<li>单数据集（OBF，左）和跨数据集结果（MMSE-HR，右，训练集为 VIPL-HR）</li>
-</ul>
-<p><img src="/CVD/image-20221107121210877.png" alt="image-20221107121210877" style="zoom:80%;"></p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-        <category>hr</category>
-      </categories>
-  </entry>
-  <entry>
     <title>multi-network learning rPPG</title>
     <url>/Co-rectification/</url>
     <content><![CDATA[<h2><center> Contactless Pulse Estimation Leveraging Pseudo Labels and Self-Supervision </center></h2>
@@ -643,82 +577,64 @@ L_{tf}=\lambda_{s}\cdot L_{s}+L_{code'}</script><p>&emsp;&emsp;其中，$L_s$ �
       </categories>
   </entry>
   <entry>
-    <title>DRNet</title>
-    <url>/DRNet/</url>
-    <content><![CDATA[<h2><center> DRNet: Decomposition and Reconstruction Network for Remote Physiological Measurement </center></h2>
+    <title>CVD</title>
+    <url>/CVD/</url>
+    <content><![CDATA[<h2><center> Video-Based Remote Physiological Measurement via Cross-Verified Feature Disentangling </center></h2>
 
-<p>【心率监测】【arxiv】【<a href="http://arxiv.org/abs/2206.05687">paper</a>】【<a href>code未开源</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种非端到端的 bvp 信号估计网络，其基本思想来自 CVD 和 DualGan，可以简要概括为：将生理信号和非生理信号进行分离，并且通过互相组合使 rppg 估计器能够对各种噪声都具备鲁棒性。其整个网络基于两个无法证明的假设：1. STMap 的生理信号和非生理信号是线性组合的，2. 。同时本文提出了一种数据增强策略（仅针对 STMap）、一个即插即用的注意力模块（仅针对 STMap）、一种新的损失函数（并不新），在 VIPL、PURE、UBFC 上基本全指标超了 Dual-GAN，是新的 SOTA，暂未开源。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/DRNet/image-20221124131215819.png" alt="image-20221124131215819"></p>
+<p>【心率检测】【ECCV2020】【<a href="https://arxiv.org/pdf/2007.08213.pdf">paper</a>】【<a href="https://github.com/nxsEdson/CVD-Physiological-Measurement">code</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种基于自编码器的架构的特征学习器，并且将输入的 video 表示为多尺度 STmap，通过多编码器-单解码器的方式生成编码不同特征的编码器，同时通过交叉验证解离（CVD）的策略训练。同时对解码出的特征估计时使用了可以输出多种生理信号的估计器，是结合了自编码器、解离表征、rppg 估计网络的 SOTA。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/CVD/image-20221107093200677.png" alt="image-20221107093200677" style="zoom:80%;"></p>
 <span id="more"></span>
 <hr>
 <h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>提出了一种数据增强方法，专用于 STMap 的增强</li>
-<li>非生理信号的产生是由对生理信号建模后作差得到的</li>
-<li>提出了一种即插即用的注意力模块 SAB，可以使 STMap 中生理信号的显著性更高</li>
-<li>打败了 Dual-GAN，成为了新的 SOTA</li>
+<li>MSTmap（多尺度 STmap）的提出</li>
+<li>新的训练策略 CVD（交叉验证解离）</li>
+<li>一种用于估计 rppg 信号和 HR 信号的双头网络</li>
 </ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><h4 id="数据增强"><a href="#数据增强" class="headerlink" title="数据增强"></a>数据增强</h4><p><img src="/DRNet/image-20221124132742293.png" alt="image-20221124132742293" style="zoom: 50%;"></p>
-<p>&emsp;&emsp;本文提出的新的数据增强策略名字为 Patch Cropping（PC），目的是合成具备不同噪声水平的新样本。通过上图可以看出来，所谓数据增强，增强的并不是原始视频或者图像，而是生成了新的 STMap，首先简单回顾原始 STMap：将原始 clip 分成 N 个 ROI，每个 ROI 逐帧地 pooling 出一个像素值，得到的 shape 为 CxNxT，其中 C 是 RGB/YUV，N 为 ROI 的个数，T 为帧数。而 PC 具体来说其做法如下：</p>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><h4 id="MSTmap"><a href="#MSTmap" class="headerlink" title="MSTmap"></a>MSTmap</h4><p>&emsp;&emsp;首先介绍 STmap，所谓 STmap，即时空图。由于在心率估计中，人脸 ROI 区域蕴含的信息相比于环境信息来说更加重要，因此试着将输入的 video 通过某种<strong>非学习的策略</strong>变成仅含有人脸信息的色彩特征图，以便于接下来的估计网络学习这些特征（正是因为在 RhythmNet 和 CVD 中都含有这一部分，一些工作认为这样的处理将整个网络变成了非端到端的架构）。</p>
+<p><img src="/CVD/image-20221107093947556.png" alt="image-20221107093947556"></p>
+<p>&emsp;&emsp;其具体的处理为：1.通过开源工具 <a href="https://github.com/seetaface/SeetaFaceEngine">SeetaFace</a> 标定人脸的关键点，将输入的 video 的每一帧都对齐至同一个位置并且进行 crop 使得人脸位于中央，此时 $video\to(T,H,W,C)$，2.将现在的 video 按照空间维度将每帧分解为 $n$ 个块，将每个块按照 YUV 通道展开，记每个块中的像素点个数为 $c$，这里的 $c=\frac{HW}n$，这里的结果进行一个重排，在不改变维度的情况下就成为了 STmap，此时的 $STmap\to(T,n,c)$。</p>
+<p><img src="/CVD/image-20221107093640013.png" alt="image-20221107093640013" style="zoom:67%;"></p>
+<p>&emsp;&emsp;所谓多尺度 STmap，即相对于在 RhythmNet 中的 STmap 多了环境信息。具体来说，首先利用开源工具 <a href="https://github.com/seetaface/SeetaFaceEngine">SeetaFace</a> 标定第 $t$ 帧人脸上信息量最大的 $n$ 个 ROI 区域，将这 $n$ 个区域进行排列组合总共形成 $2^n-1$ 个图像（除了所有 ROI 均不存在的情况）。同时将第 $t$ 帧的图像进行通道分解为 RGBYUV 共六个，之后和 ROI 组合进行笛卡尔积，考虑每一帧，最终得到多尺度 STmap 的 shape 为 $(T,6,2^n-1)$。</p>
+<h4 id="前向过程"><a href="#前向过程" class="headerlink" title="前向过程"></a>前向过程</h4><p><img src="/CVD/image-20221107093200677.png" alt="image-20221107093200677" style="zoom:80%;"></p>
+<p>&emsp;&emsp;网络比较复杂，因此这里对着图介绍。网络进行联合训练，直接算出所有的 loss，求和之后进行梯度回传。首先介绍前向过程。</p>
 <ul>
-<li>首先将原本的每个 ROI 分成更细的粒度，即将 N 个 ROI 变成 $\rm N\times \gamma\times\gamma$ 个 ROI</li>
-<li>据此生成的 STMap 的shape 为 CxN’xT，$\rm N’=N\times \gamma\times\gamma$</li>
-<li>从 $\rm N ‘$ 中随机裁剪 $\rm N$ 个序列返回，并且用另一个超参 $\rho$ 用来控制是否进行增强的概率</li>
-<li>具体来说，$\gamma=2,\ \rho=0.5$</li>
+<li>将输入的 video clip 进行预处理，得到 MSTmap，具体地，对于一对视频 $v_1,v_2$，生成的时空图分别记为 MSTmap $M_1,\ M_2$，实现中这一对视频由随机下标在同一个 batch 内取得。</li>
+<li>将 $M_1,\ M_2$ 分别通过两个不同的编码器 $E_n,\ E_p$ 得到 4 个值 $f_{p1},\ f_{n1},\ f_{p2},\ f_{n2}$ ，其中 $p$ 下标代表生理信号，$n$ 下标代表非生理信号</li>
+<li>将得到的 4 个信号组合进入解码器 $D$，得到 4 个解码之后的特征 $M_1,\ pseudo\ M_1,\ M_2,\ pseudo\ M_2$，其中 $M_1,\ M_2$ 即为正常的编解码器的输出，用于监督训练 AE；其中 $\ pseudo\ M_1,\ pseudo\ M_2$ 代表使用不对应的生理特征和非生理特征组合得到的伪特征</li>
+<li>将两个伪特征再一次进行编码，分别通过 $E_n,\ E_p$，得到四个输出 $f_{pse_p1},\ f_{pse_n1},\ f_{pse_p2},\ f_{pse_n2}$，如果我们的  $E_n,\ E_p$ 能够有效分离生理和非生理特征，这里的 $f_{pse_p1}$ 应该和 $f_{p1}$ 接近，而 $f_{pse_n1}$ 反而应该和 $f_{n2}$ 接近，其他同理</li>
+<li>将得到的 $f_{pse_p1},\ f_{p1}$ 分别输入双头估计器，只取 $f_{p1}$ 生成的 rppg 信号 $s_{pre}$，并且取两个输入生成的 HR 信号 $HR_1,\ HR_{pse1}$，对 $f_{pse_p2},\ f_{p2}$ 同理。这里生成的 $s_{pre},\ HR_1$ 用于监督训练双头网络，其余的都用于进行 CVD 训练，目的是监督 $E_n,\ E_p$ 的各司其职</li>
 </ul>
-<p>&emsp;&emsp;数据增强过程的伪代码如下</p>
-<p><img src="/DRNet/image-20221124142339598.png" alt="image-20221124142339598" style="zoom:70%;"></p>
-<h4 id="前向过程"><a href="#前向过程" class="headerlink" title="前向过程"></a>前向过程</h4><p><img src="/DRNet/image-20221124131210059.png" alt="image-20221124131210059" style="zoom: 45%;"></p>
-<p>&emsp;&emsp;首先，这篇论文的网络结构基本接近于 CVD 和 Dual-GAN，借鉴 CVD，本文的训练目的也是解耦合生理信号和非生理信号，区别在于：1. 非生理信号的生成：CVD 通过训练两个自编码器分别预测生理信号和非生理信号，而本文则只预测生理信号，通过全部信号和生理信号作差表示费生理信号，2. 单独信号预测器的工作保证：CVD 采用交叉解耦训练的策略，通过拉进或推离最终的信号距离保证每个 AE 各司其职，而本文因为只训练了生理信号，通过使生理信号具备周期性保证其信号确实为生理信号。至于 Dual-GAN 的借鉴，则主要在于 backbone，一会放个对比图。</p>
-<p>&emsp;&emsp;在上图之中提到的 PixelMap，其来源如下图所示，将每个 ROI 提取出的生理信号直接按行排列得到的就是 PixelMap，而那个 Magnifing Operation 操作就是一个最大-最小归一化，也就是说 PixelMap 就是还没有做归一化的 STMap，他们带有的信息没有区别，也没必要刻意区分，这里做这种区分大概只是网络实现过程中发现的 trick。</p>
-<p><img src="/DRNet/image-20221124144029559.png" alt="image-20221124144029559" style="zoom:67%;"></p>
-<p>&emsp;&emsp;接下来详细描述本文的前向过程：</p>
+<p>&emsp;&emsp;接下来逐个介绍 loss 的计算。</p>
 <ul>
-<li>网络同时读取两个输入，分别记为 $v^1,\ v^2$，其 GT 分别记为 $s_{gt}^1,\ s_{gt}^2$，对第 $i$ 个输入，分别进行以下过程：<ul>
-<li>将输入 $v^i$ 生成 PixelMap，记为 $pm^i$</li>
-<li>将输入 GT $s_{gt}^2$ 通过生理信号生成器 $G_p$ 生成生理信号时空图 $pm_p^i$</li>
-<li>将整体信号时空图减去生理信号时空图得到非生理信号时空图：$pm_{np}^i=pm^i-pm_p^i$</li>
-<li>同时将 PixelMap $pm^i,\ pm_p^i$ ，归一化之后生成 STMap，分别记为：$m^i,\ m_p^i$</li>
+<li>$\mathcal L_{rec}$</li>
 </ul>
-</li>
-<li>将两个输入的生理信号和非生理信号互相求和得到伪信号，这一步是为了模拟在 $v^1$ 中加入 $v^2$ 的噪声分别生成：<ul>
-<li>$pm_{pse}^1=pm_p^1+pm_{np}^2$，其记录了 $v^1$ 的生理信息</li>
-<li>$pm_{pse}^2=pm_p^2+pm_{np}^1$，其记录了 $v^2$ 的生理信息</li>
-<li>将两个 PixelMap 进行归一化生成 STMap，分别记为：$m_{pse}^1,\ m_{pse}^2$</li>
-</ul>
-</li>
-<li>将前两步生成的所有 STMap 进入 rppg 估计器 $E_p$ 分别生成 BVP 预测信号<ul>
-<li>具体地，对于 $m^i,\ m_p^i,\ m_{pse}^i$ 进入 $E_p$ 之后分别得到信号：$s^i,\ s_p^i,\ s_{pse}^i$</li>
-</ul>
-</li>
-</ul>
-<p>&emsp;&emsp;本文的损失函数限制两个部分，分别是：1. 生成信号和 GT 信号的一致性损失 $\cal L_{phy}$，用于训练 rppg 估计器的准确性和对噪声的鲁棒性 2. 生成的生理信号的周期性损失 $\cal L_{cyc}$，用于督促生成器的有效性。</p>
-<p>&emsp;&emsp;其中，$\cal L_{phy}$ 用的是标准负皮尔森系数，$\cal L_{cyc}$ 用的是 AutoHR 的频率损失（其实就是 HR 交叉熵），其具体表达式如下：</p>
 <script type="math/tex; mode=display">
-\begin{aligned}
-&\mathcal L_{phy}=1-\frac{\sum_{t=1}^T(x^i-\bar x)(y^i-\bar y)}{\sqrt{\sum_{t=1}^T(x^i-\bar x)^2}\sqrt{\sum_{t-1}^T(y^i-\bar y)^2}}\\&\mathcal L_{cyc}=\frac 1 c\sum\limits_{i=1}^cCE(PSD(pm_{avg}^i),HR_{gt})
-\end{aligned}</script><p>&emsp;&emsp;其中，$\bar x,\ \bar y$ 表示 $x,\ y$ 的平均，$c$ 代表 PixelMap $pm$ 的通道数，$pm_{avg}$ 是指随机从 $\rm N$ 中选择多次子序列的平均值。loss 的最终表达式为 $\cal L=L_{phy}+L_{cyc}$，两个损失之中不使用参数进行平衡（估计是测出来 $\lambda=1$ 更合适就直接不写了）</p>
-<h4 id="backbone"><a href="#backbone" class="headerlink" title="backbone"></a>backbone</h4><p>&emsp;&emsp;下图左边是 Dual-GAN 的 backbone，右图是本文的 backbone，相似性无需多言。</p>
-<p><img src="/DRNet/image-20221124162013710.png" alt="image-20221124162013710"></p>
-<p>&emsp;&emsp;简单来说，基本没有什么变化，本文的 backbone 去除了 Dual-GAN 的辅助任务部分，这是因为 Dual-GAN 希望通过这一部分进行有监督的预训练从而使第二阶段的无监督训练更加快速，而本文没有无监督的部分自然也就没有预训练的需求。</p>
-<p>&emsp;&emsp;除此之外，本文相对应 Dual-GAN 的 ROI-AF block，本文也提了一个 SAB，他们做法并不完全一致，具体来说，ROI-AF 是将 STMap 进行 frame-wise 的 1D 卷积，目的是将 BVP 和噪声的分布实现对齐从而有利于估计器分辨出噪声，而 SAB 是通过一系列的 2D 卷积，给每个位置加一个权重，让估计器能够更加容易关注到 STMap 中的生理信号部分。虽然卷积的维度不同，本质上目的是一样的，都是让估计器分辨噪声和生理信号更加容易。</p>
-<p>&emsp;&emsp;其中 SAB（Spatial Attention Block）的结构如下图所示，可以看出虽然为了和 Dual-GAN 区分开加入了 2D 卷积，但是两个分支之中右面那个分支仍然是 frame-wise 的子模块结构。</p>
-<p><img src="/DRNet/image-20221124163304582.png" alt="image-20221124163304582" style="zoom:50%;"></p>
-<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;文章结果分为两个部分：1. 数据集内和跨数据集训练与测试，2. 消融研究</p>
+\mathcal L_{rec}=\lambda_{rec}\sum\limits_{i=1}^2||M_i-M_i'||_1</script><p>&emsp;&emsp;使用 L1Loss 限制 AE 的表征学习能力。</p>
 <ul>
-<li>文章效果</li>
+<li>$\mathcal L_{CVD}$</li>
 </ul>
-<p>&emsp;&emsp;这里他的效果基本完全超了 Dual-GAN，比 physformer 更好了不少，估计之后引用量不会太少，毕竟是实打实的 SOTA</p>
-<p><img src="/DRNet/image-20221124164359344.png" alt="image-20221124164359344"></p>
+<script type="math/tex; mode=display">
+\mathcal L_{CVD}=\lambda_{cvd}\sum\limits_{i=1}^2||f_{pi}-f_{pse\_pi}||_1 +\lambda_{cvd}\sum\limits_{i=1}^2||f_{ni}-f_{pse\_n(3-i)}||_1+\sum\limits_{i=1}^2||HR_i-HR_{psei||_1}</script><p>&emsp;&emsp;这个损失函数限制各个对应的预测值相等，通过此限制强迫编码器 $E_n,\ E_p$ 各司其职。</p>
+<ul>
+<li>$\mathcal L_{pre}$</li>
+</ul>
+<script type="math/tex; mode=display">
+\mathcal L_{rppg}=1-\frac{Cov(s_{pre},s_{gt})}{\sqrt{Cov(s_{pre},s_{pre})}\sqrt{Cov(s_{gt},s_{gt})}}</script><script type="math/tex; mode=display">
+\mathcal L_{rppg\_hr}=CE(PSD(s_{pre}),HR_{gt})</script><script type="math/tex; mode=display">
+\mathcal L_{pre}=||HR_{pre}-HR_{gt} ||+\lambda_{rppg}\mathcal L_{rppg}+\mathcal L_{rppg\_hr}</script><p>&emsp;&emsp;这个函数通过限制 rppg 信号的估计准确性和心率的预测准确性强迫双头网络估计器的学习。</p>
+<p>&emsp;&emsp;总体来说，loss 由下式给出，通过之前的前向过程中的各个中间变量获得损失函数，并且对各个网络进行联合训练。在实现的过程中，backbone 为 res18，编解码器为同一个网络实现，因此代码中的前向过程和描述的过程先后性并不完全一致，但是得到的值和逻辑都一致。</p>
+<script type="math/tex; mode=display">
+\cal L=L_{rec}+L_{\rm CVD}+L_{pre}</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;和大部分余老师的论文一致，这篇论文也是主要关注于：1.消融实验，2.单数据集和跨数据集结果</p>
 <ul>
 <li>消融实验</li>
 </ul>
-<p>&emsp;&emsp;本文的消融实验主要关于两个部分：1. 数据增强策略的有效性，2. SAB 的有效性。可以看出两个模块都是有用的，并且这感觉没这两个小策略，整个网络别说 Dual-GAN 了，连 AutoHR 都打不过。</p>
-<p><img src="/DRNet/image-20221124164530532.png" alt="image-20221124164530532"></p>
-<hr>
-<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3><p>&emsp;&emsp;本文算是典范的缝合 SOTA 论文了，网络的整体结构和训练目标来源于 CVD，backbone 的提出和即插即用块的提出来源于 Dual-GAN，损失函数来源于 AutoHR，稍微改了改就成了自己的。文章之中原话说他们提出了一种新的损失 $\cal L_{cyc}$，但是这表达式和 PhysNet、AutoHR 的 $\cal L_{fre}$ 完全一样，这不扯吗，非要说改动就是他随机取值然后算 loss。</p>
-<p>&emsp;&emsp;但是这是模板，是榜样，是干活的方向和学习的目标，虽然整个文章的图像风格都和 Dual-GAN 一模一样，损失函数也照抄的 AutoHR，但是确实是 SOTA，不知道能不能中 CVPR。</p>
-<p>&emsp;&emsp;特别是他的消融研究指出的，他的 baseline 其实效果相当一般，根本发不出来，正是通过一些模块的调优才达到的 SOTA，这大概也是一个思路，提出一个普通的 baseline 或者直接找一个 backbone，在不影响性能的情况下进行简单的改动以便于讲出不一样的故事，然后加入一些调优模块达到 SOTA 发出文章。</p>
+<p>&emsp;&emsp;这部分探究了 a）STmap 的多尺度性，b）是否含有 MTL，c）是否含有 CVD，其中是否含有 CVD 探索了包含、不含（使用头部运动作为非生理信号解离）、不含（使用面部像素标准差作为非生理性解离）三种情况。</p>
+<p><img src="/CVD/image-20221107121019688.png" alt="image-20221107121019688" style="zoom:80%;"></p>
+<ul>
+<li>单数据集（OBF，左）和跨数据集结果（MMSE-HR，右，训练集为 VIPL-HR）</li>
+</ul>
+<p><img src="/CVD/image-20221107121210877.png" alt="image-20221107121210877" style="zoom:80%;"></p>
 ]]></content>
       <categories>
         <category>paper</category>
@@ -798,6 +714,90 @@ L_n=-\sum_{i=1}^N\sum_{j=1}^N\frac{||f_i-f_j'||^2}{N^2}</script><p>&emsp;&emsp;�
 <p><img src="/Contrast-Phys/image-20221205142732306.png" alt="image-20221205142732306" style="zoom:50%;"></p>
 <p>&emsp;&emsp;最后是消融实验，这里的消融实验主要测试的是针对两个假设的设定：1. 不同的 ST block 的空间分辨率，2. 不同的 $\Delta t$ 大小。用以证明模型对该设置灵敏性较高，该设置较为有效。</p>
 <p><img src="/Contrast-Phys/image-20221205143618001.png" alt="image-20221205143618001" style="zoom:50%;"></p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+        <category>hr</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>DRNet</title>
+    <url>/DRNet/</url>
+    <content><![CDATA[<h2><center> DRNet: Decomposition and Reconstruction Network for Remote Physiological Measurement </center></h2>
+
+<p>【心率监测】【arxiv】【<a href="http://arxiv.org/abs/2206.05687">paper</a>】【<a href>code未开源</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种非端到端的 bvp 信号估计网络，其基本思想来自 CVD 和 DualGan，可以简要概括为：将生理信号和非生理信号进行分离，并且通过互相组合使 rppg 估计器能够对各种噪声都具备鲁棒性。其整个网络基于两个无法证明的假设：1. STMap 的生理信号和非生理信号是线性组合的，2. 。同时本文提出了一种数据增强策略（仅针对 STMap）、一个即插即用的注意力模块（仅针对 STMap）、一种新的损失函数（并不新），在 VIPL、PURE、UBFC 上基本全指标超了 Dual-GAN，是新的 SOTA，暂未开源。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/DRNet/image-20221124131215819.png" alt="image-20221124131215819"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>提出了一种数据增强方法，专用于 STMap 的增强</li>
+<li>非生理信号的产生是由对生理信号建模后作差得到的</li>
+<li>提出了一种即插即用的注意力模块 SAB，可以使 STMap 中生理信号的显著性更高</li>
+<li>打败了 Dual-GAN，成为了新的 SOTA</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><h4 id="数据增强"><a href="#数据增强" class="headerlink" title="数据增强"></a>数据增强</h4><p><img src="/DRNet/image-20221124132742293.png" alt="image-20221124132742293" style="zoom: 50%;"></p>
+<p>&emsp;&emsp;本文提出的新的数据增强策略名字为 Patch Cropping（PC），目的是合成具备不同噪声水平的新样本。通过上图可以看出来，所谓数据增强，增强的并不是原始视频或者图像，而是生成了新的 STMap，首先简单回顾原始 STMap：将原始 clip 分成 N 个 ROI，每个 ROI 逐帧地 pooling 出一个像素值，得到的 shape 为 CxNxT，其中 C 是 RGB/YUV，N 为 ROI 的个数，T 为帧数。而 PC 具体来说其做法如下：</p>
+<ul>
+<li>首先将原本的每个 ROI 分成更细的粒度，即将 N 个 ROI 变成 $\rm N\times \gamma\times\gamma$ 个 ROI</li>
+<li>据此生成的 STMap 的shape 为 CxN’xT，$\rm N’=N\times \gamma\times\gamma$</li>
+<li>从 $\rm N ‘$ 中随机裁剪 $\rm N$ 个序列返回，并且用另一个超参 $\rho$ 用来控制是否进行增强的概率</li>
+<li>具体来说，$\gamma=2,\ \rho=0.5$</li>
+</ul>
+<p>&emsp;&emsp;数据增强过程的伪代码如下</p>
+<p><img src="/DRNet/image-20221124142339598.png" alt="image-20221124142339598" style="zoom:70%;"></p>
+<h4 id="前向过程"><a href="#前向过程" class="headerlink" title="前向过程"></a>前向过程</h4><p><img src="/DRNet/image-20221124131210059.png" alt="image-20221124131210059" style="zoom: 45%;"></p>
+<p>&emsp;&emsp;首先，这篇论文的网络结构基本接近于 CVD 和 Dual-GAN，借鉴 CVD，本文的训练目的也是解耦合生理信号和非生理信号，区别在于：1. 非生理信号的生成：CVD 通过训练两个自编码器分别预测生理信号和非生理信号，而本文则只预测生理信号，通过全部信号和生理信号作差表示费生理信号，2. 单独信号预测器的工作保证：CVD 采用交叉解耦训练的策略，通过拉进或推离最终的信号距离保证每个 AE 各司其职，而本文因为只训练了生理信号，通过使生理信号具备周期性保证其信号确实为生理信号。至于 Dual-GAN 的借鉴，则主要在于 backbone，一会放个对比图。</p>
+<p>&emsp;&emsp;在上图之中提到的 PixelMap，其来源如下图所示，将每个 ROI 提取出的生理信号直接按行排列得到的就是 PixelMap，而那个 Magnifing Operation 操作就是一个最大-最小归一化，也就是说 PixelMap 就是还没有做归一化的 STMap，他们带有的信息没有区别，也没必要刻意区分，这里做这种区分大概只是网络实现过程中发现的 trick。</p>
+<p><img src="/DRNet/image-20221124144029559.png" alt="image-20221124144029559" style="zoom:67%;"></p>
+<p>&emsp;&emsp;接下来详细描述本文的前向过程：</p>
+<ul>
+<li>网络同时读取两个输入，分别记为 $v^1,\ v^2$，其 GT 分别记为 $s_{gt}^1,\ s_{gt}^2$，对第 $i$ 个输入，分别进行以下过程：<ul>
+<li>将输入 $v^i$ 生成 PixelMap，记为 $pm^i$</li>
+<li>将输入 GT $s_{gt}^2$ 通过生理信号生成器 $G_p$ 生成生理信号时空图 $pm_p^i$</li>
+<li>将整体信号时空图减去生理信号时空图得到非生理信号时空图：$pm_{np}^i=pm^i-pm_p^i$</li>
+<li>同时将 PixelMap $pm^i,\ pm_p^i$ ，归一化之后生成 STMap，分别记为：$m^i,\ m_p^i$</li>
+</ul>
+</li>
+<li>将两个输入的生理信号和非生理信号互相求和得到伪信号，这一步是为了模拟在 $v^1$ 中加入 $v^2$ 的噪声分别生成：<ul>
+<li>$pm_{pse}^1=pm_p^1+pm_{np}^2$，其记录了 $v^1$ 的生理信息</li>
+<li>$pm_{pse}^2=pm_p^2+pm_{np}^1$，其记录了 $v^2$ 的生理信息</li>
+<li>将两个 PixelMap 进行归一化生成 STMap，分别记为：$m_{pse}^1,\ m_{pse}^2$</li>
+</ul>
+</li>
+<li>将前两步生成的所有 STMap 进入 rppg 估计器 $E_p$ 分别生成 BVP 预测信号<ul>
+<li>具体地，对于 $m^i,\ m_p^i,\ m_{pse}^i$ 进入 $E_p$ 之后分别得到信号：$s^i,\ s_p^i,\ s_{pse}^i$</li>
+</ul>
+</li>
+</ul>
+<p>&emsp;&emsp;本文的损失函数限制两个部分，分别是：1. 生成信号和 GT 信号的一致性损失 $\cal L_{phy}$，用于训练 rppg 估计器的准确性和对噪声的鲁棒性 2. 生成的生理信号的周期性损失 $\cal L_{cyc}$，用于督促生成器的有效性。</p>
+<p>&emsp;&emsp;其中，$\cal L_{phy}$ 用的是标准负皮尔森系数，$\cal L_{cyc}$ 用的是 AutoHR 的频率损失（其实就是 HR 交叉熵），其具体表达式如下：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+&\mathcal L_{phy}=1-\frac{\sum_{t=1}^T(x^i-\bar x)(y^i-\bar y)}{\sqrt{\sum_{t=1}^T(x^i-\bar x)^2}\sqrt{\sum_{t-1}^T(y^i-\bar y)^2}}\\&\mathcal L_{cyc}=\frac 1 c\sum\limits_{i=1}^cCE(PSD(pm_{avg}^i),HR_{gt})
+\end{aligned}</script><p>&emsp;&emsp;其中，$\bar x,\ \bar y$ 表示 $x,\ y$ 的平均，$c$ 代表 PixelMap $pm$ 的通道数，$pm_{avg}$ 是指随机从 $\rm N$ 中选择多次子序列的平均值。loss 的最终表达式为 $\cal L=L_{phy}+L_{cyc}$，两个损失之中不使用参数进行平衡（估计是测出来 $\lambda=1$ 更合适就直接不写了）</p>
+<h4 id="backbone"><a href="#backbone" class="headerlink" title="backbone"></a>backbone</h4><p>&emsp;&emsp;下图左边是 Dual-GAN 的 backbone，右图是本文的 backbone，相似性无需多言。</p>
+<p><img src="/DRNet/image-20221124162013710.png" alt="image-20221124162013710"></p>
+<p>&emsp;&emsp;简单来说，基本没有什么变化，本文的 backbone 去除了 Dual-GAN 的辅助任务部分，这是因为 Dual-GAN 希望通过这一部分进行有监督的预训练从而使第二阶段的无监督训练更加快速，而本文没有无监督的部分自然也就没有预训练的需求。</p>
+<p>&emsp;&emsp;除此之外，本文相对应 Dual-GAN 的 ROI-AF block，本文也提了一个 SAB，他们做法并不完全一致，具体来说，ROI-AF 是将 STMap 进行 frame-wise 的 1D 卷积，目的是将 BVP 和噪声的分布实现对齐从而有利于估计器分辨出噪声，而 SAB 是通过一系列的 2D 卷积，给每个位置加一个权重，让估计器能够更加容易关注到 STMap 中的生理信号部分。虽然卷积的维度不同，本质上目的是一样的，都是让估计器分辨噪声和生理信号更加容易。</p>
+<p>&emsp;&emsp;其中 SAB（Spatial Attention Block）的结构如下图所示，可以看出虽然为了和 Dual-GAN 区分开加入了 2D 卷积，但是两个分支之中右面那个分支仍然是 frame-wise 的子模块结构。</p>
+<p><img src="/DRNet/image-20221124163304582.png" alt="image-20221124163304582" style="zoom:50%;"></p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;文章结果分为两个部分：1. 数据集内和跨数据集训练与测试，2. 消融研究</p>
+<ul>
+<li>文章效果</li>
+</ul>
+<p>&emsp;&emsp;这里他的效果基本完全超了 Dual-GAN，比 physformer 更好了不少，估计之后引用量不会太少，毕竟是实打实的 SOTA</p>
+<p><img src="/DRNet/image-20221124164359344.png" alt="image-20221124164359344"></p>
+<ul>
+<li>消融实验</li>
+</ul>
+<p>&emsp;&emsp;本文的消融实验主要关于两个部分：1. 数据增强策略的有效性，2. SAB 的有效性。可以看出两个模块都是有用的，并且这感觉没这两个小策略，整个网络别说 Dual-GAN 了，连 AutoHR 都打不过。</p>
+<p><img src="/DRNet/image-20221124164530532.png" alt="image-20221124164530532"></p>
+<hr>
+<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3><p>&emsp;&emsp;本文算是典范的缝合 SOTA 论文了，网络的整体结构和训练目标来源于 CVD，backbone 的提出和即插即用块的提出来源于 Dual-GAN，损失函数来源于 AutoHR，稍微改了改就成了自己的。文章之中原话说他们提出了一种新的损失 $\cal L_{cyc}$，但是这表达式和 PhysNet、AutoHR 的 $\cal L_{fre}$ 完全一样，这不扯吗，非要说改动就是他随机取值然后算 loss。</p>
+<p>&emsp;&emsp;但是这是模板，是榜样，是干活的方向和学习的目标，虽然整个文章的图像风格都和 Dual-GAN 一模一样，损失函数也照抄的 AutoHR，但是确实是 SOTA，不知道能不能中 CVPR。</p>
+<p>&emsp;&emsp;特别是他的消融研究指出的，他的 baseline 其实效果相当一般，根本发不出来，正是通过一些模块的调优才达到的 SOTA，这大概也是一个思路，提出一个普通的 baseline 或者直接找一个 backbone，在不影响性能的情况下进行简单的改动以便于讲出不一样的故事，然后加入一些调优模块达到 SOTA 发出文章。</p>
 ]]></content>
       <categories>
         <category>paper</category>
@@ -2311,6 +2311,47 @@ p=\lceil\delta_c(n)\rceil-\delta_c(n)</script><p>&emsp;&emsp;故而在所有的�
       </categories>
   </entry>
   <entry>
+    <title>SiNC</title>
+    <url>/SiNC/</url>
+    <content><![CDATA[<h2><center> Non-Contrastive Unsupervised Learning of Physiological Signals from Video </center></h2>
+
+<p>【rPPG】【CVPR2023】【<a href="http://arxiv.org/abs/2303.07944">paper</a>】【<a href="https://github.com/CVRL/SiNC-rPPG">code</a>】</p>
+<h3 id="abstract"><a href="#abstract" class="headerlink" title="abstract"></a>abstract</h3><p>&emsp;&emsp;本文基于 PPG 信号的三个特征，提出了一种非对比学习的自监督方法用于 rPPG 测量，虽然作者强调了没有针对 rPPG 进行独特的网络设计，但是三种特征均为 PPG 信号强相关的，并且这项工作实际上可以看做“基于负样本和先验约束的对比学习”。需要指出：作者认为在同 batch 内的 PSD 之和应当分布均匀，这是显然不成立的，即使考虑 batch size 可以很大并且视频经过数据增强，在统计学意义上 PSD 之和仍应该服从正态分布。</p>
+<h3 id="overview"><a href="#overview" class="headerlink" title="overview"></a>overview</h3><p><img src="/SiNC/image-20231109105443684.png" alt="image-20231109105443684"></p>
+<span id="more"></span>
+<hr>
+<h3 id="contribution"><a href="#contribution" class="headerlink" title="contribution"></a>contribution</h3><ul>
+<li>“非对比学习”的无监督结构（事实上可以看做是对比学习的变体）</li>
+<li>三个针对“频率任务”进行优化的损失函数：sparsely，bandlimits，variance</li>
+</ul>
+<h3 id="formulation"><a href="#formulation" class="headerlink" title="formulation"></a>formulation</h3><p>&emsp;&emsp;输入 video $x_i\in\mathbb{R}^{T\times W\times H\times C}$；数据增强的操作集合 $\Phi$；来自 SOTA（physnet）的模型 $f$；波形 $y_i=f(x_i)$；波形频率 PSD $F=\mathrm{FFT}(y)$；$F_i$ 表示 $F$ 在频率为 $i$ 的分量；正常人的 PPG 信号频率在 $a=0.66\mathrm{Hz}\rightarrow b=3\mathrm{Hz}$ 之间变化。</p>
+<h3 id="framework"><a href="#framework" class="headerlink" title="framework"></a>framework</h3><p>&emsp;&emsp;本文的关键不在于网络而是损失函数的设计，在模型上选取了简单的 physnet。</p>
+<ul>
+<li>Sparsity Loss：此损失防止频率的带宽过分散</li>
+</ul>
+<script type="math/tex; mode=display">
+L_s=\frac{\sum\limits_{i=a}^{\arg max(F)-\Delta F}F_i+\sum\limits_{i=\arg max(F)+\Delta F}^{b}F_i}{\sum\limits_{i=a}^{b}F_i}</script><p>&emsp;&emsp;其中，$\arg max(F)$ 即为心率，而 $\Delta F$ 表示 $\pm0.1\mathrm{Hz}$ 范围内的频率。也就是说，这个损失函数的意义为：在 $\arg max(F)\pm0.1\mathrm{Hz}$ 之外的频率图面积和总频率图面积之比，优化方向为：使 PSD 更集中在 $0.1\mathrm{Hz}$ 之内。</p>
+<ul>
+<li>Bandwidth Loss：此损失防止带宽离开心率频率范围之外</li>
+</ul>
+<script type="math/tex; mode=display">
+L_b=\frac{\sum\limits_{i=-\infty}^{a}F_i+\sum\limits_{i=b}^{\infty}F_i}{\sum\limits_{i=-\infty}^{\infty}F_i}</script><p>&emsp;&emsp;这个损失函数的意义为：小于 $a$ 或大于 $b$ 的频率图面积和所有可能的频率面积之比。优化方向为：使 PSD 集中在 $[a,b]$ 之内（事实上就是 IPR 越小越好）</p>
+<ul>
+<li>Variance Loss：此损失防止模型 collapse</li>
+</ul>
+<p>&emsp;&emsp;在只有前面两个损失函数的情况下，仅仅能限制模型输出“正确”的信号而非“对应”的信号，<em>本文通过将同一个 batch 内输出的 PSD 方差增大期望模型学到正确信号</em>。</p>
+<script type="math/tex; mode=display">
+L_v=\frac1d\sum\limits_{i=1}^{d}(\mathrm{CDF}_i(Q)-\mathrm{CDF}_i(P))^2</script><p>&emsp;&emsp;其中 CDF 是累计分布函数，$\mathrm{CDF}_i$ 就表示 Q 分布在第 i 个频率的分量，这里 Q 和 P 都是 (1, d=140) 的 tensor。可以这样理解：Q 表示对一个 batch 内所有的 PSD 直接求和的结果，而 P 则是单纯的均匀分布。使 Q 靠近 P 即为：在同一个 batch 内，PSD 的峰值应当分散一些，从而让整个 batch 的 PSD 求和等于均匀分布。</p>
+<h3 id="experiment"><a href="#experiment" class="headerlink" title="experiment"></a>experiment</h3><p>&emsp;&emsp;intra- 中规中矩，cross- 效果比较差，但是本文列出的其他 SOTA 实验结果也差，也就是说实际上本文重新跑了其他 SOTA 的跨数据集。</p>
+<p><img src="/SiNC/image-20231109131002347.png" alt="image-20231109131002347"></p>
+<p><img src="/SiNC/image-20231109131243482.png" alt="image-20231109131243482" style="zoom:50%;"></p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
     <title>PulseGAN</title>
     <url>/PulseGAN/</url>
     <content><![CDATA[<h2><center> PulseGAN: Learning to generate realistic pulse
@@ -2351,47 +2392,6 @@ waveforms in remote photoplethysmography </center></h2>
         <category>paper</category>
         <category>cv</category>
         <category>hr</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>SiNC</title>
-    <url>/SiNC/</url>
-    <content><![CDATA[<h2><center> Non-Contrastive Unsupervised Learning of Physiological Signals from Video </center></h2>
-
-<p>【rPPG】【CVPR2023】【<a href="http://arxiv.org/abs/2303.07944">paper</a>】【<a href="https://github.com/CVRL/SiNC-rPPG">code</a>】</p>
-<h3 id="abstract"><a href="#abstract" class="headerlink" title="abstract"></a>abstract</h3><p>&emsp;&emsp;本文基于 PPG 信号的三个特征，提出了一种非对比学习的自监督方法用于 rPPG 测量，虽然作者强调了没有针对 rPPG 进行独特的网络设计，但是三种特征均为 PPG 信号强相关的，并且这项工作实际上可以看做“基于负样本和先验约束的对比学习”。需要指出：作者认为在同 batch 内的 PSD 之和应当分布均匀，这是显然不成立的，即使考虑 batch size 可以很大并且视频经过数据增强，在统计学意义上 PSD 之和仍应该服从正态分布。</p>
-<h3 id="overview"><a href="#overview" class="headerlink" title="overview"></a>overview</h3><p><img src="/SiNC/image-20231109105443684.png" alt="image-20231109105443684"></p>
-<span id="more"></span>
-<hr>
-<h3 id="contribution"><a href="#contribution" class="headerlink" title="contribution"></a>contribution</h3><ul>
-<li>“非对比学习”的无监督结构（事实上可以看做是对比学习的变体）</li>
-<li>三个针对“频率任务”进行优化的损失函数：sparsely，bandlimits，variance</li>
-</ul>
-<h3 id="formulation"><a href="#formulation" class="headerlink" title="formulation"></a>formulation</h3><p>&emsp;&emsp;输入 video $x_i\in\mathbb{R}^{T\times W\times H\times C}$；数据增强的操作集合 $\Phi$；来自 SOTA（physnet）的模型 $f$；波形 $y_i=f(x_i)$；波形频率 PSD $F=\mathrm{FFT}(y)$；$F_i$ 表示 $F$ 在频率为 $i$ 的分量；正常人的 PPG 信号频率在 $a=0.66\mathrm{Hz}\rightarrow b=3\mathrm{Hz}$ 之间变化。</p>
-<h3 id="framework"><a href="#framework" class="headerlink" title="framework"></a>framework</h3><p>&emsp;&emsp;本文的关键不在于网络而是损失函数的设计，在模型上选取了简单的 physnet。</p>
-<ul>
-<li>Sparsity Loss：此损失防止频率的带宽过分散</li>
-</ul>
-<script type="math/tex; mode=display">
-L_s=\frac{\sum\limits_{i=a}^{\arg max(F)-\Delta F}F_i+\sum\limits_{i=\arg max(F)+\Delta F}^{b}F_i}{\sum\limits_{i=a}^{b}F_i}</script><p>&emsp;&emsp;其中，$\arg max(F)$ 即为心率，而 $\Delta F$ 表示 $\pm0.1\mathrm{Hz}$ 范围内的频率。也就是说，这个损失函数的意义为：在 $\arg max(F)\pm0.1\mathrm{Hz}$ 之外的频率图面积和总频率图面积之比，优化方向为：使 PSD 更集中在 $0.1\mathrm{Hz}$ 之内。</p>
-<ul>
-<li>Bandwidth Loss：此损失防止带宽离开心率频率范围之外</li>
-</ul>
-<script type="math/tex; mode=display">
-L_b=\frac{\sum\limits_{i=-\infty}^{a}F_i+\sum\limits_{i=b}^{\infty}F_i}{\sum\limits_{i=-\infty}^{\infty}F_i}</script><p>&emsp;&emsp;这个损失函数的意义为：小于 $a$ 或大于 $b$ 的频率图面积和所有可能的频率面积之比。优化方向为：使 PSD 集中在 $[a,b]$ 之内（事实上就是 IPR 越小越好）</p>
-<ul>
-<li>Variance Loss：此损失防止模型 collapse</li>
-</ul>
-<p>&emsp;&emsp;在只有前面两个损失函数的情况下，仅仅能限制模型输出“正确”的信号而非“对应”的信号，<em>本文通过将同一个 batch 内输出的 PSD 方差增大期望模型学到正确信号</em>。</p>
-<script type="math/tex; mode=display">
-L_v=\frac1d\sum\limits_{i=1}^{d}(\mathrm{CDF}_i(Q)-\mathrm{CDF}_i(P))^2</script><p>&emsp;&emsp;其中 CDF 是累计分布函数，$\mathrm{CDF}_i$ 就表示 Q 分布在第 i 个频率的分量，这里 Q 和 P 都是 (1, d=140) 的 tensor。可以这样理解：Q 表示对一个 batch 内所有的 PSD 直接求和的结果，而 P 则是单纯的均匀分布。使 Q 靠近 P 即为：在同一个 batch 内，PSD 的峰值应当分散一些，从而让整个 batch 的 PSD 求和等于均匀分布。</p>
-<h3 id="experiment"><a href="#experiment" class="headerlink" title="experiment"></a>experiment</h3><p>&emsp;&emsp;intra- 中规中矩，cross- 效果比较差，但是本文列出的其他 SOTA 实验结果也差，也就是说实际上本文重新跑了其他 SOTA 的跨数据集。</p>
-<p><img src="/SiNC/image-20231109131002347.png" alt="image-20231109131002347"></p>
-<p><img src="/SiNC/image-20231109131243482.png" alt="image-20231109131243482" style="zoom:50%;"></p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
       </categories>
   </entry>
   <entry>
