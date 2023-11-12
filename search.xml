@@ -77,6 +77,103 @@ O(u_i, x) = ||D(u_i,x)-D(u_c,x+(u_c-u_i)\times D(u_i,x))||_1</script><p>&emsp;&e
       </categories>
   </entry>
   <entry>
+    <title>Arbitrary_Resolution_rPPG</title>
+    <url>/Arbitrary_Resolution_rPPG/</url>
+    <content><![CDATA[<h2><center> Learning Motion-Robust Remote Photoplethysmography
+through Arbitrary Resolution Videos </center></h2>
+
+<p>【心率监测】【AAAI2023】【<a href="http://arxiv.org/abs/2211.16922">paper</a>】【<a href>code</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文针对人脸在运动过程中产生的远近问题提出了两个即插即用的模块，将远近移动的问题转化为了多分辨率下的 rppg 信号估计问题，同时使用光流解决了人脸在转动的过程中可能导致的关键点缺失问题，在选择的 baseline（physnet）上取得了一定的进步。主要包括：1. 编码了分辨率信息从而对分辨率鲁棒的 PFE 模块，2. 使用光流恢复人脸运动从而对运动鲁棒的 TFA 模块。效果确实在对比的情况下有所进步，但是确实也缺乏一个 SOTA 的结果。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Arbitrary_Resolution_rPPG/image-20221206145520889.png" alt="image-20221206145520889" style="zoom:67%;"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>提出了可以帮助从可变分辨率视频中估计 rppg 信号的两个即插即用的块</li>
+<li>其中 PFE 模块能够编码不同帧的分辨率信息，并且使用多分辨率的分支交叉训练</li>
+<li>其中 TFA 模块能够从正负两个方向的光流恢复人脸运动，使输出包含正面人脸信息特征</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><h4 id="前向过程"><a href="#前向过程" class="headerlink" title="前向过程"></a>前向过程</h4><p><img src="/Arbitrary_Resolution_rPPG/image-20221206143650642.png" alt="image-20221206143650642" style="zoom: 67%;"></p>
+<p>&emsp;&emsp;对于输入的视频，将其记为 $X$，其中每个视频有 $T$ 帧，将单个帧记为 $x_t$，需要注意的是，由于网络允许不同分辨率的视频输入，因此 $x_t \in \mathbb R^{3\times h_t\times w_t}$，也就是每个帧的分辨率之间是不同的。</p>
+<p>&emsp;&emsp;对于 $X$，其需要通过两个不同的分支，分别是 PFE 和 TFA，而对于 PFE 分支，同样需要 sample 出两个不同的分辨率 $X_1,\ X_2$，经过整个网络之后再计算交叉损失。</p>
+<ul>
+<li>对于某个分辨率下的 PFE 分支，其输入为 $X\in \mathbb R^{3\times T\times h\times w}$（$X=X_1/X_2$），首先需要通过一个 conv 模块，将 $X$ 中的每一帧 $x_t$ 进行一个降采样得到 $x_{ar}\in \mathbb R^{C\times \frac h 2\times\frac w 2}$，在论文里选择的 $C=16$，接着将整个视频的 $x_{ar}$ 帧输入 PFE 模块，得到输出记为 $x_{st}\in\mathbb R^{C\times H\times W}$</li>
+<li>对于 TFA 分支，其输入和 PFE 分支完全一致，TFA 模块使用双向光流恢复图像转动并且提取正向光流与反向光流特征，接着将正反向对应位置的光流特征进行融合，最终得到 $x_{mo}\in\mathbb R^{C\times H\times W}$</li>
+<li>接着将两个分支得到的结果进行按位相加得到 $x_{st-mo}$，将其输入 backbone 并得到最终的 rppg 信号</li>
+</ul>
+<p>&emsp;&emsp;需要注意的是在正向的过程中，每一个 video 被确定为两个分辨率，分别进入两个同样的 PFE 和 TFA 模块，并且得到两个分辨率下的 rppg 信号估计计算损失从而进一步加强分辨率鲁棒性，其示意图如下</p>
+<p><img src="/Arbitrary_Resolution_rPPG/image-20221206220935265.png" alt="image-20221206220935265" style="zoom: 55%;"></p>
+<p>&emsp;&emsp;其中，两个不同分辨率的视频从同一个视频中采样得到，两个视频经过不同的 PFE 模块（其中的参数仅包含一个 MLP 层）以及共享参数的 TFA 模块（其中的参数主要包含 15 个 ResBlock 层），在上图中需要注意的是实际上经过 TFA 模块得到的 $X_{mo}$ 是两个视频共享的，只使用了一个数据得到 $X_{mo}$，可以理解为下面的大分辨率视频压根没进 TFA 模块。</p>
+<p>&emsp;&emsp;对于得到的两个 rppg 信号，记其为 $Y_1,\ Y_2$，则和 GT 做一致化的损失包括 $\cal L_{time},\ L_{fre}$，这两个 loss 都是只有 $Y_1$ 和 GT 做的。而为了保证 $Y_1,\ Y_2$ 的一致性，则采用 L1Loss 限制一致性 $\mathcal L_{crc}=||Y_1-Y_2||_1$，总损失描述为：</p>
+<script type="math/tex; mode=display">
+\mathcal L =\mathcal L_{time}+ \mathcal L_{fre}+\alpha\cdot\mathcal L_{crc}</script><p>&emsp;&emsp;其中，时间一致性损失由负皮尔森相关性度量，频率一致性用 $CE(PSD(Y),HR_{GT})$ 度量，$\alpha$ 用于平衡多方因素，论文中设置为 0.1。</p>
+<h4 id="PFE-模块"><a href="#PFE-模块" class="headerlink" title="PFE 模块"></a>PFE 模块</h4><p><img src="/Arbitrary_Resolution_rPPG/image-20221206152253971.png" alt="image-20221206152253971" style="zoom: 50%;"></p>
+<p>&emsp;&emsp;对于 PFE 模块，其同样具备两条道路（注意这里是逐帧的操作）：</p>
+<ul>
+<li>其一用于上采样的固定分辨率，同时聚合周边像素信息<ul>
+<li>首先将 $x_{ar}$ 进行上采样（直接插值）得到 $x_{cr}\in\mathbb R^{C\times H\times W}$，其中 $H,\ W$ 是固定值，与 $h,\ w$ 无关，而 $X_1,\ X_2$ 的帧之间的区别是 $h,\ w $ 不同</li>
+<li>然后聚合 $x_{cr}$  的信息，具体的做法为：将每个像素位置开始向右 / 下各 $n$ 个像素点总共 $n^2$ 的像素点进行 channel 的聚合，得到 $\hat x_{cr}\in\mathbb R^{n^2C\times H\times W}$（注意上图有纰漏，应当是 $n^2$），其数学表述如下：</li>
+</ul>
+</li>
+</ul>
+<script type="math/tex; mode=display">
+\hat x_{cr}=Concat(\{x_{cr}(i+n,j+n) \}_{n\in Neighbor})</script><ul>
+<li>其二用于编码原始帧 $x_{ar}$ 的分辨率信息，也就是记录 $\sigma=\frac h H$，然后 repeat 到和 $x_{cr}$ 一样的形状，同时记录 $H,\ W$ 的信息，最终得到 $x_{size}\in\mathbb R^{2\times H\times W}$，其数学表达式如下：</li>
+</ul>
+<script type="math/tex; mode=display">
+\begin{align}
+&x_{szie}(i,j)=[\sigma_H,\ \sigma_W]\\& where\ \ \  \sigma_H=\frac h H,\ \sigma_W=\frac w W
+\end{align}</script><ul>
+<li>接着将两个道路得到的数据进行拼接、拉平、MLP、reshape之后得到输出 $x_{st}\in\mathbb R^{C\times H\times W}$，其数学表达式如下，同时整个视频经过 PFE 模块之后的输出记为 $X_{st}\in\mathbb R^{T\times C\times H\times W}$</li>
+</ul>
+<script type="math/tex; mode=display">
+x_{st}=Reshape(MLP(Flatten(Concat(\hat x_{cr},\ x_{size}))))</script><h4 id="TFA-模块"><a href="#TFA-模块" class="headerlink" title="TFA 模块"></a>TFA 模块</h4><p><img src="/Arbitrary_Resolution_rPPG/image-20221206222451103.png" alt="image-20221206222451103" style="zoom:67%;"></p>
+<p>&emsp;&emsp;设计上 TFA 的设计主要为了解决这些在提取 ROI 区域时会遇到的问题：</p>
+<ul>
+<li>landmark 位置：由于头部的运动，人脸标记的位置可能会发生快速剧烈变化，这导致 ROI 的不准确</li>
+<li>插值：ROI 的形状可能不同，通常使用插值来保持一致性。然而，插值可能会破坏像素的颜色变化，消除rppg 信息</li>
+<li>landmark  消失：当头部运动遇到大角度旋转时，部分面部可能从画面中消失。这时 landmark  将随机标记一些区域</li>
+</ul>
+<p>&emsp;&emsp;结构上 TFA 模块较为复杂，由于其每一帧的输入都包含了前向 / 反向送入的两个输出，因此看上去比较混乱，可以将目光集中于某一个蓝色 / 红色块内：</p>
+<ul>
+<li>每个块 $i$ 输入包含两个部分：1. 前一帧的视频图像（用于计算光流），2. 前一帧提取出的运动特征（用于恢复运动）</li>
+<li>对于输入的视频帧 $x_{i-1}$ 和特征 $h_{i-1}$， 首先利用 $x_{i-1}$ 和 $x_i$ 计算出光流 $s_i$，使用的方法为已有的 SPyNet</li>
+</ul>
+<script type="math/tex; mode=display">
+s_i=Optical(x_i,x_{i-1})</script><ul>
+<li>将计算出的光流和之前提取出的运动特征 $h_{i-1}$ 进行扭曲，具体方法不含参数，代码入下：</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">flow_warp</span>(<span class="params">x, flow, interp_mode=<span class="string">&#x27;bilinear&#x27;</span>, padding_mode=<span class="string">&#x27;zeros&#x27;</span>, align_corners=<span class="literal">True</span></span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;Warp an image or feature map with optical flow.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        x (Tensor): Tensor with size (n, c, h, w).</span></span><br><span class="line"><span class="string">        flow (Tensor): Tensor with size (n, h, w, 2), normal value.</span></span><br><span class="line"><span class="string">        interp_mode (str): &#x27;nearest&#x27; or &#x27;bilinear&#x27;. Default: &#x27;bilinear&#x27;.</span></span><br><span class="line"><span class="string">        padding_mode (str): &#x27;zeros&#x27; or &#x27;border&#x27; or &#x27;reflection&#x27;.</span></span><br><span class="line"><span class="string">            Default: &#x27;zeros&#x27;.</span></span><br><span class="line"><span class="string">        align_corners (bool): Before pytorch 1.3, the default value is</span></span><br><span class="line"><span class="string">            align_corners=True. After pytorch 1.3, the default value is</span></span><br><span class="line"><span class="string">            align_corners=False. Here, we use the True as default.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Returns:</span></span><br><span class="line"><span class="string">        Tensor: Warped image or feature map.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">assert</span> x.size()[-<span class="number">2</span>:] == flow.size()[<span class="number">1</span>:<span class="number">3</span>]</span><br><span class="line">    _, _, h, w = x.size()</span><br><span class="line">    <span class="comment"># create mesh grid</span></span><br><span class="line">    grid_y, grid_x = torch.meshgrid(torch.arange(<span class="number">0</span>, h).type_as(x), torch.arange(<span class="number">0</span>, w).type_as(x))</span><br><span class="line">    grid = torch.stack((grid_x, grid_y), <span class="number">2</span>).<span class="built_in">float</span>()  <span class="comment"># W(x), H(y), 2</span></span><br><span class="line">    grid.requires_grad = <span class="literal">False</span></span><br><span class="line"></span><br><span class="line">    vgrid = grid + flow</span><br><span class="line">    <span class="comment"># scale grid to [-1,1]</span></span><br><span class="line">    vgrid_x = <span class="number">2.0</span> * vgrid[:, :, :, <span class="number">0</span>] / <span class="built_in">max</span>(w - <span class="number">1</span>, <span class="number">1</span>) - <span class="number">1.0</span></span><br><span class="line">    vgrid_y = <span class="number">2.0</span> * vgrid[:, :, :, <span class="number">1</span>] / <span class="built_in">max</span>(h - <span class="number">1</span>, <span class="number">1</span>) - <span class="number">1.0</span></span><br><span class="line">    vgrid_scaled = torch.stack((vgrid_x, vgrid_y), dim=<span class="number">3</span>)</span><br><span class="line">    output = F.grid_sample(x, vgrid_scaled, mode=interp_mode, padding_mode=padding_mode, align_corners=align_corners)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># TODO, what if align_corners=False</span></span><br><span class="line">    <span class="keyword">return</span> output</span><br></pre></td></tr></table></figure>
+<script type="math/tex; mode=display">
+\bar h_{i-1}=Warp(h_{i-1},s_i)</script><ul>
+<li>接下来将得到的 $\bar h_{i-1}$ 和 $x_i$ 进行 cat 并通过一系列 ResBlock（15个）之后得到该帧提取出的特征 $h_i$ 并馈送到下一帧，需要注意的是 ResBlock 其实只包含了两层不含 BN 的卷积，只是加入了残差连接</li>
+</ul>
+<script type="math/tex; mode=display">
+h_i = ResBlock(Concat(x_i,\  \bar h_{i-1}))</script><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ResidualBlockNoBN</span>(nn.Module):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;Residual block without BN.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    It has a style of:</span></span><br><span class="line"><span class="string">        ---Conv-ReLU-Conv-+-</span></span><br><span class="line"><span class="string">         |________________|</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        num_feat (int): Channel number of intermediate features.</span></span><br><span class="line"><span class="string">            Default: 64.</span></span><br><span class="line"><span class="string">        res_scale (float): Residual scale. Default: 1.</span></span><br><span class="line"><span class="string">        pytorch_init (bool): If set to True, use pytorch default init,</span></span><br><span class="line"><span class="string">            otherwise, use default_init_weights. Default: False.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, num_feat=<span class="number">64</span>, res_scale=<span class="number">1</span>, pytorch_init=<span class="literal">False</span></span>):</span><br><span class="line">        <span class="built_in">super</span>(ResidualBlockNoBN, self).__init__()</span><br><span class="line">        self.res_scale = res_scale</span><br><span class="line">        self.conv1 = nn.Conv2d(num_feat, num_feat, <span class="number">3</span>, <span class="number">1</span>, <span class="number">1</span>, bias=<span class="literal">True</span>)</span><br><span class="line">        self.conv2 = nn.Conv2d(num_feat, num_feat, <span class="number">3</span>, <span class="number">1</span>, <span class="number">1</span>, bias=<span class="literal">True</span>)</span><br><span class="line">        self.relu = nn.ReLU(inplace=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> pytorch_init:</span><br><span class="line">            default_init_weights([self.conv1, self.conv2], <span class="number">0.1</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        identity = x</span><br><span class="line">        out = self.conv2(self.relu(self.conv1(x)))</span><br><span class="line">        <span class="keyword">return</span> identity + out * self.res_scale</span><br></pre></td></tr></table></figure>
+<ul>
+<li>上述分析都是基于正向或者反向计算光流的结果，这些结果 $h_i$ 序列的 shape 都和 $x_i$ 一样大，其中在实现的过程中第一帧获取到的 $h_{0}$ 由全 0 矩阵初始化。这样得到的双流数据比 $X$ 大了一倍，因此接下来要按照时间维度降采样</li>
+<li>方式为将每一帧对应的正向反向特征进行拼接，然后输入到一个 1x1 Conv 降采样到 $\frac 1 2$ channel（T)</li>
+</ul>
+<script type="math/tex; mode=display">
+x_{mo}=F(Concat(h_i^b,\ h_i^f))</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;按照一贯的方式，应当测试数据集内有效性、跨数据集有效性、分辨率和运动鲁棒性以及消融实验，但是分辨率变化大的数据集几乎没有，因此有效性实验更多的是在自己构造的分辨率变化数据集上测试</p>
+<p>&emsp;&emsp;对于数据集内测试，本文选取了 UBFC、PURE、COHFACE 三个数据集，PURE 运动信息更多，COHFACE 数据质量更差，UBFC 数据集内误差较大</p>
+<p><img src="/Arbitrary_Resolution_rPPG/image-20221206225925297.png" alt="image-20221206225925297" style="zoom:50%;"></p>
+<p>&emsp;&emsp;可以看出在不同的数据集上都可以降点，这里注意到两点：1. 选择的 SOTA 都比较差，现在的 UBFC 指标大概在 0.4 左右，2. 明明 PURE 更适合 TFA 模块，但是在 PURE 上降点反而不如 UBFC 明显。</p>
+<p>&emsp;&emsp;针对这两点，原因为：1. 本文实现的方法在最好的 baseline 上也同样可以降点，但是效果对比度不如普通的 baseline 明显，2. 对于不同的数据集，由于其内在误差和难易程度，指标的下降的绝对值并不等同于提升的效果。</p>
+<p>&emsp;&emsp;跨数据集测试上，由于测试方法过多且不统一，并且该方法在跨数据集测试上表现一般，因此没有给出结果。</p>
+<p>&emsp;&emsp;消融实验如下，实验测试了将原视频逐帧调整分辨率的情况下在加入不同模块的结果。其中 128 to 64 表示：视频分辨率为 128 分辨率逐帧降低到 64 分辨率</p>
+<p><img src="/Arbitrary_Resolution_rPPG/image-20221206230404607.png" alt="image-20221206230404607" style="zoom:80%;"></p>
+<p>&emsp;&emsp;同时测试了在固定分辨率下的有效性，可以看出固定上的有效性显然不如可变分辨率的有说服力，但也有涨点，让人有点疑惑的是只加 TFA 的话模型会出问题，这里比较奇怪，因为分辨率应该不会影响到 TFA 的，而且固定分辨率下 PFE 所起的作用应当相对较小，可以尤其参考 128x128 的通用分辨率下的结果</p>
+<p><img src="/Arbitrary_Resolution_rPPG/image-20221206230648793.png" alt="image-20221206230648793" style="zoom: 67%;"></p>
+<p>&emsp;&emsp;接着还测试了方法的有效性、多余 TFA 和 PFE 模块对模型参数量和推理训练速度的影响、特征图的注意力范围等等，最后还测试了在 PFE 模块中的 $n$ 的灵敏度，基本上除了在参数量和推理速度上大方承认有待改进，其他的实验比较中规中矩，基本就是证明方法有效性的实验，指标因为是自己统计的，很难和其他比较</p>
+<p><img src="/Arbitrary_Resolution_rPPG/image-20221206231112039.png" alt="image-20221206231112039"></p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+        <category>hr</category>
+      </categories>
+  </entry>
+  <entry>
     <title>Anchor_based_colorization</title>
     <url>/Anchor_based_colorization/</url>
     <content><![CDATA[<h2><center> Disentangled Image Colorization via Global Anchors </center></h2>
@@ -173,55 +270,6 @@ O(u_i, x) = ||D(u_i,x)-D(u_c,x+(u_c-u_i)\times D(u_i,x))||_1</script><p>&emsp;&e
       </categories>
   </entry>
   <entry>
-    <title>原始transformer</title>
-    <url>/Attention%20is%20all%20you%20need/</url>
-    <content><![CDATA[<h2 id="attention-is-all-you-need【机器翻译】【NIPS】"><a href="#attention-is-all-you-need【机器翻译】【NIPS】" class="headerlink" title="attention is all you need【机器翻译】【NIPS】"></a><a href="https://papers.nips.cc/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf">attention is all you need</a>【机器翻译】【NIPS】</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;原始transformer，RNN（解决 序列建模/位置敏感）$\to$ LSTM（解决 参数依赖/难以训练）$\to$transformer（解决 并行运算）。此篇笔记简要介绍网络、详细分析过程</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Attention%20is%20all%20you%20need/image-20220504100751796.png" alt="image-20220504100751796"></p>
-<span id="more"></span>
-<hr>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/Attention%20is%20all%20you%20need/image-20220504100937194.png" alt="image-20220504100937194" style="zoom: 67%;"></p>
-<p>&emsp;&emsp;上图是网络概览图，简单概括：transformer由编码器和解码器两部分组成，对于编码器和解码器，在输入之前都有embedding部分和位置编码部分。</p>
-<h3 id="理论"><a href="#理论" class="headerlink" title="理论"></a>理论</h3><h4 id="embedding-and-positionEncoding"><a href="#embedding-and-positionEncoding" class="headerlink" title="embedding and positionEncoding"></a>embedding and positionEncoding</h4><p>&emsp;&emsp;embedding部分主要目的是将输入的词进行向量化表示。对输入的句子$X$，应当有$X=\{x_i\}_n \to (l,n)$，其中 $l$ 为句子个数，即batchsize，$n$为句子中单词的个数的最大值，$x_i \to (1,x_d)$，具体维度并不确定。对每一个单词进行embedding操作【可以使用的方法包括glove, word2Vec等】，将会得到$X’=\{w_i\}_n\to (n,d)$，其中$w_i\to (1,d)$，$d$代表转化之后每个单词的维度。在标准transformer中为512。</p>
-<p>&emsp;&emsp;此时得到的向量$X’$中不包含位置信息，为了包含位置信息，加入位置编码矩阵$P \to (n,d)$。具体来说，对于位置为 $pos$ 的词向量，对该向量第 $i$ 个位置（$2k$ 或 $2k+1$）的值，有：</p>
-<script type="math/tex; mode=display">
-P(pos,2k)=\sin(\frac{pos}{10000^{2k/d}}),k\in Z</script><script type="math/tex; mode=display">
-P(pos,2k+1) = \cos(\frac{pos}{10000^{2k/d}}),k\in Z</script><p>&emsp;&emsp;在得到位置编码之后，需要进行相加操作得到最终的编码结果，即 $A = P+X’\to(n,d)$。</p>
-<p>&emsp;&emsp;虽然位置编码到这里就结束了，但是在实际操作中有些具体细节，包括 ①decoder网络的输入不允许网络看到当前位置之后的数据，因此需要有一个mask上三角矩阵，②对于长度不足 $n$ 的句子的padding。</p>
-<h4 id="encoder"><a href="#encoder" class="headerlink" title="encoder"></a>encoder</h4><p>&emsp;&emsp;encoder层如网络结构图所示，其本身是一个循环结构，因此要求输入输出维度一致，标准transformer循环层数为6。具体到每一个encoder层，其包含一个MHA（多头自注意力层）和一个FFN（前馈网络）。更具体地，每一个encoder层对embedding得到的矩阵 $A$，有 $A^{(i)} \to MHA(A) \to Z\to FFN(Z)\to A^{(i+1)}$。</p>
-<p>&emsp;&emsp;对于MHA，其全称为MultiHeadAttention，其由多个Self-Attention并行组成，对于每一个Self-Attention，有如下的计算过程：</p>
-<hr>
-<p>&emsp;&emsp;记 $A =\{a_i\}_n\to (n,d)$，$a_i\to (1,d)$，对每一个 $a_i$ 计算 $Q_i,K_i,V_i\to(1,k)$，其中 $k$ 可以表示对每个单词提取的特征维度，在标准transformer上是64，维度的进一步变小是为了方便计算。$Q,K,V$ 的计算公式为：</p>
-<script type="math/tex; mode=display">
-Q_i=a_i\times W_Q</script><script type="math/tex; mode=display">
-K_i= a_i\times W_k</script><script type="math/tex; mode=display">
-V_i=a_i\times W_V</script><p>&emsp;&emsp;其中，$W_Q,W_K,W_V \to (d,k)$ 是随机初始化得到的，属于网络中的参数，随梯度进行更新。将上述计算过程写成矩阵的格式，即为 $Q=A\times W_Q\to (n,k)$，$K,V$ 同 $Q$。此时对于如 $Q=\{Q_i\},Q_i\to (1,k)$ 表示第 $i$ 个单词的 $k$ 个特征。$Q,K,V$ 分别表示 Query, Key, Value。</p>
-<p>&emsp;&emsp;形象化地理解 $Q,K,V$ 可以以浏览器查询为例子， 其中 $Q$ 表示需要查询的字段，$K$ 表示知识库包含的字段，$V$ 表示知识库中该字段的返回结果。使用 $Q_i\times K_i$ 即可得到对于某个查询在某字段的“得分”。将得分变化至0-1之间，再与 $V_i$ 相乘即可得到在某个字段的解，所有的 $V_i$ 求和即可得到最终 $Q_i$ 的查询结果。</p>
-<p>&emsp;&emsp;按照以上思路，对于 $a_i$ 可以得到 $Z_i= \sum\limits_{j\in[1,k]} \rm softmax (\frac{ Q_i\times K_i^T}{\sqrt d_k})\times V_i \to(1,k)$，其中 $d_k$ 表示 $Q,K,V$ 的第二维度，即 $k$。重写成矩阵的形式，即可得到：</p>
-<script type="math/tex; mode=display">
-Z=\rm softmax (\frac{Q\times K^T}{\sqrt {d_k}})\times V \to(n,k)</script><p>&emsp;&emsp;这个式子虽然很好地表示了 $Z$ 的求法，但是在实际计算的过程之中，对于得到 $Q\times K^T$ 需要进行mask，即和mask矩阵按位相乘，目的是使被padding部分的注意力清零。</p>
-<hr>
-<p>&emsp;&emsp;上述过程讲述了如何通过输入 $A\to(n,d)$ 求得对应的Self-Attention输出 $Z\to(n,k)$，但是在实际操作过程中往往使用MHA，即不共享参数同时并行计算 $p$ 个 $Z$，标准transformer计算8个。</p>
-<p>&emsp;&emsp;对得到的 $Z_0\to Z_7$，将其横向拼接得到 $Z_{mix}\to(n,p\times k)$，然后对 $Z_{mix}$ 进行线性变换，经过一个Linear层将 $Z_{mix}$ 映射到 $Z’\to(n,d)$，此时的 $Z’$ 将会经过 $A\&amp;N$ 后送至FFN 。</p>
-<h4 id="Add-and-Norm"><a href="#Add-and-Norm" class="headerlink" title="Add and Norm"></a>Add and Norm</h4><p>&emsp;&emsp;对于 $A\&amp;N$，大致上 $Add$ 对应残差连接，$Norm$ 对应 LayerNorm。具体来说，对于MHA，$A\&amp;N$ 输出的结果是 $\rm LayerNorm(A + MHA(A))$。对于FFN，输出为 $\rm LayerNorm(Z’+FFN(Z’))$ 。</p>
-<h4 id="FFN"><a href="#FFN" class="headerlink" title="FFN"></a>FFN</h4><p>&emsp;&emsp;FFN网络结构简单，由两个线性层组成，在第一个线性层之后经过RELU，再经过第二个线性层，具体来说两个线性层维度为 $d\to 2048\to d$。</p>
-<p>&emsp;&emsp;FFN包括上述的 A&amp;N 部分看起来很容易，但是原论文中进行了消融实验，这两个部分非常重要，尤其对于FFN部分。FFN部分是positionWise的，即这个网络实际上是对每一个维度进行的，类似于kernel=1的Conv2d。</p>
-<h4 id="decoder"><a href="#decoder" class="headerlink" title="decoder"></a>decoder</h4><p>&emsp;&emsp;decoder部分整体和encoder部分没有太大的差别，区别在于decoder具备两个MHA，两个MHA在实现上和encoder的均略有不同。</p>
-<p>&emsp;&emsp;对于第一个Masked MHA，首先是起始与终止符，对于输入的序列，起始符号为\<begin\>，终止符号是\<end\>，分别代表句首和句尾。其次是mask，在计算输入的时候就需要进行mask，对每个输入句子，输入的第 $i$ 个句子仅能看到前 $i$ 个词语。除此之外，在计算出 $Q\times K^T$ 之后也需要进行mask。这两个mask操作都是直接按位乘mask矩阵。mask矩阵为上三角矩阵，举例来说，对 4 个单词。</end\></begin\></p>
-<script type="math/tex; mode=display">
-mask = \begin{pmatrix}
-1~1~1~1\\
-0~1~1~1\\
-0~0~1~1\\
-0~0~0~1
-\end{pmatrix}</script><p>&emsp;&emsp;对于第二个MHA，其 $Q,K,V$ 不单独计算，其中 $K,V$ 直接使用encoder输出的结果，$Q$ 使用第一个masked MHA输出的 $A$ 单独进行 $Q$ 的计算。之后的 $A\&amp;N$ 部分也使用第一个masked MHA的输出作为输入。</p>
-<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;标准transformer的损失采用交叉熵损失，但是在实际的操作过程中需要忽略padding的输出和ground truth。除此之外，学习率 $l$ 优化器使用Adam优化器，随着训练轮数 $s$ 先变大后变小。</p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>nlp</category>
-      </categories>
-  </entry>
-  <entry>
     <title>AutoHR</title>
     <url>/AutoHR/</url>
     <content><![CDATA[<h2><center> AutoHR: A Strong End-to-end Baseline for Remote Heart Rate Measurement with Neural Searching </center></h2>
@@ -268,100 +316,52 @@ O(p_0^t)=\mathop\sum\limits_{p_n^{t-1}\in\mathcal R_{t-1}}w(p_n^{t-1})·(I(p_0^{
       </categories>
   </entry>
   <entry>
-    <title>Arbitrary_Resolution_rPPG</title>
-    <url>/Arbitrary_Resolution_rPPG/</url>
-    <content><![CDATA[<h2><center> Learning Motion-Robust Remote Photoplethysmography
-through Arbitrary Resolution Videos </center></h2>
-
-<p>【心率监测】【AAAI2023】【<a href="http://arxiv.org/abs/2211.16922">paper</a>】【<a href>code</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文针对人脸在运动过程中产生的远近问题提出了两个即插即用的模块，将远近移动的问题转化为了多分辨率下的 rppg 信号估计问题，同时使用光流解决了人脸在转动的过程中可能导致的关键点缺失问题，在选择的 baseline（physnet）上取得了一定的进步。主要包括：1. 编码了分辨率信息从而对分辨率鲁棒的 PFE 模块，2. 使用光流恢复人脸运动从而对运动鲁棒的 TFA 模块。效果确实在对比的情况下有所进步，但是确实也缺乏一个 SOTA 的结果。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Arbitrary_Resolution_rPPG/image-20221206145520889.png" alt="image-20221206145520889" style="zoom:67%;"></p>
+    <title>原始transformer</title>
+    <url>/Attention%20is%20all%20you%20need/</url>
+    <content><![CDATA[<h2 id="attention-is-all-you-need【机器翻译】【NIPS】"><a href="#attention-is-all-you-need【机器翻译】【NIPS】" class="headerlink" title="attention is all you need【机器翻译】【NIPS】"></a><a href="https://papers.nips.cc/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf">attention is all you need</a>【机器翻译】【NIPS】</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;原始transformer，RNN（解决 序列建模/位置敏感）$\to$ LSTM（解决 参数依赖/难以训练）$\to$transformer（解决 并行运算）。此篇笔记简要介绍网络、详细分析过程</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Attention%20is%20all%20you%20need/image-20220504100751796.png" alt="image-20220504100751796"></p>
 <span id="more"></span>
 <hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>提出了可以帮助从可变分辨率视频中估计 rppg 信号的两个即插即用的块</li>
-<li>其中 PFE 模块能够编码不同帧的分辨率信息，并且使用多分辨率的分支交叉训练</li>
-<li>其中 TFA 模块能够从正负两个方向的光流恢复人脸运动，使输出包含正面人脸信息特征</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><h4 id="前向过程"><a href="#前向过程" class="headerlink" title="前向过程"></a>前向过程</h4><p><img src="/Arbitrary_Resolution_rPPG/image-20221206143650642.png" alt="image-20221206143650642" style="zoom: 67%;"></p>
-<p>&emsp;&emsp;对于输入的视频，将其记为 $X$，其中每个视频有 $T$ 帧，将单个帧记为 $x_t$，需要注意的是，由于网络允许不同分辨率的视频输入，因此 $x_t \in \mathbb R^{3\times h_t\times w_t}$，也就是每个帧的分辨率之间是不同的。</p>
-<p>&emsp;&emsp;对于 $X$，其需要通过两个不同的分支，分别是 PFE 和 TFA，而对于 PFE 分支，同样需要 sample 出两个不同的分辨率 $X_1,\ X_2$，经过整个网络之后再计算交叉损失。</p>
-<ul>
-<li>对于某个分辨率下的 PFE 分支，其输入为 $X\in \mathbb R^{3\times T\times h\times w}$（$X=X_1/X_2$），首先需要通过一个 conv 模块，将 $X$ 中的每一帧 $x_t$ 进行一个降采样得到 $x_{ar}\in \mathbb R^{C\times \frac h 2\times\frac w 2}$，在论文里选择的 $C=16$，接着将整个视频的 $x_{ar}$ 帧输入 PFE 模块，得到输出记为 $x_{st}\in\mathbb R^{C\times H\times W}$</li>
-<li>对于 TFA 分支，其输入和 PFE 分支完全一致，TFA 模块使用双向光流恢复图像转动并且提取正向光流与反向光流特征，接着将正反向对应位置的光流特征进行融合，最终得到 $x_{mo}\in\mathbb R^{C\times H\times W}$</li>
-<li>接着将两个分支得到的结果进行按位相加得到 $x_{st-mo}$，将其输入 backbone 并得到最终的 rppg 信号</li>
-</ul>
-<p>&emsp;&emsp;需要注意的是在正向的过程中，每一个 video 被确定为两个分辨率，分别进入两个同样的 PFE 和 TFA 模块，并且得到两个分辨率下的 rppg 信号估计计算损失从而进一步加强分辨率鲁棒性，其示意图如下</p>
-<p><img src="/Arbitrary_Resolution_rPPG/image-20221206220935265.png" alt="image-20221206220935265" style="zoom: 55%;"></p>
-<p>&emsp;&emsp;其中，两个不同分辨率的视频从同一个视频中采样得到，两个视频经过不同的 PFE 模块（其中的参数仅包含一个 MLP 层）以及共享参数的 TFA 模块（其中的参数主要包含 15 个 ResBlock 层），在上图中需要注意的是实际上经过 TFA 模块得到的 $X_{mo}$ 是两个视频共享的，只使用了一个数据得到 $X_{mo}$，可以理解为下面的大分辨率视频压根没进 TFA 模块。</p>
-<p>&emsp;&emsp;对于得到的两个 rppg 信号，记其为 $Y_1,\ Y_2$，则和 GT 做一致化的损失包括 $\cal L_{time},\ L_{fre}$，这两个 loss 都是只有 $Y_1$ 和 GT 做的。而为了保证 $Y_1,\ Y_2$ 的一致性，则采用 L1Loss 限制一致性 $\mathcal L_{crc}=||Y_1-Y_2||_1$，总损失描述为：</p>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/Attention%20is%20all%20you%20need/image-20220504100937194.png" alt="image-20220504100937194" style="zoom: 67%;"></p>
+<p>&emsp;&emsp;上图是网络概览图，简单概括：transformer由编码器和解码器两部分组成，对于编码器和解码器，在输入之前都有embedding部分和位置编码部分。</p>
+<h3 id="理论"><a href="#理论" class="headerlink" title="理论"></a>理论</h3><h4 id="embedding-and-positionEncoding"><a href="#embedding-and-positionEncoding" class="headerlink" title="embedding and positionEncoding"></a>embedding and positionEncoding</h4><p>&emsp;&emsp;embedding部分主要目的是将输入的词进行向量化表示。对输入的句子$X$，应当有$X=\{x_i\}_n \to (l,n)$，其中 $l$ 为句子个数，即batchsize，$n$为句子中单词的个数的最大值，$x_i \to (1,x_d)$，具体维度并不确定。对每一个单词进行embedding操作【可以使用的方法包括glove, word2Vec等】，将会得到$X’=\{w_i\}_n\to (n,d)$，其中$w_i\to (1,d)$，$d$代表转化之后每个单词的维度。在标准transformer中为512。</p>
+<p>&emsp;&emsp;此时得到的向量$X’$中不包含位置信息，为了包含位置信息，加入位置编码矩阵$P \to (n,d)$。具体来说，对于位置为 $pos$ 的词向量，对该向量第 $i$ 个位置（$2k$ 或 $2k+1$）的值，有：</p>
 <script type="math/tex; mode=display">
-\mathcal L =\mathcal L_{time}+ \mathcal L_{fre}+\alpha\cdot\mathcal L_{crc}</script><p>&emsp;&emsp;其中，时间一致性损失由负皮尔森相关性度量，频率一致性用 $CE(PSD(Y),HR_{GT})$ 度量，$\alpha$ 用于平衡多方因素，论文中设置为 0.1。</p>
-<h4 id="PFE-模块"><a href="#PFE-模块" class="headerlink" title="PFE 模块"></a>PFE 模块</h4><p><img src="/Arbitrary_Resolution_rPPG/image-20221206152253971.png" alt="image-20221206152253971" style="zoom: 50%;"></p>
-<p>&emsp;&emsp;对于 PFE 模块，其同样具备两条道路（注意这里是逐帧的操作）：</p>
-<ul>
-<li>其一用于上采样的固定分辨率，同时聚合周边像素信息<ul>
-<li>首先将 $x_{ar}$ 进行上采样（直接插值）得到 $x_{cr}\in\mathbb R^{C\times H\times W}$，其中 $H,\ W$ 是固定值，与 $h,\ w$ 无关，而 $X_1,\ X_2$ 的帧之间的区别是 $h,\ w $ 不同</li>
-<li>然后聚合 $x_{cr}$  的信息，具体的做法为：将每个像素位置开始向右 / 下各 $n$ 个像素点总共 $n^2$ 的像素点进行 channel 的聚合，得到 $\hat x_{cr}\in\mathbb R^{n^2C\times H\times W}$（注意上图有纰漏，应当是 $n^2$），其数学表述如下：</li>
-</ul>
-</li>
-</ul>
+P(pos,2k)=\sin(\frac{pos}{10000^{2k/d}}),k\in Z</script><script type="math/tex; mode=display">
+P(pos,2k+1) = \cos(\frac{pos}{10000^{2k/d}}),k\in Z</script><p>&emsp;&emsp;在得到位置编码之后，需要进行相加操作得到最终的编码结果，即 $A = P+X’\to(n,d)$。</p>
+<p>&emsp;&emsp;虽然位置编码到这里就结束了，但是在实际操作中有些具体细节，包括 ①decoder网络的输入不允许网络看到当前位置之后的数据，因此需要有一个mask上三角矩阵，②对于长度不足 $n$ 的句子的padding。</p>
+<h4 id="encoder"><a href="#encoder" class="headerlink" title="encoder"></a>encoder</h4><p>&emsp;&emsp;encoder层如网络结构图所示，其本身是一个循环结构，因此要求输入输出维度一致，标准transformer循环层数为6。具体到每一个encoder层，其包含一个MHA（多头自注意力层）和一个FFN（前馈网络）。更具体地，每一个encoder层对embedding得到的矩阵 $A$，有 $A^{(i)} \to MHA(A) \to Z\to FFN(Z)\to A^{(i+1)}$。</p>
+<p>&emsp;&emsp;对于MHA，其全称为MultiHeadAttention，其由多个Self-Attention并行组成，对于每一个Self-Attention，有如下的计算过程：</p>
+<hr>
+<p>&emsp;&emsp;记 $A =\{a_i\}_n\to (n,d)$，$a_i\to (1,d)$，对每一个 $a_i$ 计算 $Q_i,K_i,V_i\to(1,k)$，其中 $k$ 可以表示对每个单词提取的特征维度，在标准transformer上是64，维度的进一步变小是为了方便计算。$Q,K,V$ 的计算公式为：</p>
 <script type="math/tex; mode=display">
-\hat x_{cr}=Concat(\{x_{cr}(i+n,j+n) \}_{n\in Neighbor})</script><ul>
-<li>其二用于编码原始帧 $x_{ar}$ 的分辨率信息，也就是记录 $\sigma=\frac h H$，然后 repeat 到和 $x_{cr}$ 一样的形状，同时记录 $H,\ W$ 的信息，最终得到 $x_{size}\in\mathbb R^{2\times H\times W}$，其数学表达式如下：</li>
-</ul>
+Q_i=a_i\times W_Q</script><script type="math/tex; mode=display">
+K_i= a_i\times W_k</script><script type="math/tex; mode=display">
+V_i=a_i\times W_V</script><p>&emsp;&emsp;其中，$W_Q,W_K,W_V \to (d,k)$ 是随机初始化得到的，属于网络中的参数，随梯度进行更新。将上述计算过程写成矩阵的格式，即为 $Q=A\times W_Q\to (n,k)$，$K,V$ 同 $Q$。此时对于如 $Q=\{Q_i\},Q_i\to (1,k)$ 表示第 $i$ 个单词的 $k$ 个特征。$Q,K,V$ 分别表示 Query, Key, Value。</p>
+<p>&emsp;&emsp;形象化地理解 $Q,K,V$ 可以以浏览器查询为例子， 其中 $Q$ 表示需要查询的字段，$K$ 表示知识库包含的字段，$V$ 表示知识库中该字段的返回结果。使用 $Q_i\times K_i$ 即可得到对于某个查询在某字段的“得分”。将得分变化至0-1之间，再与 $V_i$ 相乘即可得到在某个字段的解，所有的 $V_i$ 求和即可得到最终 $Q_i$ 的查询结果。</p>
+<p>&emsp;&emsp;按照以上思路，对于 $a_i$ 可以得到 $Z_i= \sum\limits_{j\in[1,k]} \rm softmax (\frac{ Q_i\times K_i^T}{\sqrt d_k})\times V_i \to(1,k)$，其中 $d_k$ 表示 $Q,K,V$ 的第二维度，即 $k$。重写成矩阵的形式，即可得到：</p>
 <script type="math/tex; mode=display">
-\begin{align}
-&x_{szie}(i,j)=[\sigma_H,\ \sigma_W]\\& where\ \ \  \sigma_H=\frac h H,\ \sigma_W=\frac w W
-\end{align}</script><ul>
-<li>接着将两个道路得到的数据进行拼接、拉平、MLP、reshape之后得到输出 $x_{st}\in\mathbb R^{C\times H\times W}$，其数学表达式如下，同时整个视频经过 PFE 模块之后的输出记为 $X_{st}\in\mathbb R^{T\times C\times H\times W}$</li>
-</ul>
+Z=\rm softmax (\frac{Q\times K^T}{\sqrt {d_k}})\times V \to(n,k)</script><p>&emsp;&emsp;这个式子虽然很好地表示了 $Z$ 的求法，但是在实际计算的过程之中，对于得到 $Q\times K^T$ 需要进行mask，即和mask矩阵按位相乘，目的是使被padding部分的注意力清零。</p>
+<hr>
+<p>&emsp;&emsp;上述过程讲述了如何通过输入 $A\to(n,d)$ 求得对应的Self-Attention输出 $Z\to(n,k)$，但是在实际操作过程中往往使用MHA，即不共享参数同时并行计算 $p$ 个 $Z$，标准transformer计算8个。</p>
+<p>&emsp;&emsp;对得到的 $Z_0\to Z_7$，将其横向拼接得到 $Z_{mix}\to(n,p\times k)$，然后对 $Z_{mix}$ 进行线性变换，经过一个Linear层将 $Z_{mix}$ 映射到 $Z’\to(n,d)$，此时的 $Z’$ 将会经过 $A\&amp;N$ 后送至FFN 。</p>
+<h4 id="Add-and-Norm"><a href="#Add-and-Norm" class="headerlink" title="Add and Norm"></a>Add and Norm</h4><p>&emsp;&emsp;对于 $A\&amp;N$，大致上 $Add$ 对应残差连接，$Norm$ 对应 LayerNorm。具体来说，对于MHA，$A\&amp;N$ 输出的结果是 $\rm LayerNorm(A + MHA(A))$。对于FFN，输出为 $\rm LayerNorm(Z’+FFN(Z’))$ 。</p>
+<h4 id="FFN"><a href="#FFN" class="headerlink" title="FFN"></a>FFN</h4><p>&emsp;&emsp;FFN网络结构简单，由两个线性层组成，在第一个线性层之后经过RELU，再经过第二个线性层，具体来说两个线性层维度为 $d\to 2048\to d$。</p>
+<p>&emsp;&emsp;FFN包括上述的 A&amp;N 部分看起来很容易，但是原论文中进行了消融实验，这两个部分非常重要，尤其对于FFN部分。FFN部分是positionWise的，即这个网络实际上是对每一个维度进行的，类似于kernel=1的Conv2d。</p>
+<h4 id="decoder"><a href="#decoder" class="headerlink" title="decoder"></a>decoder</h4><p>&emsp;&emsp;decoder部分整体和encoder部分没有太大的差别，区别在于decoder具备两个MHA，两个MHA在实现上和encoder的均略有不同。</p>
+<p>&emsp;&emsp;对于第一个Masked MHA，首先是起始与终止符，对于输入的序列，起始符号为\<begin\>，终止符号是\<end\>，分别代表句首和句尾。其次是mask，在计算输入的时候就需要进行mask，对每个输入句子，输入的第 $i$ 个句子仅能看到前 $i$ 个词语。除此之外，在计算出 $Q\times K^T$ 之后也需要进行mask。这两个mask操作都是直接按位乘mask矩阵。mask矩阵为上三角矩阵，举例来说，对 4 个单词。</end\></begin\></p>
 <script type="math/tex; mode=display">
-x_{st}=Reshape(MLP(Flatten(Concat(\hat x_{cr},\ x_{size}))))</script><h4 id="TFA-模块"><a href="#TFA-模块" class="headerlink" title="TFA 模块"></a>TFA 模块</h4><p><img src="/Arbitrary_Resolution_rPPG/image-20221206222451103.png" alt="image-20221206222451103" style="zoom:67%;"></p>
-<p>&emsp;&emsp;设计上 TFA 的设计主要为了解决这些在提取 ROI 区域时会遇到的问题：</p>
-<ul>
-<li>landmark 位置：由于头部的运动，人脸标记的位置可能会发生快速剧烈变化，这导致 ROI 的不准确</li>
-<li>插值：ROI 的形状可能不同，通常使用插值来保持一致性。然而，插值可能会破坏像素的颜色变化，消除rppg 信息</li>
-<li>landmark  消失：当头部运动遇到大角度旋转时，部分面部可能从画面中消失。这时 landmark  将随机标记一些区域</li>
-</ul>
-<p>&emsp;&emsp;结构上 TFA 模块较为复杂，由于其每一帧的输入都包含了前向 / 反向送入的两个输出，因此看上去比较混乱，可以将目光集中于某一个蓝色 / 红色块内：</p>
-<ul>
-<li>每个块 $i$ 输入包含两个部分：1. 前一帧的视频图像（用于计算光流），2. 前一帧提取出的运动特征（用于恢复运动）</li>
-<li>对于输入的视频帧 $x_{i-1}$ 和特征 $h_{i-1}$， 首先利用 $x_{i-1}$ 和 $x_i$ 计算出光流 $s_i$，使用的方法为已有的 SPyNet</li>
-</ul>
-<script type="math/tex; mode=display">
-s_i=Optical(x_i,x_{i-1})</script><ul>
-<li>将计算出的光流和之前提取出的运动特征 $h_{i-1}$ 进行扭曲，具体方法不含参数，代码入下：</li>
-</ul>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">flow_warp</span>(<span class="params">x, flow, interp_mode=<span class="string">&#x27;bilinear&#x27;</span>, padding_mode=<span class="string">&#x27;zeros&#x27;</span>, align_corners=<span class="literal">True</span></span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;Warp an image or feature map with optical flow.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        x (Tensor): Tensor with size (n, c, h, w).</span></span><br><span class="line"><span class="string">        flow (Tensor): Tensor with size (n, h, w, 2), normal value.</span></span><br><span class="line"><span class="string">        interp_mode (str): &#x27;nearest&#x27; or &#x27;bilinear&#x27;. Default: &#x27;bilinear&#x27;.</span></span><br><span class="line"><span class="string">        padding_mode (str): &#x27;zeros&#x27; or &#x27;border&#x27; or &#x27;reflection&#x27;.</span></span><br><span class="line"><span class="string">            Default: &#x27;zeros&#x27;.</span></span><br><span class="line"><span class="string">        align_corners (bool): Before pytorch 1.3, the default value is</span></span><br><span class="line"><span class="string">            align_corners=True. After pytorch 1.3, the default value is</span></span><br><span class="line"><span class="string">            align_corners=False. Here, we use the True as default.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Returns:</span></span><br><span class="line"><span class="string">        Tensor: Warped image or feature map.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">assert</span> x.size()[-<span class="number">2</span>:] == flow.size()[<span class="number">1</span>:<span class="number">3</span>]</span><br><span class="line">    _, _, h, w = x.size()</span><br><span class="line">    <span class="comment"># create mesh grid</span></span><br><span class="line">    grid_y, grid_x = torch.meshgrid(torch.arange(<span class="number">0</span>, h).type_as(x), torch.arange(<span class="number">0</span>, w).type_as(x))</span><br><span class="line">    grid = torch.stack((grid_x, grid_y), <span class="number">2</span>).<span class="built_in">float</span>()  <span class="comment"># W(x), H(y), 2</span></span><br><span class="line">    grid.requires_grad = <span class="literal">False</span></span><br><span class="line"></span><br><span class="line">    vgrid = grid + flow</span><br><span class="line">    <span class="comment"># scale grid to [-1,1]</span></span><br><span class="line">    vgrid_x = <span class="number">2.0</span> * vgrid[:, :, :, <span class="number">0</span>] / <span class="built_in">max</span>(w - <span class="number">1</span>, <span class="number">1</span>) - <span class="number">1.0</span></span><br><span class="line">    vgrid_y = <span class="number">2.0</span> * vgrid[:, :, :, <span class="number">1</span>] / <span class="built_in">max</span>(h - <span class="number">1</span>, <span class="number">1</span>) - <span class="number">1.0</span></span><br><span class="line">    vgrid_scaled = torch.stack((vgrid_x, vgrid_y), dim=<span class="number">3</span>)</span><br><span class="line">    output = F.grid_sample(x, vgrid_scaled, mode=interp_mode, padding_mode=padding_mode, align_corners=align_corners)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># TODO, what if align_corners=False</span></span><br><span class="line">    <span class="keyword">return</span> output</span><br></pre></td></tr></table></figure>
-<script type="math/tex; mode=display">
-\bar h_{i-1}=Warp(h_{i-1},s_i)</script><ul>
-<li>接下来将得到的 $\bar h_{i-1}$ 和 $x_i$ 进行 cat 并通过一系列 ResBlock（15个）之后得到该帧提取出的特征 $h_i$ 并馈送到下一帧，需要注意的是 ResBlock 其实只包含了两层不含 BN 的卷积，只是加入了残差连接</li>
-</ul>
-<script type="math/tex; mode=display">
-h_i = ResBlock(Concat(x_i,\  \bar h_{i-1}))</script><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ResidualBlockNoBN</span>(nn.Module):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;Residual block without BN.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    It has a style of:</span></span><br><span class="line"><span class="string">        ---Conv-ReLU-Conv-+-</span></span><br><span class="line"><span class="string">         |________________|</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        num_feat (int): Channel number of intermediate features.</span></span><br><span class="line"><span class="string">            Default: 64.</span></span><br><span class="line"><span class="string">        res_scale (float): Residual scale. Default: 1.</span></span><br><span class="line"><span class="string">        pytorch_init (bool): If set to True, use pytorch default init,</span></span><br><span class="line"><span class="string">            otherwise, use default_init_weights. Default: False.</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, num_feat=<span class="number">64</span>, res_scale=<span class="number">1</span>, pytorch_init=<span class="literal">False</span></span>):</span><br><span class="line">        <span class="built_in">super</span>(ResidualBlockNoBN, self).__init__()</span><br><span class="line">        self.res_scale = res_scale</span><br><span class="line">        self.conv1 = nn.Conv2d(num_feat, num_feat, <span class="number">3</span>, <span class="number">1</span>, <span class="number">1</span>, bias=<span class="literal">True</span>)</span><br><span class="line">        self.conv2 = nn.Conv2d(num_feat, num_feat, <span class="number">3</span>, <span class="number">1</span>, <span class="number">1</span>, bias=<span class="literal">True</span>)</span><br><span class="line">        self.relu = nn.ReLU(inplace=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> pytorch_init:</span><br><span class="line">            default_init_weights([self.conv1, self.conv2], <span class="number">0.1</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        identity = x</span><br><span class="line">        out = self.conv2(self.relu(self.conv1(x)))</span><br><span class="line">        <span class="keyword">return</span> identity + out * self.res_scale</span><br></pre></td></tr></table></figure>
-<ul>
-<li>上述分析都是基于正向或者反向计算光流的结果，这些结果 $h_i$ 序列的 shape 都和 $x_i$ 一样大，其中在实现的过程中第一帧获取到的 $h_{0}$ 由全 0 矩阵初始化。这样得到的双流数据比 $X$ 大了一倍，因此接下来要按照时间维度降采样</li>
-<li>方式为将每一帧对应的正向反向特征进行拼接，然后输入到一个 1x1 Conv 降采样到 $\frac 1 2$ channel（T)</li>
-</ul>
-<script type="math/tex; mode=display">
-x_{mo}=F(Concat(h_i^b,\ h_i^f))</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;按照一贯的方式，应当测试数据集内有效性、跨数据集有效性、分辨率和运动鲁棒性以及消融实验，但是分辨率变化大的数据集几乎没有，因此有效性实验更多的是在自己构造的分辨率变化数据集上测试</p>
-<p>&emsp;&emsp;对于数据集内测试，本文选取了 UBFC、PURE、COHFACE 三个数据集，PURE 运动信息更多，COHFACE 数据质量更差，UBFC 数据集内误差较大</p>
-<p><img src="/Arbitrary_Resolution_rPPG/image-20221206225925297.png" alt="image-20221206225925297" style="zoom:50%;"></p>
-<p>&emsp;&emsp;可以看出在不同的数据集上都可以降点，这里注意到两点：1. 选择的 SOTA 都比较差，现在的 UBFC 指标大概在 0.4 左右，2. 明明 PURE 更适合 TFA 模块，但是在 PURE 上降点反而不如 UBFC 明显。</p>
-<p>&emsp;&emsp;针对这两点，原因为：1. 本文实现的方法在最好的 baseline 上也同样可以降点，但是效果对比度不如普通的 baseline 明显，2. 对于不同的数据集，由于其内在误差和难易程度，指标的下降的绝对值并不等同于提升的效果。</p>
-<p>&emsp;&emsp;跨数据集测试上，由于测试方法过多且不统一，并且该方法在跨数据集测试上表现一般，因此没有给出结果。</p>
-<p>&emsp;&emsp;消融实验如下，实验测试了将原视频逐帧调整分辨率的情况下在加入不同模块的结果。其中 128 to 64 表示：视频分辨率为 128 分辨率逐帧降低到 64 分辨率</p>
-<p><img src="/Arbitrary_Resolution_rPPG/image-20221206230404607.png" alt="image-20221206230404607" style="zoom:80%;"></p>
-<p>&emsp;&emsp;同时测试了在固定分辨率下的有效性，可以看出固定上的有效性显然不如可变分辨率的有说服力，但也有涨点，让人有点疑惑的是只加 TFA 的话模型会出问题，这里比较奇怪，因为分辨率应该不会影响到 TFA 的，而且固定分辨率下 PFE 所起的作用应当相对较小，可以尤其参考 128x128 的通用分辨率下的结果</p>
-<p><img src="/Arbitrary_Resolution_rPPG/image-20221206230648793.png" alt="image-20221206230648793" style="zoom: 67%;"></p>
-<p>&emsp;&emsp;接着还测试了方法的有效性、多余 TFA 和 PFE 模块对模型参数量和推理训练速度的影响、特征图的注意力范围等等，最后还测试了在 PFE 模块中的 $n$ 的灵敏度，基本上除了在参数量和推理速度上大方承认有待改进，其他的实验比较中规中矩，基本就是证明方法有效性的实验，指标因为是自己统计的，很难和其他比较</p>
-<p><img src="/Arbitrary_Resolution_rPPG/image-20221206231112039.png" alt="image-20221206231112039"></p>
+mask = \begin{pmatrix}
+1~1~1~1\\
+0~1~1~1\\
+0~0~1~1\\
+0~0~0~1
+\end{pmatrix}</script><p>&emsp;&emsp;对于第二个MHA，其 $Q,K,V$ 不单独计算，其中 $K,V$ 直接使用encoder输出的结果，$Q$ 使用第一个masked MHA输出的 $A$ 单独进行 $Q$ 的计算。之后的 $A\&amp;N$ 部分也使用第一个masked MHA的输出作为输入。</p>
+<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;标准transformer的损失采用交叉熵损失，但是在实际的操作过程中需要忽略padding的输出和ground truth。除此之外，学习率 $l$ 优化器使用Adam优化器，随着训练轮数 $s$ 先变大后变小。</p>
 ]]></content>
       <categories>
         <category>paper</category>
-        <category>cv</category>
-        <category>hr</category>
+        <category>nlp</category>
       </categories>
   </entry>
   <entry>
@@ -492,50 +492,6 @@ u_{out}=\frac{\sum\limits_{(x,y)\in\Omega_c}\mathcal{I}(x,y)\cdot(1-\mathcal{U_C
       </categories>
   </entry>
   <entry>
-    <title>multi-network learning rPPG</title>
-    <url>/Co-rectification/</url>
-    <content><![CDATA[<h2><center> Contactless Pulse Estimation Leveraging Pseudo Labels and Self-Supervision </center></h2>
-
-<p>【rPPG】【ICCV2023】【<a href="https://openaccess.thecvf.com/content/ICCV2023/html/Li_Contactless_Pulse_Estimation_Leveraging_Pseudo_Labels_and_Self-Supervision_ICCV_2023_paper.html">paper</a>】【<a href>code not available</a>】</p>
-<h3 id="abstract"><a href="#abstract" class="headerlink" title="abstract"></a>abstract</h3><p>&emsp;&emsp;本文提出了一种使用伪标签监督辅助对比学习的无监督范式，使用 2SR 生成伪标签并通过课程式学习逐步平衡伪标签监督和对比学习。关于伪标签监督是多网络学习在 rPPG 的一种成功迁移。需要指出本文将视频 $x$ 转化为了 STMap，但在之后多次用到 $\phi(x)$，难免造成模型直接处理视频的误会。</p>
-<h3 id="overview"><a href="#overview" class="headerlink" title="overview"></a>overview</h3><p><img src="/Co-rectification/image-20231109185005424.png" alt="image-20231109185005424" style="zoom:50%;"></p>
-<span id="more"></span>
-<hr>
-<h3 id="contribution"><a href="#contribution" class="headerlink" title="contribution"></a>contribution</h3><ul>
-<li>在普通自监督的基础上使用伪标签进行额外监督</li>
-<li>使用双模型联合训练的方式对伪标签进行优化</li>
-</ul>
-<h3 id="formulation"><a href="#formulation" class="headerlink" title="formulation"></a>formulation</h3><p>&emsp;&emsp;输入视频被转化为 STMap $x$；双模型 $\phi_1:x\to y_1$ 和 $\phi_2:x\to y_2$ 均为 Dual-GAN 的 backbone（不共享参数） ；2SR 作为传统方法直接从视频中估计伪标签 $y_p$；通过对 $y$ 计算 PSD $\mathcal{F}(y)$ 获取其对应心率 $h$。</p>
-<h3 id="framework"><a href="#framework" class="headerlink" title="framework"></a>framework</h3><p><img src="/Co-rectification/image-20231109191326777.png" alt="image-20231109191326777" style="zoom:50%;"></p>
-<ul>
-<li>自监督学习范式</li>
-</ul>
-<p>&emsp;&emsp;这部分基本与之前的相关工作没有区别，本文使用时间移位来构建 pos.，即对于 anchor，将其在视频内的位置平移 $\pm f$ 帧得到正样本：$\mathcal{L}_p=d(\mathcal{F}(\phi(x)),\mathcal{F}(\phi(x_{\pm f})))$，也就是期望模型在 anchor 和 pos. 上获取一致的 PSD。</p>
-<p>&emsp;&emsp;本文使用频率的上采样 $u_{\uparrow}$ 和下采样 $d_{\downarrow}$ 获取 neg.：$\mathcal{L}_n=-d(\mathcal{F}(\phi(x)),\mathcal{F}(\phi(x_{d_\downarrow})))-d(\mathcal{F}(\phi(x)),\mathcal{F}(\phi(x_{u_\uparrow})))$，也就是期望模型对于上下采样之后的 anchor 和 neg. 获取不同的 PSD，上下采样的范围是 [0.6,1.3]。</p>
-<p>&emsp;&emsp;由于构造 neg. 时使用了上采样和下采样，因此视频对应的心率也应该呈现对应的变化，即 $h_{u\uparrow}&lt;h&lt;h_{d\downarrow}$，针对这种理应的变化设计损失函数为：$\mathcal{L}_{rank}=\max(h_{u\uparrow}-h,0)+\max(h-h_{d\downarrow},0)$。</p>
-<p>&emsp;&emsp;综合自监督部分，损失函数为：</p>
-<script type="math/tex; mode=display">
-\mathcal{L}_{self-sup}=\mathcal{L}_p-\mathcal{L}_n+\alpha\mathcal{L}_{rank},\ \mathrm{where\ \alpha=0.01}</script><ul>
-<li>伪标签学习范式</li>
-</ul>
-<p>&emsp;&emsp;本文实质上是 multi-network learning 在 rPPG 上的成功应用，在两个模型上的协同优化循环优化 $\phi_1$ 和 $\phi_2$，优化 $\phi_1$ 可以表述为：</p>
-<p>&emsp;&emsp;i ) 计算 batch 内的 $\epsilon_1= \mathrm{abs}(h_p^b-h_1^b)\mathrm{\ for\ b\in[1,bs]}$，其表示模型输出和伪标签直接的差值</p>
-<p>&emsp;&emsp;ii) 在 $\epsilon_2$ 中选择误差最大的 $\lambda$ 个下标 $\{b_i\}_1^\lambda$，此时认为这些下标对应的伪标签是置信度低的，从而使用 $h_2^{b_i}$ 替换掉 $h_p^{b_i}$ 作为对 $\phi_1$ 的监督，此时并不更新 $\phi_2$</p>
-<p>&emsp;&emsp;对于伪标签学习，损失函数 $\mathcal{L}_{pseudo}$ 为简单的 MSE。但考虑到前期同一个 batch 内会出现多个由于网络没有充分训练的“偏差值”，因此 $\lambda$ 应当随着训练缓慢增大。具体来说，$\lambda=\frac{e_t}{e_{max}}\lambda_{max}$，其中 $e_t$ 表示第 $t$ 个 epoch，$\lambda_{max}=8$。</p>
-<p>&emsp;&emsp;综合伪标签学习和对比学习时，应该考虑到前期的对比学习相对于伪标签学习这种“伪监督学习”具备更低的置信度，因此 trade-off 应该先考虑伪标签学习，再考虑对比学习。</p>
-<script type="math/tex; mode=display">
-\mathcal{L}=(1-\frac{e_t}{e_{max}})\mathcal{L}_{pseudo}+\mathcal{L}_{self-sup}</script><h3 id="experiment"><a href="#experiment" class="headerlink" title="experiment"></a>experiment</h3><p>&emsp;&emsp;是第一个在 VIPL 上测试的模型，分成 10s 的 clip 做 video-level 测试，intra- 和 cross- 都 OK</p>
-<p><img src="/Co-rectification/image-20231109204253372.png" alt="image-20231109204253372" style="zoom:50%;"></p>
-<p><img src="/Co-rectification/image-20231109204310352.png" alt="image-20231109204310352" style="zoom:50%;"></p>
-<p>&emsp;&emsp;消融实验很有说服力</p>
-<p><img src="/Co-rectification/image-20231109204403769.png" alt="image-20231109204403769"></p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-      </categories>
-  </entry>
-  <entry>
     <title>CodeFormer</title>
     <url>/CodeFormer/</url>
     <content><![CDATA[<h2><center> Towards Robust Blind Face Restoration with Codebook Lookup Transformer </center></h2>
@@ -643,6 +599,129 @@ L_{tf}=\lambda_{s}\cdot L_{s}+L_{code'}</script><p>&emsp;&emsp;其中，$L_s$ �
       </categories>
   </entry>
   <entry>
+    <title>multi-network learning rPPG</title>
+    <url>/Co-rectification/</url>
+    <content><![CDATA[<h2><center> Contactless Pulse Estimation Leveraging Pseudo Labels and Self-Supervision </center></h2>
+
+<p>【rPPG】【ICCV2023】【<a href="https://openaccess.thecvf.com/content/ICCV2023/html/Li_Contactless_Pulse_Estimation_Leveraging_Pseudo_Labels_and_Self-Supervision_ICCV_2023_paper.html">paper</a>】【<a href>code not available</a>】</p>
+<h3 id="abstract"><a href="#abstract" class="headerlink" title="abstract"></a>abstract</h3><p>&emsp;&emsp;本文提出了一种使用伪标签监督辅助对比学习的无监督范式，使用 2SR 生成伪标签并通过课程式学习逐步平衡伪标签监督和对比学习。关于伪标签监督是多网络学习在 rPPG 的一种成功迁移。需要指出本文将视频 $x$ 转化为了 STMap，但在之后多次用到 $\phi(x)$，难免造成模型直接处理视频的误会。</p>
+<h3 id="overview"><a href="#overview" class="headerlink" title="overview"></a>overview</h3><p><img src="/Co-rectification/image-20231109185005424.png" alt="image-20231109185005424" style="zoom:50%;"></p>
+<span id="more"></span>
+<hr>
+<h3 id="contribution"><a href="#contribution" class="headerlink" title="contribution"></a>contribution</h3><ul>
+<li>在普通自监督的基础上使用伪标签进行额外监督</li>
+<li>使用双模型联合训练的方式对伪标签进行优化</li>
+</ul>
+<h3 id="formulation"><a href="#formulation" class="headerlink" title="formulation"></a>formulation</h3><p>&emsp;&emsp;输入视频被转化为 STMap $x$；双模型 $\phi_1:x\to y_1$ 和 $\phi_2:x\to y_2$ 均为 Dual-GAN 的 backbone（不共享参数） ；2SR 作为传统方法直接从视频中估计伪标签 $y_p$；通过对 $y$ 计算 PSD $\mathcal{F}(y)$ 获取其对应心率 $h$。</p>
+<h3 id="framework"><a href="#framework" class="headerlink" title="framework"></a>framework</h3><p><img src="/Co-rectification/image-20231109191326777.png" alt="image-20231109191326777" style="zoom:50%;"></p>
+<ul>
+<li>自监督学习范式</li>
+</ul>
+<p>&emsp;&emsp;这部分基本与之前的相关工作没有区别，本文使用时间移位来构建 pos.，即对于 anchor，将其在视频内的位置平移 $\pm f$ 帧得到正样本：$\mathcal{L}_p=d(\mathcal{F}(\phi(x)),\mathcal{F}(\phi(x_{\pm f})))$，也就是期望模型在 anchor 和 pos. 上获取一致的 PSD。</p>
+<p>&emsp;&emsp;本文使用频率的上采样 $u_{\uparrow}$ 和下采样 $d_{\downarrow}$ 获取 neg.：$\mathcal{L}_n=-d(\mathcal{F}(\phi(x)),\mathcal{F}(\phi(x_{d_\downarrow})))-d(\mathcal{F}(\phi(x)),\mathcal{F}(\phi(x_{u_\uparrow})))$，也就是期望模型对于上下采样之后的 anchor 和 neg. 获取不同的 PSD，上下采样的范围是 [0.6,1.3]。</p>
+<p>&emsp;&emsp;由于构造 neg. 时使用了上采样和下采样，因此视频对应的心率也应该呈现对应的变化，即 $h_{u\uparrow}&lt;h&lt;h_{d\downarrow}$，针对这种理应的变化设计损失函数为：$\mathcal{L}_{rank}=\max(h_{u\uparrow}-h,0)+\max(h-h_{d\downarrow},0)$。</p>
+<p>&emsp;&emsp;综合自监督部分，损失函数为：</p>
+<script type="math/tex; mode=display">
+\mathcal{L}_{self-sup}=\mathcal{L}_p-\mathcal{L}_n+\alpha\mathcal{L}_{rank},\ \mathrm{where\ \alpha=0.01}</script><ul>
+<li>伪标签学习范式</li>
+</ul>
+<p>&emsp;&emsp;本文实质上是 multi-network learning 在 rPPG 上的成功应用，在两个模型上的协同优化循环优化 $\phi_1$ 和 $\phi_2$，优化 $\phi_1$ 可以表述为：</p>
+<p>&emsp;&emsp;i ) 计算 batch 内的 $\epsilon_1= \mathrm{abs}(h_p^b-h_1^b)\mathrm{\ for\ b\in[1,bs]}$，其表示模型输出和伪标签直接的差值</p>
+<p>&emsp;&emsp;ii) 在 $\epsilon_2$ 中选择误差最大的 $\lambda$ 个下标 $\{b_i\}_1^\lambda$，此时认为这些下标对应的伪标签是置信度低的，从而使用 $h_2^{b_i}$ 替换掉 $h_p^{b_i}$ 作为对 $\phi_1$ 的监督，此时并不更新 $\phi_2$</p>
+<p>&emsp;&emsp;对于伪标签学习，损失函数 $\mathcal{L}_{pseudo}$ 为简单的 MSE。但考虑到前期同一个 batch 内会出现多个由于网络没有充分训练的“偏差值”，因此 $\lambda$ 应当随着训练缓慢增大。具体来说，$\lambda=\frac{e_t}{e_{max}}\lambda_{max}$，其中 $e_t$ 表示第 $t$ 个 epoch，$\lambda_{max}=8$。</p>
+<p>&emsp;&emsp;综合伪标签学习和对比学习时，应该考虑到前期的对比学习相对于伪标签学习这种“伪监督学习”具备更低的置信度，因此 trade-off 应该先考虑伪标签学习，再考虑对比学习。</p>
+<script type="math/tex; mode=display">
+\mathcal{L}=(1-\frac{e_t}{e_{max}})\mathcal{L}_{pseudo}+\mathcal{L}_{self-sup}</script><h3 id="experiment"><a href="#experiment" class="headerlink" title="experiment"></a>experiment</h3><p>&emsp;&emsp;是第一个在 VIPL 上测试的模型，分成 10s 的 clip 做 video-level 测试，intra- 和 cross- 都 OK</p>
+<p><img src="/Co-rectification/image-20231109204253372.png" alt="image-20231109204253372" style="zoom:50%;"></p>
+<p><img src="/Co-rectification/image-20231109204310352.png" alt="image-20231109204310352" style="zoom:50%;"></p>
+<p>&emsp;&emsp;消融实验很有说服力</p>
+<p><img src="/Co-rectification/image-20231109204403769.png" alt="image-20231109204403769"></p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Contrast-Phys</title>
+    <url>/Contrast-Phys/</url>
+    <content><![CDATA[<h2><center> Contrast-Phys: Unsupervised Video-based Remote Physiological Measurement via Spatiotemporal Contrast </center></h2>
+
+<p>【心率监测】【ECCV2022】【<a href="http://arxiv.org/abs/2208.04378">paper</a>】【<a href="https://github.com/zhaodongsun/contrast-phys">code</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文实现了一种新的对比学习框架，提出了一种新的数据增强策略，这个策略基于对同一人脸不同位置的 ppg 信号 PSD 基本一致的观察，以及对不同人脸的 ppg 信号 PSD 基本不一致的观察，并且使用一个 3DCNN 块对 ppg 信号进行提取，得到 channel-wise 的 ppg 信号，这种方式极大地扩展了正负样本的数量，时间上这篇文章早于 video-base SSL，但是效果实际上不相上下。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Contrast-Phys/image-20221205100842471.png" alt="image-20221205100842471" style="zoom:60%;"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>观察到了 rppg 信号的时空相似性和跨视频不相似性等，基于这些观察提出了新的样本提取方法</li>
+<li>改编 physnet 得到了一个新的 3DCNN 网络，能够以 channel-wise 的方式对 rppg 信号建模，每个 channel 具备较大的感受野</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><h4 id="前置观察"><a href="#前置观察" class="headerlink" title="前置观察"></a>前置观察</h4><ul>
+<li><strong>rppg 信号具备空间相似性</strong>，也就是说将每个视频划分为多个子块，每个子块估计出的 rppg 信号在相位和振幅上或许会有差别，但在频率域上（PSD 信号）应当基本一致</li>
+</ul>
+<p><img src="/Contrast-Phys/image-20221205110212520.png" alt="image-20221205110212520"></p>
+<ul>
+<li><strong>rppg 信号具备时间相似性</strong>，也就是说将 T 帧的数据估计出的长度为 T 的 rppg 信号一分为二，则这两个子信号在相位和振幅上或许会有差别，但在频率域上（PSD 信号）应当基本一致<ul>
+<li>需要注意的是，这里显然在 T 过大时不成立，在较大的 T 下，近似于每个人时刻都保持 HR 一致，这显然不对；同时多次分割也会降低这个假设的准确性，文章在最后探索了 T 的大小对该假设成立的影响</li>
+</ul>
+</li>
+</ul>
+<p><img src="/Contrast-Phys/image-20221205105522714.png" alt="image-20221205105522714"></p>
+<ul>
+<li><strong>rppg 信号具备跨视频不一致性</strong>，也就是说在不同的视频中不仅振幅、相位、周期可能不同，尤其在于 PSD 应当不同，即使两个视频具备相同的心率（PSD 最大值点横坐标），也不太可能具备基本一致的 PSD 图像<ul>
+<li>下图是在 OBF 数据集中 PSD 之间 MSE 最小的两个视频（左）和最大的两个视频（右）的 PSD 曲线对比</li>
+<li>这个图确实可以看出不同人之间的 PSD 信号不同，但是我觉得应该再放一个最大值横坐标（HR）一致但曲线明显不同的例子更具备说服力，不过我想到的 oulu 肯定也想得到，没放只能说 DDDD</li>
+</ul>
+</li>
+</ul>
+<p><img src="/Contrast-Phys/image-20221205110035408.png" alt="image-20221205110035408" style="zoom:50%;"></p>
+<ul>
+<li><strong>rppg 信号的频率应具备一定的区间</strong>，这个结论算是前置知识了，不过每个文章对这个区间的限定很主观随心，比如这篇文章就是 40-250 bpm，因此 PSD 只选取 0.66-4.16 Hz，而 physnet 则是 40-180 bpm，不太统一</li>
+</ul>
+<h4 id="前向过程"><a href="#前向过程" class="headerlink" title="前向过程"></a>前向过程</h4><p><img src="/Contrast-Phys/image-20221205100842471.png" alt="image-20221205100842471" style="zoom:60%;"></p>
+<p>&emsp;&emsp;前向过程中同时输入两个 video，首先使用 openface 进行人脸关键点标定和裁剪，裁剪时有几个 trick：1. 对所有的 video，仅处理第一帧的关键点标定，随后固定裁剪大小，2. 裁剪的 crop 大小由最高和最低的 landmark 坐标确定，具体来说是最高和最低相对于中心位置扩大 1.2 倍，然后按照这个长度进行正方形的 crop，3. 裁剪之后的图像全部被缩放到 128x128 用于后续处理。</p>
+<p>&emsp;&emsp;处理之后的 video 分别进入同一个 3DCNN 网络，接着输出的并非 Bx1xT，而是 BxNxT（B=2），也就是说总共输出的块中包括了 N 个 rppg 信号（N = SxS），我们描述该块的 shape 为 TxSxS。这 N 个通道每个通道都意味着从某个感受野获得的 rppg 信号估计，而当 N 足够小或网络足够大时，可以近似认为每个通道都包含了足够识别出准确 rppg 信号的感受野，这些感受野之间按照 <strong>rppg 信号具备空间相似性</strong> 的观察，应当具备同样的 PSD。</p>
+<p>&emsp;&emsp;接着对 N 个通道分别做随机选取等长的 rppg 信号段，选择示意图如下，具体方法为：</p>
+<ul>
+<li>首选对 N 个通道分别取出 N 个长度为 T 的 rppg 信号，然后对每个信号：<ul>
+<li>将其从任意的 $t$ 帧开始选出长度为 $\Delta t$ 的信号，整个过程重复 K 次，按照 <strong>rppg 信号具备时间相似性</strong> 的观察，这些信号也应具备基本一致的 PSD</li>
+</ul>
+</li>
+</ul>
+<p><img src="/Contrast-Phys/image-20221205122158452.png" alt="image-20221205122158452" style="zoom:67%;"></p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ST_sampling</span>(nn.Module):</span><br><span class="line">    <span class="comment"># spatiotemporal sampling on ST-rPPG block.</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, delta_t, K, Fs, high_pass, low_pass</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        self.delta_t = delta_t <span class="comment"># time length of each rPPG sample</span></span><br><span class="line">        self.K = K <span class="comment"># the number of rPPG samples at each spatial position</span></span><br><span class="line">        self.norm_psd = CalculateNormPSD(Fs, high_pass, low_pass)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, <span class="built_in">input</span></span>): <span class="comment"># input: (2, N, T)</span></span><br><span class="line">        samples = []</span><br><span class="line">        <span class="keyword">for</span> b <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">input</span>.shape[<span class="number">0</span>]): <span class="comment"># loop over videos (totally 2 videos)</span></span><br><span class="line">            samples_per_video = []</span><br><span class="line">            <span class="keyword">for</span> c <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">input</span>.shape[<span class="number">1</span>]): <span class="comment"># loop for sampling over spatial dimension</span></span><br><span class="line">                <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(self.K): <span class="comment"># loop for sampling K samples with time length delta_t along temporal dimension</span></span><br><span class="line">                    offset = torch.randint(<span class="number">0</span>, <span class="built_in">input</span>.shape[-<span class="number">1</span>] - self.delta_t + <span class="number">1</span>, (<span class="number">1</span>,), device=<span class="built_in">input</span>.device) <span class="comment"># randomly sample along temporal dimension</span></span><br><span class="line">                    x = self.norm_psd(<span class="built_in">input</span>[b, c, offset:offset + self.delta_t])</span><br><span class="line">                    <span class="comment"># print(f&#x27;x.shape = &#123;x.shape&#125;&#x27;)</span></span><br><span class="line">                    samples_per_video.append(x)</span><br><span class="line">                <span class="comment"># print(f&#x27;samples_per_video.len = &#123;len(samples_per_video)&#125;&#x27;)</span></span><br><span class="line">            samples.append(samples_per_video)</span><br><span class="line">        <span class="comment"># print(f&#x27;samples.len = &#123;len(samples)&#125;&#x27;)</span></span><br><span class="line">        <span class="keyword">return</span> samples <span class="comment"># (2, NxK, t) 其中 t 是 PSD 信号过滤后的长度，和具体计算过程有关</span></span><br></pre></td></tr></table></figure>
+<p>&emsp;&emsp;因此共选出 2xKxN 个 rppg 信号，这些信号分别求 PSD，得到的就是 2xKxN 个 正/负 样本。对同一个 video 选出来的样本之间进行拉进，对不同的则拉远。</p>
+<p>&emsp;&emsp;需要特别注意的是，这里虽然是 2xKxN 个长度为 $\Delta t$ 的信号，但是无论网络 backbone 图还是接下来对 loss 的描述，统统只描述了 N，那么<strong>接下来的 N 就是 NxK</strong>，这一点从上述代码的返回值也可以大致看出，不知道为啥不统一标准。但总之提取出了 2N 个 rppg 信号 $p_i\ /p_i’\ ,\ i\in1\to N$，这些信号计算 PSD 之后又变成了 2N 个 PSD 信号 $f_i\ /f_i’\ ,\ i\in1\to N$ 。</p>
+<p>&emsp;&emsp;而模型在推理过程中的最终输出就是将一个 video 得到的 N 个 rppg 信号直接进行取平均值即可。</p>
+<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;经过前向，总共得到了从两个 video 中采样出的 2xN（再次提醒，这里的以及之后的 N 统统表示上面的 NxK）个 PSD 信号样本 $f_i\ /f_i’\ ,\ i\in1\to N$，从同一个 video 中采样的 N 个样本互为正样本，而来自不同 video 的样本则互为负样本，本文对任意两个正样本和任意两个负样本都计算 loss，具体的计算方法为：</p>
+<ul>
+<li>正样本损失：对两组正样本，每组 N 个样本之中进行 $\mathbb C_N^2$ 操作，选出来的正样本计算 MSE，然后取平均，总共计算了 $\rm 2N(N-1)$ 次</li>
+</ul>
+<script type="math/tex; mode=display">
+L_p=\sum_{i=1}^N\sum_{j=1,j\neq i}^N \frac{||f_i-f_j||^2+||f_i'-f_j'||^2}{2N(N-1)}</script><ul>
+<li>负样本损失：对正样本和负样本，任意两个之间计算 -MSE，然后取平均，总共计算了 $\rm N^2$ 次</li>
+</ul>
+<script type="math/tex; mode=display">
+L_n=-\sum_{i=1}^N\sum_{j=1}^N\frac{||f_i-f_j'||^2}{N^2}</script><p>&emsp;&emsp;整体损失为：$L=L_p+L_n$，没有平衡项。</p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文做了详实的实验，包含数据集内测试、跨数据集测试、心率测试、其他生理指标测试、显著图测试、训练时间-IPR 实验、抗噪音实验。</p>
+<p>&emsp;&emsp;首先是数据集内的测试，本文总共测了 UBFC，PURE，OBF，MR-NIRP 四个数据集，前两个数据集相对简单，对于无监督任务基本都会在这两个数据集上做测试，毕竟 SSL 在简单的任务上更能取得好的效果，而 OBF 是包含心房颤动病人的数据集，更偏临床，MR-NIRP 则包含了额外的红外信息，在一定程度上可以说明模型的泛化能力。这个测试时主要指标，可以对比 video based XXX 那篇看。</p>
+<p><img src="/Contrast-Phys/image-20221205133230644.png" alt="image-20221205133230644" style="zoom:50%;"></p>
+<p>&emsp;&emsp;在其他生理指标测试中，生理指标主要对比 the way to my heart，具体如下</p>
+<p><img src="/Contrast-Phys/image-20221205142321191.png" alt="image-20221205142321191" style="zoom: 50%;"></p>
+<p>&emsp;&emsp;同时包括了训练时间的测试，纵坐标为 irrelevant power ratio（无关功率比），其值越小说明信号质量越高（偏小众的指标），在跨数据集测试中，跨数据集测试为 UBFC $\to$ MMSE-HR，区别于常见的 UBFC 和 PURE 的互相转化，大概能猜到在 UBFC 和 PURE 上的迁移性差一些吧</p>
+<p><img src="/Contrast-Phys/image-20221205142537429.png" alt="image-20221205142537429" style="zoom:50%;"></p>
+<p>&emsp;&emsp;所谓显著性测试，指的是使用一种基于梯度的方法获得显著性图 <a href="https://arxiv.org/pdf/1312.6034.pdf">ref</a>，该图度量了模型更加关注的区域，因此在一定程度上可以看出模型是否学到了关键信息，并且对于噪音是否具备鲁棒性。左图在 UBFC 数据集上加入了一个随机闪烁区域，然后可以发现 the way to my heart 直接 G 了，说明对噪音太不鲁棒，右图在 PURE 中选择了旋转的 clip，可以发现本文的模型旋转的时候也能很好地捕捉头部运动（相比于 the way to my heart），总之就是噪声鲁棒，原因很简单，毕竟本文最终的结果是多感受野平均得到的，自然对单区域的噪音鲁棒，如果在 clip 中加入 N 个随机闪烁的区域估计这个模型也危险了。</p>
+<p><img src="/Contrast-Phys/image-20221205142732306.png" alt="image-20221205142732306" style="zoom:50%;"></p>
+<p>&emsp;&emsp;最后是消融实验，这里的消融实验主要测试的是针对两个假设的设定：1. 不同的 ST block 的空间分辨率，2. 不同的 $\Delta t$ 大小。用以证明模型对该设置灵敏性较高，该设置较为有效。</p>
+<p><img src="/Contrast-Phys/image-20221205143618001.png" alt="image-20221205143618001" style="zoom:50%;"></p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+        <category>hr</category>
+      </categories>
+  </entry>
+  <entry>
     <title>DRNet</title>
     <url>/DRNet/</url>
     <content><![CDATA[<h2><center> DRNet: Decomposition and Reconstruction Network for Remote Physiological Measurement </center></h2>
@@ -719,85 +798,6 @@ L_{tf}=\lambda_{s}\cdot L_{s}+L_{code'}</script><p>&emsp;&emsp;其中，$L_s$ �
 <h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3><p>&emsp;&emsp;本文算是典范的缝合 SOTA 论文了，网络的整体结构和训练目标来源于 CVD，backbone 的提出和即插即用块的提出来源于 Dual-GAN，损失函数来源于 AutoHR，稍微改了改就成了自己的。文章之中原话说他们提出了一种新的损失 $\cal L_{cyc}$，但是这表达式和 PhysNet、AutoHR 的 $\cal L_{fre}$ 完全一样，这不扯吗，非要说改动就是他随机取值然后算 loss。</p>
 <p>&emsp;&emsp;但是这是模板，是榜样，是干活的方向和学习的目标，虽然整个文章的图像风格都和 Dual-GAN 一模一样，损失函数也照抄的 AutoHR，但是确实是 SOTA，不知道能不能中 CVPR。</p>
 <p>&emsp;&emsp;特别是他的消融研究指出的，他的 baseline 其实效果相当一般，根本发不出来，正是通过一些模块的调优才达到的 SOTA，这大概也是一个思路，提出一个普通的 baseline 或者直接找一个 backbone，在不影响性能的情况下进行简单的改动以便于讲出不一样的故事，然后加入一些调优模块达到 SOTA 发出文章。</p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-        <category>hr</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>Contrast-Phys</title>
-    <url>/Contrast-Phys/</url>
-    <content><![CDATA[<h2><center> Contrast-Phys: Unsupervised Video-based Remote Physiological Measurement via Spatiotemporal Contrast </center></h2>
-
-<p>【心率监测】【ECCV2022】【<a href="http://arxiv.org/abs/2208.04378">paper</a>】【<a href="https://github.com/zhaodongsun/contrast-phys">code</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文实现了一种新的对比学习框架，提出了一种新的数据增强策略，这个策略基于对同一人脸不同位置的 ppg 信号 PSD 基本一致的观察，以及对不同人脸的 ppg 信号 PSD 基本不一致的观察，并且使用一个 3DCNN 块对 ppg 信号进行提取，得到 channel-wise 的 ppg 信号，这种方式极大地扩展了正负样本的数量，时间上这篇文章早于 video-base SSL，但是效果实际上不相上下。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Contrast-Phys/image-20221205100842471.png" alt="image-20221205100842471" style="zoom:60%;"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>观察到了 rppg 信号的时空相似性和跨视频不相似性等，基于这些观察提出了新的样本提取方法</li>
-<li>改编 physnet 得到了一个新的 3DCNN 网络，能够以 channel-wise 的方式对 rppg 信号建模，每个 channel 具备较大的感受野</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><h4 id="前置观察"><a href="#前置观察" class="headerlink" title="前置观察"></a>前置观察</h4><ul>
-<li><strong>rppg 信号具备空间相似性</strong>，也就是说将每个视频划分为多个子块，每个子块估计出的 rppg 信号在相位和振幅上或许会有差别，但在频率域上（PSD 信号）应当基本一致</li>
-</ul>
-<p><img src="/Contrast-Phys/image-20221205110212520.png" alt="image-20221205110212520"></p>
-<ul>
-<li><strong>rppg 信号具备时间相似性</strong>，也就是说将 T 帧的数据估计出的长度为 T 的 rppg 信号一分为二，则这两个子信号在相位和振幅上或许会有差别，但在频率域上（PSD 信号）应当基本一致<ul>
-<li>需要注意的是，这里显然在 T 过大时不成立，在较大的 T 下，近似于每个人时刻都保持 HR 一致，这显然不对；同时多次分割也会降低这个假设的准确性，文章在最后探索了 T 的大小对该假设成立的影响</li>
-</ul>
-</li>
-</ul>
-<p><img src="/Contrast-Phys/image-20221205105522714.png" alt="image-20221205105522714"></p>
-<ul>
-<li><strong>rppg 信号具备跨视频不一致性</strong>，也就是说在不同的视频中不仅振幅、相位、周期可能不同，尤其在于 PSD 应当不同，即使两个视频具备相同的心率（PSD 最大值点横坐标），也不太可能具备基本一致的 PSD 图像<ul>
-<li>下图是在 OBF 数据集中 PSD 之间 MSE 最小的两个视频（左）和最大的两个视频（右）的 PSD 曲线对比</li>
-<li>这个图确实可以看出不同人之间的 PSD 信号不同，但是我觉得应该再放一个最大值横坐标（HR）一致但曲线明显不同的例子更具备说服力，不过我想到的 oulu 肯定也想得到，没放只能说 DDDD</li>
-</ul>
-</li>
-</ul>
-<p><img src="/Contrast-Phys/image-20221205110035408.png" alt="image-20221205110035408" style="zoom:50%;"></p>
-<ul>
-<li><strong>rppg 信号的频率应具备一定的区间</strong>，这个结论算是前置知识了，不过每个文章对这个区间的限定很主观随心，比如这篇文章就是 40-250 bpm，因此 PSD 只选取 0.66-4.16 Hz，而 physnet 则是 40-180 bpm，不太统一</li>
-</ul>
-<h4 id="前向过程"><a href="#前向过程" class="headerlink" title="前向过程"></a>前向过程</h4><p><img src="/Contrast-Phys/image-20221205100842471.png" alt="image-20221205100842471" style="zoom:60%;"></p>
-<p>&emsp;&emsp;前向过程中同时输入两个 video，首先使用 openface 进行人脸关键点标定和裁剪，裁剪时有几个 trick：1. 对所有的 video，仅处理第一帧的关键点标定，随后固定裁剪大小，2. 裁剪的 crop 大小由最高和最低的 landmark 坐标确定，具体来说是最高和最低相对于中心位置扩大 1.2 倍，然后按照这个长度进行正方形的 crop，3. 裁剪之后的图像全部被缩放到 128x128 用于后续处理。</p>
-<p>&emsp;&emsp;处理之后的 video 分别进入同一个 3DCNN 网络，接着输出的并非 Bx1xT，而是 BxNxT（B=2），也就是说总共输出的块中包括了 N 个 rppg 信号（N = SxS），我们描述该块的 shape 为 TxSxS。这 N 个通道每个通道都意味着从某个感受野获得的 rppg 信号估计，而当 N 足够小或网络足够大时，可以近似认为每个通道都包含了足够识别出准确 rppg 信号的感受野，这些感受野之间按照 <strong>rppg 信号具备空间相似性</strong> 的观察，应当具备同样的 PSD。</p>
-<p>&emsp;&emsp;接着对 N 个通道分别做随机选取等长的 rppg 信号段，选择示意图如下，具体方法为：</p>
-<ul>
-<li>首选对 N 个通道分别取出 N 个长度为 T 的 rppg 信号，然后对每个信号：<ul>
-<li>将其从任意的 $t$ 帧开始选出长度为 $\Delta t$ 的信号，整个过程重复 K 次，按照 <strong>rppg 信号具备时间相似性</strong> 的观察，这些信号也应具备基本一致的 PSD</li>
-</ul>
-</li>
-</ul>
-<p><img src="/Contrast-Phys/image-20221205122158452.png" alt="image-20221205122158452" style="zoom:67%;"></p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ST_sampling</span>(nn.Module):</span><br><span class="line">    <span class="comment"># spatiotemporal sampling on ST-rPPG block.</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, delta_t, K, Fs, high_pass, low_pass</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        self.delta_t = delta_t <span class="comment"># time length of each rPPG sample</span></span><br><span class="line">        self.K = K <span class="comment"># the number of rPPG samples at each spatial position</span></span><br><span class="line">        self.norm_psd = CalculateNormPSD(Fs, high_pass, low_pass)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, <span class="built_in">input</span></span>): <span class="comment"># input: (2, N, T)</span></span><br><span class="line">        samples = []</span><br><span class="line">        <span class="keyword">for</span> b <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">input</span>.shape[<span class="number">0</span>]): <span class="comment"># loop over videos (totally 2 videos)</span></span><br><span class="line">            samples_per_video = []</span><br><span class="line">            <span class="keyword">for</span> c <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">input</span>.shape[<span class="number">1</span>]): <span class="comment"># loop for sampling over spatial dimension</span></span><br><span class="line">                <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(self.K): <span class="comment"># loop for sampling K samples with time length delta_t along temporal dimension</span></span><br><span class="line">                    offset = torch.randint(<span class="number">0</span>, <span class="built_in">input</span>.shape[-<span class="number">1</span>] - self.delta_t + <span class="number">1</span>, (<span class="number">1</span>,), device=<span class="built_in">input</span>.device) <span class="comment"># randomly sample along temporal dimension</span></span><br><span class="line">                    x = self.norm_psd(<span class="built_in">input</span>[b, c, offset:offset + self.delta_t])</span><br><span class="line">                    <span class="comment"># print(f&#x27;x.shape = &#123;x.shape&#125;&#x27;)</span></span><br><span class="line">                    samples_per_video.append(x)</span><br><span class="line">                <span class="comment"># print(f&#x27;samples_per_video.len = &#123;len(samples_per_video)&#125;&#x27;)</span></span><br><span class="line">            samples.append(samples_per_video)</span><br><span class="line">        <span class="comment"># print(f&#x27;samples.len = &#123;len(samples)&#125;&#x27;)</span></span><br><span class="line">        <span class="keyword">return</span> samples <span class="comment"># (2, NxK, t) 其中 t 是 PSD 信号过滤后的长度，和具体计算过程有关</span></span><br></pre></td></tr></table></figure>
-<p>&emsp;&emsp;因此共选出 2xKxN 个 rppg 信号，这些信号分别求 PSD，得到的就是 2xKxN 个 正/负 样本。对同一个 video 选出来的样本之间进行拉进，对不同的则拉远。</p>
-<p>&emsp;&emsp;需要特别注意的是，这里虽然是 2xKxN 个长度为 $\Delta t$ 的信号，但是无论网络 backbone 图还是接下来对 loss 的描述，统统只描述了 N，那么<strong>接下来的 N 就是 NxK</strong>，这一点从上述代码的返回值也可以大致看出，不知道为啥不统一标准。但总之提取出了 2N 个 rppg 信号 $p_i\ /p_i’\ ,\ i\in1\to N$，这些信号计算 PSD 之后又变成了 2N 个 PSD 信号 $f_i\ /f_i’\ ,\ i\in1\to N$ 。</p>
-<p>&emsp;&emsp;而模型在推理过程中的最终输出就是将一个 video 得到的 N 个 rppg 信号直接进行取平均值即可。</p>
-<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;经过前向，总共得到了从两个 video 中采样出的 2xN（再次提醒，这里的以及之后的 N 统统表示上面的 NxK）个 PSD 信号样本 $f_i\ /f_i’\ ,\ i\in1\to N$，从同一个 video 中采样的 N 个样本互为正样本，而来自不同 video 的样本则互为负样本，本文对任意两个正样本和任意两个负样本都计算 loss，具体的计算方法为：</p>
-<ul>
-<li>正样本损失：对两组正样本，每组 N 个样本之中进行 $\mathbb C_N^2$ 操作，选出来的正样本计算 MSE，然后取平均，总共计算了 $\rm 2N(N-1)$ 次</li>
-</ul>
-<script type="math/tex; mode=display">
-L_p=\sum_{i=1}^N\sum_{j=1,j\neq i}^N \frac{||f_i-f_j||^2+||f_i'-f_j'||^2}{2N(N-1)}</script><ul>
-<li>负样本损失：对正样本和负样本，任意两个之间计算 -MSE，然后取平均，总共计算了 $\rm N^2$ 次</li>
-</ul>
-<script type="math/tex; mode=display">
-L_n=-\sum_{i=1}^N\sum_{j=1}^N\frac{||f_i-f_j'||^2}{N^2}</script><p>&emsp;&emsp;整体损失为：$L=L_p+L_n$，没有平衡项。</p>
-<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文做了详实的实验，包含数据集内测试、跨数据集测试、心率测试、其他生理指标测试、显著图测试、训练时间-IPR 实验、抗噪音实验。</p>
-<p>&emsp;&emsp;首先是数据集内的测试，本文总共测了 UBFC，PURE，OBF，MR-NIRP 四个数据集，前两个数据集相对简单，对于无监督任务基本都会在这两个数据集上做测试，毕竟 SSL 在简单的任务上更能取得好的效果，而 OBF 是包含心房颤动病人的数据集，更偏临床，MR-NIRP 则包含了额外的红外信息，在一定程度上可以说明模型的泛化能力。这个测试时主要指标，可以对比 video based XXX 那篇看。</p>
-<p><img src="/Contrast-Phys/image-20221205133230644.png" alt="image-20221205133230644" style="zoom:50%;"></p>
-<p>&emsp;&emsp;在其他生理指标测试中，生理指标主要对比 the way to my heart，具体如下</p>
-<p><img src="/Contrast-Phys/image-20221205142321191.png" alt="image-20221205142321191" style="zoom: 50%;"></p>
-<p>&emsp;&emsp;同时包括了训练时间的测试，纵坐标为 irrelevant power ratio（无关功率比），其值越小说明信号质量越高（偏小众的指标），在跨数据集测试中，跨数据集测试为 UBFC $\to$ MMSE-HR，区别于常见的 UBFC 和 PURE 的互相转化，大概能猜到在 UBFC 和 PURE 上的迁移性差一些吧</p>
-<p><img src="/Contrast-Phys/image-20221205142537429.png" alt="image-20221205142537429" style="zoom:50%;"></p>
-<p>&emsp;&emsp;所谓显著性测试，指的是使用一种基于梯度的方法获得显著性图 <a href="https://arxiv.org/pdf/1312.6034.pdf">ref</a>，该图度量了模型更加关注的区域，因此在一定程度上可以看出模型是否学到了关键信息，并且对于噪音是否具备鲁棒性。左图在 UBFC 数据集上加入了一个随机闪烁区域，然后可以发现 the way to my heart 直接 G 了，说明对噪音太不鲁棒，右图在 PURE 中选择了旋转的 clip，可以发现本文的模型旋转的时候也能很好地捕捉头部运动（相比于 the way to my heart），总之就是噪声鲁棒，原因很简单，毕竟本文最终的结果是多感受野平均得到的，自然对单区域的噪音鲁棒，如果在 clip 中加入 N 个随机闪烁的区域估计这个模型也危险了。</p>
-<p><img src="/Contrast-Phys/image-20221205142732306.png" alt="image-20221205142732306" style="zoom:50%;"></p>
-<p>&emsp;&emsp;最后是消融实验，这里的消融实验主要测试的是针对两个假设的设定：1. 不同的 ST block 的空间分辨率，2. 不同的 $\Delta t$ 大小。用以证明模型对该设置灵敏性较高，该设置较为有效。</p>
-<p><img src="/Contrast-Phys/image-20221205143618001.png" alt="image-20221205143618001" style="zoom:50%;"></p>
 ]]></content>
       <categories>
         <category>paper</category>
@@ -1729,6 +1729,75 @@ o(L_r(x,u),D(x,u))[即 \widehat L]=\widetilde o(L_r(x,u),D(x,u)) +L_r(x,u)</scri
       </categories>
   </entry>
   <entry>
+    <title>MAGVIT</title>
+    <url>/MAGVIT/</url>
+    <content><![CDATA[<h2><center> MAGVIT: Masked Generative Video Transformer </center></h2>
+
+<p>【视频生成】【arxiv】【<a href="http://arxiv.org/abs/2212.05199">paper</a>】【<a href="https://github.com/MAGVIT/magvit">code</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种基于 3DCNN 的 VQGAN 和多任务优化的视频生成器。其中 3DCNN 的网络由图像预训练的 2D 网络中心膨胀而来。所谓多任务优化，即通过不同的 mask 模拟不同的<strong>条件任务</strong>（包括帧插值、帧预测等十种），另外加上<strong>自重建任务</strong>进行联合优化。其中<strong>条件任务</strong>又分为：1.预测完全不存在的帧，2.预测部分存在的帧。因此第二部分可以描述为使用多任务构造损失函数联合优化 VQGAN 的下标重建 transformer。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/MAGVIT/image-20230417203930207.png" alt="image-20230417203930207"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>先训练 2D-VQGAN 再膨胀为 3D-VQGAN 的策略</li>
+<li>对视频进行多任务 mask 联合优化的策略</li>
+</ul>
+<h4 id="tricks"><a href="#tricks" class="headerlink" title="tricks"></a>tricks</h4><ul>
+<li>使用中心膨胀获得 3D 预训练权重</li>
+<li>对视频的每一帧计算感知损失</li>
+<li>在 GAN 的损失函数上加入 LeCam 正则化</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/MAGVIT/image-20230417203944064.png" alt="image-20230417203944064"></p>
+<p>&emsp;&emsp;上图中，3D-VQ Encoder 将视频量化为离散的标记，而 3D-VQ  Decoder 将它们映射回像素空间。在每个训练步骤中对任务 $\rho$ 进行采样（共十种任务），并通过裁剪和填充原始视频来构建其条件输入 $c$，其中绿色表示 GT 像素，白色表示填充，橙色表示 GT tokens。使用用 3D-VQ Encoder 量化条件输入，并选择非填充部分（橙色）作为条件标记。掩码 token 序列（即图中 COMMIT Masking）结合了条件 tokens、[MASK] tokens 和 GT tokens，并以任务提示符和类令牌作为前缀（$[\rho,c]$，直接 Concat）。transformer 通过三个目标学习预测可视标记:细化条件标记、预测屏蔽标记和重构输入标记。</p>
+<p>&emsp;&emsp;本文提出的 MAGVIT 是一个两阶段的模型，首先训练一个 3DCNN 的 VQGAN，第二阶段再通过多任务 mask 学习一个 transformer 预测 token。</p>
+<p>&emsp;&emsp;第一阶段将编码器和解码器分别描述为 $f_\tau:V\to z,\ f_{\tau^{-1}}:z\to V$。第一阶段训练的 VQGAN 由 2DCNN 的预训练模型膨胀得到，在图像上训练的 2D-VQVAE 遵循如下优化模式： </p>
+<ul>
+<li>$I$ 表示图像，$z$ 表示图像经过编码器 VQ 之后的下标序列，长度为 N</li>
+<li>$m$ 为 mask，是一个二元向量，对于 $m$ 的每一个值为 $x\to x/[mask]$，经过 mask 的 $m(z)$ 记作 $\bar z$</li>
+<li>训练时，$m$ 从先验分布 $p_\mu$ 之中采样，即其中 $x\to[mask]$ 占比遵循余弦调度函数 $\gamma(\cdot)$<ul>
+<li>采样的具体操作为：</li>
+<li>从 $U(0,1)$ 中均值采样 mask 分数 $s$ 和一个中间变量 $r$，使用 $r$ 计算 $\lceil \gamma(r)N\rceil$，这个值表明小于阈值 $s^<em>$ 的 $s_i\in s$ 的个数，以此确定阈值 $s^</em>$</li>
+<li>得到 $m_i(x)=[mask]\ \ \ \ if\ \ \ \ s_i\leq s^*\ \ \ \ else\ \ \ \ x$</li>
+</ul>
+</li>
+<li>优化目标为：$L_{mask}(z; θ) = E_{m∼p_\mu} [∑_{\bar z_i =[MASK]} − \log p_θ(z_i | [c, \bar z]) ]$</li>
+</ul>
+<p>&emsp;&emsp;3D-VQVAE 采用中心膨胀的方式获得预训练的权重，<strong>这样可以在 GAN 的训练中快速达到稳定状态</strong>。同时在视频训练时<strong>将 VGGLoss 应用于每一帧的图像</strong>上，在 GANLoss 中<strong>加入了 <a href="https://arxiv.org/pdf/2104.03310.pdf">LeCam 正则化（CVPR2021）</a></strong> 用以稳定对抗训练。</p>
+<p>&emsp;&emsp;第二阶段的训练采用多任务 mask 的方法进行建模，原文称之为：内部令牌的条件屏蔽建模（<strong>CO</strong>nditional <strong>M</strong>asked <strong>M</strong>odeling by <strong>I</strong>nterior <strong>T</strong>okens ）简记为 COMMIT 方法。在训练时从十种不同的条件生成任务中进行采样，具体来说任务包括：帧预测(FP)、帧插值(FI)、中央外绘(OPC)、垂直外绘(OPV)、水平外绘(OPH)、动态外绘(OPD)、中央补绘(IPC)和动态补绘(IPD)、类条件生成(CG)、类条件帧预测(CFP)。其中每个任务的具体定义见原文 P12 附录 B.1。</p>
+<p>&emsp;&emsp;在第二阶段的训练过程中，其整体逻辑与第一阶段训练图像 2D-VQ 一致，但在细节上略有改动：</p>
+<ul>
+<li>首先采样原视频 $V$，采样一个任务提示符 $\rho$，并根据 $\rho$ 生成对应的 mask 任务视频 $\tilde V$</li>
+<li>记 $z=f_\tau(V),\ \tilde z = f_\tau (\tilde V)$，得到对应 tokens 的 mask 结果 $m_i$：<img src="/MAGVIT/image-20230418164802591.png" alt="image-20230418164802591" style="zoom:40%;"><ul>
+<li>其中 ispad(·) 表示是否为全填充，对应至上图 backbone 之中，表示为全白色的 token </li>
+</ul>
+</li>
+<li>一阶段图像的loss描述为：$L_{mask}(z; θ) = E_{m∼p_\mu} [∑_{\bar z_i =[MASK]} − \log p_θ(z_i | [c, \bar z]) ]$，因此据此写出视频的描述应为：$L(V; θ) = E_{\rho,\tilde V}[ E_{m∼p_M} [∑_i − \log p_θ(z_i | [\rho,c, \bar z]) ]]$<ul>
+<li>其中用 $p_M$ 而非 $p_\mu$ 是因为在当前的 $m_i$ 获取方式下，其分布已经和图像层面不一致了，故用一个新的符号</li>
+<li>此式按照 $m_i$ 的三种不同取值可以拆分为三个部分：<img src="/MAGVIT/image-20230418165556463.png" alt="image-20230418165556463" style="zoom:40%;"></li>
+<li>这三部分分别表示了：1.条件生成（10种具体任务的某些帧）2.完全预测（10种具体任务的某些帧）3.视频重建（单独的任务+10种具体任务的某些帧）</li>
+</ul>
+</li>
+</ul>
+<h3 id="推理"><a href="#推理" class="headerlink" title="推理"></a>推理</h3><p><img src="/MAGVIT/image-20230418165945029.png" alt="image-20230418165945029" style="zoom:50%;"></p>
+<p>&emsp;&emsp;推理的过程中采用上图的推理方式，具体来说是：COMMIT 解码从 $m_i$ 入手，在 $m_i$ 和对应的 $s_i$ 的指导下，通过在每一步替换一部分新生成的 token 来执行向输出 token 的条件转换过程（具体的替换个数由更新 $s^*$ 的值确定，而这个值由 $t$ 确定，$t$ 表示第几步，总共 $K$ 步，$K$ 手动选择），并最终预测所有 token。</p>
+<p>&emsp;&emsp;下图展示另一个边界预测任务下的 7 步推理可视化过程：</p>
+<p><img src="/MAGVIT/image-20230418170349596.png" alt="image-20230418170349596" style="zoom: 50%;"></p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><ul>
+<li>在视频生成上针对 UCF-101 的 FVD</li>
+</ul>
+<p><img src="/MAGVIT/image-20230418170646469.png" alt="image-20230418170646469" style="zoom:50%;"></p>
+<ul>
+<li>在帧预测任务上针对 K600 和 BAIR 的 FVD</li>
+</ul>
+<p><img src="/MAGVIT/image-20230418170727129.png" alt="image-20230418170727129" style="zoom:50%;"></p>
+<p>&emsp;&emsp;更多的结果可视化见网站：<a href="https://magvit.cs.cmu.edu">https://magvit.cs.cmu.edu</a></p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
     <title>Meta-rPPG</title>
     <url>/Meta-rppg/</url>
     <content><![CDATA[<h2><center> Meta-rPPG: Remote Heart Rate Estimation Using a Transductive Meta-Learner </center></h2>
@@ -1821,75 +1890,6 @@ z^{proto}=\gamma z^{proto}+(1-\gamma) \mathbb E_{x^{(i)}\sim p(\mathcal T)}\frac
       </categories>
   </entry>
   <entry>
-    <title>MAGVIT</title>
-    <url>/MAGVIT/</url>
-    <content><![CDATA[<h2><center> MAGVIT: Masked Generative Video Transformer </center></h2>
-
-<p>【视频生成】【arxiv】【<a href="http://arxiv.org/abs/2212.05199">paper</a>】【<a href="https://github.com/MAGVIT/magvit">code</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种基于 3DCNN 的 VQGAN 和多任务优化的视频生成器。其中 3DCNN 的网络由图像预训练的 2D 网络中心膨胀而来。所谓多任务优化，即通过不同的 mask 模拟不同的<strong>条件任务</strong>（包括帧插值、帧预测等十种），另外加上<strong>自重建任务</strong>进行联合优化。其中<strong>条件任务</strong>又分为：1.预测完全不存在的帧，2.预测部分存在的帧。因此第二部分可以描述为使用多任务构造损失函数联合优化 VQGAN 的下标重建 transformer。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/MAGVIT/image-20230417203930207.png" alt="image-20230417203930207"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>先训练 2D-VQGAN 再膨胀为 3D-VQGAN 的策略</li>
-<li>对视频进行多任务 mask 联合优化的策略</li>
-</ul>
-<h4 id="tricks"><a href="#tricks" class="headerlink" title="tricks"></a>tricks</h4><ul>
-<li>使用中心膨胀获得 3D 预训练权重</li>
-<li>对视频的每一帧计算感知损失</li>
-<li>在 GAN 的损失函数上加入 LeCam 正则化</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/MAGVIT/image-20230417203944064.png" alt="image-20230417203944064"></p>
-<p>&emsp;&emsp;上图中，3D-VQ Encoder 将视频量化为离散的标记，而 3D-VQ  Decoder 将它们映射回像素空间。在每个训练步骤中对任务 $\rho$ 进行采样（共十种任务），并通过裁剪和填充原始视频来构建其条件输入 $c$，其中绿色表示 GT 像素，白色表示填充，橙色表示 GT tokens。使用用 3D-VQ Encoder 量化条件输入，并选择非填充部分（橙色）作为条件标记。掩码 token 序列（即图中 COMMIT Masking）结合了条件 tokens、[MASK] tokens 和 GT tokens，并以任务提示符和类令牌作为前缀（$[\rho,c]$，直接 Concat）。transformer 通过三个目标学习预测可视标记:细化条件标记、预测屏蔽标记和重构输入标记。</p>
-<p>&emsp;&emsp;本文提出的 MAGVIT 是一个两阶段的模型，首先训练一个 3DCNN 的 VQGAN，第二阶段再通过多任务 mask 学习一个 transformer 预测 token。</p>
-<p>&emsp;&emsp;第一阶段将编码器和解码器分别描述为 $f_\tau:V\to z,\ f_{\tau^{-1}}:z\to V$。第一阶段训练的 VQGAN 由 2DCNN 的预训练模型膨胀得到，在图像上训练的 2D-VQVAE 遵循如下优化模式： </p>
-<ul>
-<li>$I$ 表示图像，$z$ 表示图像经过编码器 VQ 之后的下标序列，长度为 N</li>
-<li>$m$ 为 mask，是一个二元向量，对于 $m$ 的每一个值为 $x\to x/[mask]$，经过 mask 的 $m(z)$ 记作 $\bar z$</li>
-<li>训练时，$m$ 从先验分布 $p_\mu$ 之中采样，即其中 $x\to[mask]$ 占比遵循余弦调度函数 $\gamma(\cdot)$<ul>
-<li>采样的具体操作为：</li>
-<li>从 $U(0,1)$ 中均值采样 mask 分数 $s$ 和一个中间变量 $r$，使用 $r$ 计算 $\lceil \gamma(r)N\rceil$，这个值表明小于阈值 $s^<em>$ 的 $s_i\in s$ 的个数，以此确定阈值 $s^</em>$</li>
-<li>得到 $m_i(x)=[mask]\ \ \ \ if\ \ \ \ s_i\leq s^*\ \ \ \ else\ \ \ \ x$</li>
-</ul>
-</li>
-<li>优化目标为：$L_{mask}(z; θ) = E_{m∼p_\mu} [∑_{\bar z_i =[MASK]} − \log p_θ(z_i | [c, \bar z]) ]$</li>
-</ul>
-<p>&emsp;&emsp;3D-VQVAE 采用中心膨胀的方式获得预训练的权重，<strong>这样可以在 GAN 的训练中快速达到稳定状态</strong>。同时在视频训练时<strong>将 VGGLoss 应用于每一帧的图像</strong>上，在 GANLoss 中<strong>加入了 <a href="https://arxiv.org/pdf/2104.03310.pdf">LeCam 正则化（CVPR2021）</a></strong> 用以稳定对抗训练。</p>
-<p>&emsp;&emsp;第二阶段的训练采用多任务 mask 的方法进行建模，原文称之为：内部令牌的条件屏蔽建模（<strong>CO</strong>nditional <strong>M</strong>asked <strong>M</strong>odeling by <strong>I</strong>nterior <strong>T</strong>okens ）简记为 COMMIT 方法。在训练时从十种不同的条件生成任务中进行采样，具体来说任务包括：帧预测(FP)、帧插值(FI)、中央外绘(OPC)、垂直外绘(OPV)、水平外绘(OPH)、动态外绘(OPD)、中央补绘(IPC)和动态补绘(IPD)、类条件生成(CG)、类条件帧预测(CFP)。其中每个任务的具体定义见原文 P12 附录 B.1。</p>
-<p>&emsp;&emsp;在第二阶段的训练过程中，其整体逻辑与第一阶段训练图像 2D-VQ 一致，但在细节上略有改动：</p>
-<ul>
-<li>首先采样原视频 $V$，采样一个任务提示符 $\rho$，并根据 $\rho$ 生成对应的 mask 任务视频 $\tilde V$</li>
-<li>记 $z=f_\tau(V),\ \tilde z = f_\tau (\tilde V)$，得到对应 tokens 的 mask 结果 $m_i$：<img src="/MAGVIT/image-20230418164802591.png" alt="image-20230418164802591" style="zoom:40%;"><ul>
-<li>其中 ispad(·) 表示是否为全填充，对应至上图 backbone 之中，表示为全白色的 token </li>
-</ul>
-</li>
-<li>一阶段图像的loss描述为：$L_{mask}(z; θ) = E_{m∼p_\mu} [∑_{\bar z_i =[MASK]} − \log p_θ(z_i | [c, \bar z]) ]$，因此据此写出视频的描述应为：$L(V; θ) = E_{\rho,\tilde V}[ E_{m∼p_M} [∑_i − \log p_θ(z_i | [\rho,c, \bar z]) ]]$<ul>
-<li>其中用 $p_M$ 而非 $p_\mu$ 是因为在当前的 $m_i$ 获取方式下，其分布已经和图像层面不一致了，故用一个新的符号</li>
-<li>此式按照 $m_i$ 的三种不同取值可以拆分为三个部分：<img src="/MAGVIT/image-20230418165556463.png" alt="image-20230418165556463" style="zoom:40%;"></li>
-<li>这三部分分别表示了：1.条件生成（10种具体任务的某些帧）2.完全预测（10种具体任务的某些帧）3.视频重建（单独的任务+10种具体任务的某些帧）</li>
-</ul>
-</li>
-</ul>
-<h3 id="推理"><a href="#推理" class="headerlink" title="推理"></a>推理</h3><p><img src="/MAGVIT/image-20230418165945029.png" alt="image-20230418165945029" style="zoom:50%;"></p>
-<p>&emsp;&emsp;推理的过程中采用上图的推理方式，具体来说是：COMMIT 解码从 $m_i$ 入手，在 $m_i$ 和对应的 $s_i$ 的指导下，通过在每一步替换一部分新生成的 token 来执行向输出 token 的条件转换过程（具体的替换个数由更新 $s^*$ 的值确定，而这个值由 $t$ 确定，$t$ 表示第几步，总共 $K$ 步，$K$ 手动选择），并最终预测所有 token。</p>
-<p>&emsp;&emsp;下图展示另一个边界预测任务下的 7 步推理可视化过程：</p>
-<p><img src="/MAGVIT/image-20230418170349596.png" alt="image-20230418170349596" style="zoom: 50%;"></p>
-<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><ul>
-<li>在视频生成上针对 UCF-101 的 FVD</li>
-</ul>
-<p><img src="/MAGVIT/image-20230418170646469.png" alt="image-20230418170646469" style="zoom:50%;"></p>
-<ul>
-<li>在帧预测任务上针对 K600 和 BAIR 的 FVD</li>
-</ul>
-<p><img src="/MAGVIT/image-20230418170727129.png" alt="image-20230418170727129" style="zoom:50%;"></p>
-<p>&emsp;&emsp;更多的结果可视化见网站：<a href="https://magvit.cs.cmu.edu">https://magvit.cs.cmu.edu</a></p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-      </categories>
-  </entry>
-  <entry>
     <title>MoCoGAN_HD</title>
     <url>/MoCoGAN_HD/</url>
     <content><![CDATA[<h2><center> A GOOD IMAGE GENERATOR IS WHAT YOU NEED FOR HIGH-RESOLUTION VIDEO SYNTHESIS </center></h2>
@@ -1963,114 +1963,6 @@ z^{proto}=\gamma z^{proto}+(1-\gamma) \mathbb E_{x^{(i)}\sim p(\mathcal T)}\frac
 <li>在不同数据集上的消融实验</li>
 </ul>
 <p><img src="/MoCoGAN_HD/image-20230414204715371.png" alt="image-20230414204715371"></p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>NUWA</title>
-    <url>/NUWA/</url>
-    <content><![CDATA[<h2><center> NUWA: Visual Synthesis Pre-training for Neural visUal World creAtion </center></h2>
-
-<p>【图/视频生成】【ECCV2022】【<a href="http://arxiv.org/abs/2111.12417">paper</a>】【<a href="https://github.com/microsoft/NUWA">code</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种统一的文本图像视频表示方法，基于此实现了全模态统一的视频/图像条件生成，值得一提的是，在本文之后，MSRA 又推出了能生成 38912 x 2048 分辨率图像的 NUWA-Infinity，以及 23 年 4 月推出了能生成 11 mins 动画的 NUWA-XL。网络使用 VQGAN 的结构，搭建了基于 transformer 的编解码器，为了解决复杂度的问题设计了 3DNA 的近邻结构。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/NUWA/image-20230412094014616.png" alt="image-20230412094014616"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>一种全统一（文本+图像+视频）的多模态生成模型</li>
-<li>一种基于近邻的注意力计算方法 3DNA（3D Nearby Attention），有效减少了视频 transformer 复杂度</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/NUWA/image-20230412102033102.png" alt="image-20230412102033102"></p>
-<p>&emsp;&emsp;为了能够将文本和图像视频一起表示，本文采用 $X\in\mathbb R^{h\times w\times s\times d}$ 的方式表示输入，其中 $h,w$ 表示图像的 shape，$s$ 表示文本视频长度，$d$  表示 token 维度。即文本 $\mathbb R^{1\times 1\times s\times d}$，图像 $\mathbb R^{h\times w\times 1\times d}$，视频 $\mathbb R^{h\times w\times t\times d}$。</p>
-<p>&emsp;&emsp;上图中显示的是整体的网络 IO，其中的编解码器结构没有显示，具体在编解码器上的 transformer 结构也没有显示，对于网络结构，具体来说：本文采用基于 transformer 的 VQGAN 架构，对于视频数据的 transformer 结构，为了降低复杂度设计了 3DNA，其做法如下：</p>
-<ul>
-<li>3DNA 的 IO 表达式为：$Y=3DNA(X,C;W)$，其中 $Y$ 为输出，$X$ 为输入，$C$ 为条件，$W$ 为参数<ul>
-<li>其中输入的 shape 为：$X\in\mathbb R^{h\times w\times s\times d_{in}},\ C\in\mathbb R^{h’\times w’\times s’\times d_{in}}$，都打过 patch 了</li>
-</ul>
-</li>
-<li>对于 $X$ 的下标 $(i,j,k)$，首先寻找 $C$ 中对应的下标 $(i’,j’,k’)=([i\frac {h’}h],[j\frac {w’}w],[k\frac {s’}s])$</li>
-<li>寻找 $C$ 中和 $(i’,j’,k’)$ 临近的 patch idx $N\to(e^h,e^w,e^s,d_{in})$，仅对这些做 attn，其中 $e^h,e^w,e^s$ 在图像下为 3,3,1，在视频下为 3,3,3</li>
-</ul>
-<p><img src="/NUWA/image-20230412110441508.png" alt="image-20230412110441508" style="zoom:40%;"></p>
-<ul>
-<li>接下来计算 attn ，对于 $Y$ 的 $(i,j,k)$ 下标，结果为：$Y_{(i,j,k)}=softmax(\frac{QK^T}{d_{in}})V\to(h,w,s,d_{out})$，再通过 MLP 即可。其中<ul>
-<li>$Q=X\times W^Q\to(h,w,s,d_{out})$</li>
-<li>$K=N\times W^K\to(e^h,e^w,e^s,d_{out})$</li>
-<li>$V=N\times W^V\to(e^h,e^w,e^s,d_{out})$</li>
-</ul>
-</li>
-<li>该 attn 计算需要经过共  $l$ 层，对 $C$ 来说也需要同步逐层更新：$C^l=3DNA(C^{l-1}, C^{l-1})$</li>
-<li>在计算 attn 的过程中的位置编码为可学习的相对位置编码，在 $h,w,s$ 三个维度分开学习</li>
-<li>使用 441x256 的codebook dim，codebook size 为 12288，进行 VQ</li>
-<li>使用完全反向的解码器进行解码，loss 采用 VQGAN 的loss</li>
-<li>对于第二阶段，由于本文做了视频文本图像三个任务（文本到图像，视频预测和文本到视频），因此第二阶段采用 GPT 类型的三个损失函数</li>
-</ul>
-<p><img src="/NUWA/image-20230412112545692.png" alt="image-20230412112545692" style="zoom: 40%;"></p>
-<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文的实验十分翔实充分，在补充材料里给了将近 20 页的各种实验，无论是不同任务上的结果还是消融实验都很多，这里只列一下主任务结果和视频预测 FVD。</p>
-<ul>
-<li>和其他模型在文转图的视觉结果对比</li>
-</ul>
-<p><img src="/NUWA/image-20230412112837766.png" alt="image-20230412112837766"></p>
-<ul>
-<li>和其他模型在文转视频视觉效果对比</li>
-</ul>
-<p><img src="/NUWA/image-20230412112916381.png" alt="image-20230412112916381"></p>
-<ul>
-<li>视频预测结果（FVD）</li>
-</ul>
-<p><img src="/NUWA/image-20230412113018082.png" alt="image-20230412113018082" style="zoom:40%;"></p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>PGGAN</title>
-    <url>/PG_GAN/</url>
-    <content><![CDATA[<h2><center> Progressive Growing of GANs for Improved Quality, Stability, and Variation </center></h2>
-
-<p>【图像生成】【ICLR2018】【<a href="http://arxiv.org/abs/1710.10196">paper</a>】【<a href="https://github.com/tkarras/progressive_growing_of_gans">code</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文使用逐步调大分辨率的生成方式成功生成了在当时还不错的高分辨率图像。具体来说是进行分阶段的训练，阶段按照分辨率进行分界。并且每个新的阶段要加入新的卷积层，为了防止没有经过训练的层回传梯度时影响训练好的层，本文还使用了一种平滑的融合策略。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/PG_GAN/image-20230105204451398.png" alt="image-20230105204451398"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>逐步并行地向判别器和生成器之中加入新的卷积层从而最终生成高分辨率图像，这使得训练更稳定、迅速</li>
-<li>使用类似于“动量更新”的方式加入新的卷积层，防止其刚开始训练时回传的粗梯度影响之前的结果</li>
-<li>在判别器的最后使用 <code>minibatch</code> 的方式分组无参计算每个 <code>batch</code> 内的分布加强判别器的能力</li>
-<li>在训练时使用多通道特征训练，在需要可视化的时候加入一个 <code>to_rgb</code> 层</li>
-<li>使用 $\mathcal N(0,1)$ 初始化权重，并且在运行的过程中动态缩放权重</li>
-<li>提出了一种基于 <code>MS-SSIM</code> 的生成图像评价指标，可以对生成的图像在不同尺度上的细节分布进行检测</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><h4 id="backbone"><a href="#backbone" class="headerlink" title="backbone"></a>backbone</h4><p><img src="/PG_GAN/image-20230104212316211.png" alt="image-20230104212316211"></p>
-<p>&emsp;&emsp;整个网络的生成器和判别器由两个对称的 CNN 网络组成，不同的是在判别器的最后一层 CNN 时加入了 <code>Minibatch stddev</code> 操作，用以计算某个 <code>batch</code> 内分组的分布，作为额外的特征通道加入 <code>C</code> 维度。</p>
-<p>&emsp;&emsp;网络的训练逐步增加生成的图像分辨率，方式是逐步添加新的卷积层，上图中的 $4\times 4$ 表示针对 <code>NxCx4x4</code> 的特征的卷积操作，具体来说其中不包括上下采样，只包括多个卷积层和 <code>leaky_relu</code> 激活函数。上下采样没有在上图中显示，其存在于卷积层之间。</p>
-<p>&emsp;&emsp;生成器逐步生成更高 <code>HxW</code> 的特征，最终得到 <code>NxCx1024x1024</code> 的特征，并由一个 <code>1x1Conv</code> 的 <code>to_rgb</code> 层整形成 <code>rgb</code> 通道的图像。该图像输入至判别器中由一个和生成器镜像对称的结构判断 <code>T/F</code>。</p>
-<p><img src="/PG_GAN/image-20230105094832867.png" alt="image-20230105094832867"></p>
-<p>&emsp;&emsp;加入新的卷积层的方式如上图所示，其展示了从 <code>16x16</code> 分辨率的网络加入新的卷积层变为 <code>32x32</code> 分辨率网络的过程。$(a)$ 表示 <code>16x16</code> 对应的 $G,D$，$(c)$ 表示一种朴素的加入方式，其中 <code>2x,0.5x</code> 表示上下采样。这种方式在实现之后会产生对训练好的网络的冲击，这种冲击来自于新加入的层最初训练时回传的梯度并没有太大的意义，而训练好的层接受到这种梯度并更新之后，原有的参数会被破坏。因此本文采用了 $(b)$ 表示的结构，使用 $\alpha\in[0,1]$ 作为平衡新层旧层权重的量，这种处理方式和“动量更新”或者迁移学习都很近似。</p>
-<p>&emsp;&emsp;最终得到的生成 $1024^2$ 分辨率的网络结构参数如下。</p>
-<p><img src="/PG_GAN/image-20230105091756017.png" alt="image-20230105091756017"></p>
-<p>&emsp;&emsp;实际处理中整体上 $G,D$ 是镜像结构，但是 $D$ 中多了 <code>Minibatch stddev</code> 操作，其具体流程为：</p>
-<ul>
-<li>按照 <code>batch_size=N</code> 分解为 <code>N=GxM</code>，其中 <code>G</code> 为分组大小，<code>M=N/G</code>，此时特征变为 <code>GMCHW</code></li>
-<li>在 <code>G</code> 维度上计算标准差，得到 <code>MCHW</code></li>
-<li>在 <code>C,H,W</code> 维度上再计算平均值，得到 <code>M111</code></li>
-<li>将上一步的结果在 <code>M</code> 维度上复制 <code>G</code> 次将 <code>M</code> 变成 <code>N</code>，在后两维度上各复制 <code>H,W</code> 次，得到 <code>N1HW</code></li>
-<li>将上一步的结果和原始的输入进行拼接，得到 <code>N(C+1)HW</code></li>
-</ul>
-<p>&emsp;&emsp;其具体实现代码为：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Minibatch standard deviation.</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">minibatch_stddev_layer</span>(<span class="params">x, group_size=<span class="number">4</span></span>):</span><br><span class="line">    <span class="keyword">with</span> tf.variable_scope(<span class="string">&#x27;MinibatchStddev&#x27;</span>):</span><br><span class="line">        group_size = tf.minimum(group_size, tf.shape(x)[<span class="number">0</span>])     <span class="comment"># Minibatch must be divisible by (or smaller than) group_size.</span></span><br><span class="line">        s = x.shape                                             <span class="comment"># [NCHW]  Input shape.</span></span><br><span class="line">        y = tf.reshape(x, [group_size, -<span class="number">1</span>, s[<span class="number">1</span>], s[<span class="number">2</span>], s[<span class="number">3</span>]])   <span class="comment"># [GMCHW] Split minibatch into M groups of size G.</span></span><br><span class="line">        y = tf.cast(y, tf.float32)                              <span class="comment"># [GMCHW] Cast to FP32.</span></span><br><span class="line">        y -= tf.reduce_mean(y, axis=<span class="number">0</span>, keepdims=<span class="literal">True</span>)           <span class="comment"># [GMCHW] Subtract mean over group.</span></span><br><span class="line">        y = tf.reduce_mean(tf.square(y), axis=<span class="number">0</span>)                <span class="comment"># [MCHW]  Calc variance over group.</span></span><br><span class="line">        y = tf.sqrt(y + <span class="number">1e-8</span>)                                   <span class="comment"># [MCHW]  Calc stddev over group.</span></span><br><span class="line">        y = tf.reduce_mean(y, axis=[<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>], keepdims=<span class="literal">True</span>)      <span class="comment"># [M111]  Take average over fmaps and pixels.</span></span><br><span class="line">        y = tf.cast(y, x.dtype)                                 <span class="comment"># [M111]  Cast back to original data type.</span></span><br><span class="line">        y = tf.tile(y, [group_size, <span class="number">1</span>, s[<span class="number">2</span>], s[<span class="number">3</span>]])             <span class="comment"># [N1HW]  Replicate over group and pixels.</span></span><br><span class="line">        <span class="keyword">return</span> tf.concat([x, y], axis=<span class="number">1</span>)                        <span class="comment"># [NCHW]  Append as new fmap.</span></span><br></pre></td></tr></table></figure>
-<p>&emsp;&emsp;最终采用的 <code>loss</code> 为 <code>improved Wasserstein loss</code>。</p>
-<h4 id="MS-SSIM"><a href="#MS-SSIM" class="headerlink" title="MS-SSIM"></a>MS-SSIM</h4><p><img src="/PG_GAN/image-20230105101714321.png" alt="image-20230105101714321"></p>
-<p>&emsp;&emsp;本文提出现有的 <code>MS-SSIM</code> 方法只能对大尺度的模式崩溃进行响应，但不能对较小的影响做出反应，如颜色或纹理变化的损失，而且也不能从与训练集的相似性方面直接评估图像质量。上图展示了现有的 <code>MS-SSIM</code> 方法的流程，其中 $c,s$ 表示特征，$L$ 表示低通滤波，$2\downarrow$ 表示降采样。</p>
-<p>&emsp;&emsp;本文基于同样的多尺度策略提出了另一种思路，也就是对于多张图像，每张图像逐步使用拉普拉斯金字塔进行多尺度滤波，对每一层的图像提取 <code>128</code> 个特征描述子，每个描述子由 <code>7x7</code> 个邻居的 <code>3</code> 个通道组成，对于提取出的描述子，首先标准化每个颜色通道的均值和标准差，然后通过计算它们的切片 <code>Wasserstein</code> 距离作为相似度。</p>
-<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p><img src="/PG_GAN/image-20230105114256331.png" alt="image-20230105114256331"></p>
-<p>&emsp;&emsp;该表使用了 <code>WGAN</code> 的 <code>baseline</code>，逐步地添加各个改进策略，用以进行消融实验验证策略有效性，其中 <code>Sliced Wasserstein distance</code> 下的 <code>128,64,32,16,Avg</code> 表示在不同尺度下的 <code>WSD</code>，其最终得到的图像如下图所示。</p>
-<p><img src="/PG_GAN/image-20230105115119346.png" alt="image-20230105115119346"></p>
 ]]></content>
       <categories>
         <category>paper</category>
@@ -2152,54 +2044,182 @@ z^{proto}=\gamma z^{proto}+(1-\gamma) \mathbb E_{x^{(i)}\sim p(\mathcal T)}\frac
       </categories>
   </entry>
   <entry>
-    <title>Privacy-Phys</title>
-    <url>/Privacy_Phys/</url>
-    <content><![CDATA[<h2><center> Privacy-Phys: Facial Video-based Physiological Modification for Privacy Protection </center></h2>
+    <title>NUWA</title>
+    <url>/NUWA/</url>
+    <content><![CDATA[<h2><center> NUWA: Visual Synthesis Pre-training for Neural visUal World creAtion </center></h2>
 
-<p>【心率监测】【SPL2022】【<a href="https://ieeexplore.ieee.org/document/9806161/">paper</a>】【<a href>code未开源</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种基于预训练的 3D-CNN 网络结构用于在保持视觉不变性的基础上修改视频中人脸的 rppg 信号，可以用于 IDEA 中的正样本生成模块之中。另外，本文讲故事的方式是：rppg 信号中具备人的生理和疾病等隐私信息，这些信息不希望被他人窃取，因此使用 PrivacyPhys 方法可以快速地修改 rppg 信号以干扰窃取，可以用于视频软件之中。</p>
-<p>&emsp;&emsp;一个有意思的点在于：本文所谓的预训练的网络其实完全不参与微调，梯度也不用来更新网络参数，而是直接更新结果。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Privacy_Phys/image-20221124091934773.png" alt="image-20221124091934773" style="zoom:80%;"></p>
+<p>【图/视频生成】【ECCV2022】【<a href="http://arxiv.org/abs/2111.12417">paper</a>】【<a href="https://github.com/microsoft/NUWA">code</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种统一的文本图像视频表示方法，基于此实现了全模态统一的视频/图像条件生成，值得一提的是，在本文之后，MSRA 又推出了能生成 38912 x 2048 分辨率图像的 NUWA-Infinity，以及 23 年 4 月推出了能生成 11 mins 动画的 NUWA-XL。网络使用 VQGAN 的结构，搭建了基于 transformer 的编解码器，为了解决复杂度的问题设计了 3DNA 的近邻结构。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/NUWA/image-20230412094014616.png" alt="image-20230412094014616"></p>
 <span id="more"></span>
 <hr>
 <h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>一种新的用于修改人脸视频中 rppg 信号的 3DCNN 网络</li>
-<li>该网络修改之后的视频可以混淆当前检测的 SOTA 方法（有点像 deepfake 和 detection 了，好怪)</li>
-<li>相比于之前的大作 PulseEdit，这个方法推理更加迅速</li>
+<li>一种全统一（文本+图像+视频）的多模态生成模型</li>
+<li>一种基于近邻的注意力计算方法 3DNA（3D Nearby Attention），有效减少了视频 transformer 复杂度</li>
 </ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/Privacy_Phys/image-20221124092312238.png" alt="image-20221124092312238" style="zoom:67%;"></p>
-<p>&emsp;&emsp;本文的前向过程非常简单，首先对于输入的视频 $z$，copy 一份同样的视频 $x$（$x$ 最后就是输出），同时根据人脸分割生成皮肤掩码 $S$，生成 $S$ 的目的是：心率编辑不应当修改除了人脸范围以外的其他像素。</p>
-<p>&emsp;&emsp;接着读入目标心率 $y$，通过一个训练好并且固定权重的 3DCNN，这里是 STN，但也可以使任何可以快速计算的网络，记为 $G_\theta$ ，对 $x$ 进行 rppg 信号提取，提取得到的信号记为 $G_\theta(x)$，然后开始计算 loss。</p>
-<p>&emsp;&emsp;loss 的计算分为两个部分：1.用于保证原始视频和新视频视觉效果一致的损失 $L_{f}$，2.用于保证修改之后的视频提取出的 rppg 信号和目标信号一致的损失 $L_{rppg}$，具体来说：</p>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/NUWA/image-20230412102033102.png" alt="image-20230412102033102"></p>
+<p>&emsp;&emsp;为了能够将文本和图像视频一起表示，本文采用 $X\in\mathbb R^{h\times w\times s\times d}$ 的方式表示输入，其中 $h,w$ 表示图像的 shape，$s$ 表示文本视频长度，$d$  表示 token 维度。即文本 $\mathbb R^{1\times 1\times s\times d}$，图像 $\mathbb R^{h\times w\times 1\times d}$，视频 $\mathbb R^{h\times w\times t\times d}$。</p>
+<p>&emsp;&emsp;上图中显示的是整体的网络 IO，其中的编解码器结构没有显示，具体在编解码器上的 transformer 结构也没有显示，对于网络结构，具体来说：本文采用基于 transformer 的 VQGAN 架构，对于视频数据的 transformer 结构，为了降低复杂度设计了 3DNA，其做法如下：</p>
+<ul>
+<li>3DNA 的 IO 表达式为：$Y=3DNA(X,C;W)$，其中 $Y$ 为输出，$X$ 为输入，$C$ 为条件，$W$ 为参数<ul>
+<li>其中输入的 shape 为：$X\in\mathbb R^{h\times w\times s\times d_{in}},\ C\in\mathbb R^{h’\times w’\times s’\times d_{in}}$，都打过 patch 了</li>
+</ul>
+</li>
+<li>对于 $X$ 的下标 $(i,j,k)$，首先寻找 $C$ 中对应的下标 $(i’,j’,k’)=([i\frac {h’}h],[j\frac {w’}w],[k\frac {s’}s])$</li>
+<li>寻找 $C$ 中和 $(i’,j’,k’)$ 临近的 patch idx $N\to(e^h,e^w,e^s,d_{in})$，仅对这些做 attn，其中 $e^h,e^w,e^s$ 在图像下为 3,3,1，在视频下为 3,3,3</li>
+</ul>
+<p><img src="/NUWA/image-20230412110441508.png" alt="image-20230412110441508" style="zoom:40%;"></p>
+<ul>
+<li>接下来计算 attn ，对于 $Y$ 的 $(i,j,k)$ 下标，结果为：$Y_{(i,j,k)}=softmax(\frac{QK^T}{d_{in}})V\to(h,w,s,d_{out})$，再通过 MLP 即可。其中<ul>
+<li>$Q=X\times W^Q\to(h,w,s,d_{out})$</li>
+<li>$K=N\times W^K\to(e^h,e^w,e^s,d_{out})$</li>
+<li>$V=N\times W^V\to(e^h,e^w,e^s,d_{out})$</li>
+</ul>
+</li>
+<li>该 attn 计算需要经过共  $l$ 层，对 $C$ 来说也需要同步逐层更新：$C^l=3DNA(C^{l-1}, C^{l-1})$</li>
+<li>在计算 attn 的过程中的位置编码为可学习的相对位置编码，在 $h,w,s$ 三个维度分开学习</li>
+<li>使用 441x256 的codebook dim，codebook size 为 12288，进行 VQ</li>
+<li>使用完全反向的解码器进行解码，loss 采用 VQGAN 的loss</li>
+<li>对于第二阶段，由于本文做了视频文本图像三个任务（文本到图像，视频预测和文本到视频），因此第二阶段采用 GPT 类型的三个损失函数</li>
+</ul>
+<p><img src="/NUWA/image-20230412112545692.png" alt="image-20230412112545692" style="zoom: 40%;"></p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文的实验十分翔实充分，在补充材料里给了将近 20 页的各种实验，无论是不同任务上的结果还是消融实验都很多，这里只列一下主任务结果和视频预测 FVD。</p>
+<ul>
+<li>和其他模型在文转图的视觉结果对比</li>
+</ul>
+<p><img src="/NUWA/image-20230412112837766.png" alt="image-20230412112837766"></p>
+<ul>
+<li>和其他模型在文转视频视觉效果对比</li>
+</ul>
+<p><img src="/NUWA/image-20230412112916381.png" alt="image-20230412112916381"></p>
+<ul>
+<li>视频预测结果（FVD）</li>
+</ul>
+<p><img src="/NUWA/image-20230412113018082.png" alt="image-20230412113018082" style="zoom:40%;"></p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Orthogonal_VQGAN</title>
+    <url>/Orthogonal_VQGAN/</url>
+    <content><![CDATA[<h2><center> Exploration into Translation-Equivariant Image Quantization </center></h2>
+
+<p>【VQGAN探索】【ICASSP<strong>(CCF_B)</strong>】【<a href="arXiv:2112.00384">paper</a>】【<a href>code</a>未开源】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了在 VQ 的时候由于码本中不同编码的堆叠，可能导致性能的下降以及平移等变性的缺失，因此以一种很简单的方式消除了堆叠，具体来说，即加入正交化损失，通过强制 codebook 正交化减少堆叠。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Orthogonal_VQGAN/image-20230330092831822.png" alt="image-20230330092831822" style="zoom:50%;"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>正交化损失，用于减少堆叠以及保持平移等变性</li>
+<li>正交初始化，用于减少堆叠（以本文为经验可以得出的结果，具备明显的合理性）</li>
+</ul>
+<h3 id="为什么要正交？"><a href="#为什么要正交？" class="headerlink" title="为什么要正交？"></a>为什么要正交？</h3><p>&emsp;&emsp;图像经过 CNN 之后的平移等变性缺失是老生常谈的话题，以可视化的例子如下所示，下图中随着图像主体的平移，普通的 CNN 结构（baseline）的置信度变化方差很大，而抗堆叠的方法会好很多。</p>
+<p><img src="/Orthogonal_VQGAN/video_00810.gif" alt></p>
+<p>&emsp;&emsp;所谓平移等变，事实上在分类任务中要求的应该是平移不变性，就是平移之后输出不变，对应在分割等任务上应该是平移等变，就是平移之后输出的 box 等跟随平移。但是我觉得在分类任务其实也得要求平移等变，并非以结果和输入等变，而是以特征图和输入等变，如下图所示。而平移不变性则是在等变的特征图的基础上后续预测网络的要求。</p>
+<p><img src="/Orthogonal_VQGAN/v2-73708d7f00e07e836bd63a96baad638e_1440w.webp" alt="img" style="zoom:50%;"></p>
+<p>&emsp;&emsp;之所以会缺失平移等变性，主要是因为在降采样的过程中，无论是卷积降采样还是池化降采样，都会损失相对位置信息，以 MaxPooling 为例，第一步取 max 实际上只是在一定程度上做了平均，算是一种信息的压缩，但是这里的压缩损失的只是细节信息，但是第二步的池化操作会把原本离得或近或远的 max 的 index 放在相邻位置。这种降采样导致在周期性平移（平移长度为步长整数倍）时可以获得平移等变的结果，而除此之外就会产生较大的误差。因此可以看出 baseline 并不是一直都差，而是周期性地好坏。</p>
+<h3 id="如何保证码本正交？"><a href="#如何保证码本正交？" class="headerlink" title="如何保证码本正交？"></a>如何保证码本正交？</h3><p>&emsp;&emsp;码本的正交可以最大限度地消除码本的冗余性，从而在特征向量少量移动时保证量化之后的向量尽可能不变。</p>
+<p>&emsp;&emsp;至于做法包含两个层面：</p>
+<ul>
+<li>初始化的时候将随机初始化的变量进行正交化处理</li>
+<li>使用正交化损失进行强制 codebook 正交化，orthogonality loss 写作：</li>
+</ul>
 <script type="math/tex; mode=display">
-\rm
-\begin{aligned}
-&L_{f}(x,z)=\frac1{T\cdot C\cdot H\cdot W}||x-z||_2^2\\
-&L_{rppg}(G_{\theta^*(x)},y)=L_{rppg}(\hat y,y)=\frac{-cov(\hat y, y)}{\sigma_{\hat y}\cdot \sigma_y}\\
-where\ \ \ \ &\sigma_y=\sqrt{\frac 1 T \sum_{t=1}^Ty(t)^2-(\frac 1 T \sum_{t=1}^Ty(t))^2}\\
-and\ \ \ \ &cov(\hat y,y)=\frac 1 T \sum_{t=1}^T\hat y(t)y(t)-\frac 1 T \sum_{t=1}^T\hat y(t)\cdot\frac 1 T \sum_{t=1}^Ty(t)
-\end{aligned}</script><p>&emsp;&emsp;简单概括来说就是：使用 MSELoss 限制视频的视觉一致性，使用 NPC 限制 rppg 信号的一致性。</p>
-<p>&emsp;&emsp;获得两个损失之后求和得到最终的损失：$L=L_{rppg}+\lambda L_f$，$\lambda$ 用于控制视频和 rppg 信号的重要程度。通过 $L$ 向输出 $x$ 求导得到 $\nabla_xL$，并使用此梯度更新 $x$，但是这里注意更新的其实是 $S\bigotimes x$，也就是只更新人脸 mask 之内的部分。具体实现中直接全部更新，更新之后再做掩码即可。</p>
-<p>&emsp;&emsp;整体来说，本文的优化目标可以看做：</p>
+\mathcal L_{REG}(e)=\lambda\frac{1}{K^2}||l_2(e)^Tl_2(e)-I_K||_2^2</script><p>&emsp;&emsp;即，对码表的编码进行 l2_normlize 之后计算正交矩阵，使其和单位矩阵尽可能接近，$K^2$ 用以消除尺度误差，$\lambda$ 用以平衡权重。</p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>PGGAN</title>
+    <url>/PG_GAN/</url>
+    <content><![CDATA[<h2><center> Progressive Growing of GANs for Improved Quality, Stability, and Variation </center></h2>
+
+<p>【图像生成】【ICLR2018】【<a href="http://arxiv.org/abs/1710.10196">paper</a>】【<a href="https://github.com/tkarras/progressive_growing_of_gans">code</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文使用逐步调大分辨率的生成方式成功生成了在当时还不错的高分辨率图像。具体来说是进行分阶段的训练，阶段按照分辨率进行分界。并且每个新的阶段要加入新的卷积层，为了防止没有经过训练的层回传梯度时影响训练好的层，本文还使用了一种平滑的融合策略。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/PG_GAN/image-20230105204451398.png" alt="image-20230105204451398"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>逐步并行地向判别器和生成器之中加入新的卷积层从而最终生成高分辨率图像，这使得训练更稳定、迅速</li>
+<li>使用类似于“动量更新”的方式加入新的卷积层，防止其刚开始训练时回传的粗梯度影响之前的结果</li>
+<li>在判别器的最后使用 <code>minibatch</code> 的方式分组无参计算每个 <code>batch</code> 内的分布加强判别器的能力</li>
+<li>在训练时使用多通道特征训练，在需要可视化的时候加入一个 <code>to_rgb</code> 层</li>
+<li>使用 $\mathcal N(0,1)$ 初始化权重，并且在运行的过程中动态缩放权重</li>
+<li>提出了一种基于 <code>MS-SSIM</code> 的生成图像评价指标，可以对生成的图像在不同尺度上的细节分布进行检测</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><h4 id="backbone"><a href="#backbone" class="headerlink" title="backbone"></a>backbone</h4><p><img src="/PG_GAN/image-20230104212316211.png" alt="image-20230104212316211"></p>
+<p>&emsp;&emsp;整个网络的生成器和判别器由两个对称的 CNN 网络组成，不同的是在判别器的最后一层 CNN 时加入了 <code>Minibatch stddev</code> 操作，用以计算某个 <code>batch</code> 内分组的分布，作为额外的特征通道加入 <code>C</code> 维度。</p>
+<p>&emsp;&emsp;网络的训练逐步增加生成的图像分辨率，方式是逐步添加新的卷积层，上图中的 $4\times 4$ 表示针对 <code>NxCx4x4</code> 的特征的卷积操作，具体来说其中不包括上下采样，只包括多个卷积层和 <code>leaky_relu</code> 激活函数。上下采样没有在上图中显示，其存在于卷积层之间。</p>
+<p>&emsp;&emsp;生成器逐步生成更高 <code>HxW</code> 的特征，最终得到 <code>NxCx1024x1024</code> 的特征，并由一个 <code>1x1Conv</code> 的 <code>to_rgb</code> 层整形成 <code>rgb</code> 通道的图像。该图像输入至判别器中由一个和生成器镜像对称的结构判断 <code>T/F</code>。</p>
+<p><img src="/PG_GAN/image-20230105094832867.png" alt="image-20230105094832867"></p>
+<p>&emsp;&emsp;加入新的卷积层的方式如上图所示，其展示了从 <code>16x16</code> 分辨率的网络加入新的卷积层变为 <code>32x32</code> 分辨率网络的过程。$(a)$ 表示 <code>16x16</code> 对应的 $G,D$，$(c)$ 表示一种朴素的加入方式，其中 <code>2x,0.5x</code> 表示上下采样。这种方式在实现之后会产生对训练好的网络的冲击，这种冲击来自于新加入的层最初训练时回传的梯度并没有太大的意义，而训练好的层接受到这种梯度并更新之后，原有的参数会被破坏。因此本文采用了 $(b)$ 表示的结构，使用 $\alpha\in[0,1]$ 作为平衡新层旧层权重的量，这种处理方式和“动量更新”或者迁移学习都很近似。</p>
+<p>&emsp;&emsp;最终得到的生成 $1024^2$ 分辨率的网络结构参数如下。</p>
+<p><img src="/PG_GAN/image-20230105091756017.png" alt="image-20230105091756017"></p>
+<p>&emsp;&emsp;实际处理中整体上 $G,D$ 是镜像结构，但是 $D$ 中多了 <code>Minibatch stddev</code> 操作，其具体流程为：</p>
+<ul>
+<li>按照 <code>batch_size=N</code> 分解为 <code>N=GxM</code>，其中 <code>G</code> 为分组大小，<code>M=N/G</code>，此时特征变为 <code>GMCHW</code></li>
+<li>在 <code>G</code> 维度上计算标准差，得到 <code>MCHW</code></li>
+<li>在 <code>C,H,W</code> 维度上再计算平均值，得到 <code>M111</code></li>
+<li>将上一步的结果在 <code>M</code> 维度上复制 <code>G</code> 次将 <code>M</code> 变成 <code>N</code>，在后两维度上各复制 <code>H,W</code> 次，得到 <code>N1HW</code></li>
+<li>将上一步的结果和原始的输入进行拼接，得到 <code>N(C+1)HW</code></li>
+</ul>
+<p>&emsp;&emsp;其具体实现代码为：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Minibatch standard deviation.</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">minibatch_stddev_layer</span>(<span class="params">x, group_size=<span class="number">4</span></span>):</span><br><span class="line">    <span class="keyword">with</span> tf.variable_scope(<span class="string">&#x27;MinibatchStddev&#x27;</span>):</span><br><span class="line">        group_size = tf.minimum(group_size, tf.shape(x)[<span class="number">0</span>])     <span class="comment"># Minibatch must be divisible by (or smaller than) group_size.</span></span><br><span class="line">        s = x.shape                                             <span class="comment"># [NCHW]  Input shape.</span></span><br><span class="line">        y = tf.reshape(x, [group_size, -<span class="number">1</span>, s[<span class="number">1</span>], s[<span class="number">2</span>], s[<span class="number">3</span>]])   <span class="comment"># [GMCHW] Split minibatch into M groups of size G.</span></span><br><span class="line">        y = tf.cast(y, tf.float32)                              <span class="comment"># [GMCHW] Cast to FP32.</span></span><br><span class="line">        y -= tf.reduce_mean(y, axis=<span class="number">0</span>, keepdims=<span class="literal">True</span>)           <span class="comment"># [GMCHW] Subtract mean over group.</span></span><br><span class="line">        y = tf.reduce_mean(tf.square(y), axis=<span class="number">0</span>)                <span class="comment"># [MCHW]  Calc variance over group.</span></span><br><span class="line">        y = tf.sqrt(y + <span class="number">1e-8</span>)                                   <span class="comment"># [MCHW]  Calc stddev over group.</span></span><br><span class="line">        y = tf.reduce_mean(y, axis=[<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>], keepdims=<span class="literal">True</span>)      <span class="comment"># [M111]  Take average over fmaps and pixels.</span></span><br><span class="line">        y = tf.cast(y, x.dtype)                                 <span class="comment"># [M111]  Cast back to original data type.</span></span><br><span class="line">        y = tf.tile(y, [group_size, <span class="number">1</span>, s[<span class="number">2</span>], s[<span class="number">3</span>]])             <span class="comment"># [N1HW]  Replicate over group and pixels.</span></span><br><span class="line">        <span class="keyword">return</span> tf.concat([x, y], axis=<span class="number">1</span>)                        <span class="comment"># [NCHW]  Append as new fmap.</span></span><br></pre></td></tr></table></figure>
+<p>&emsp;&emsp;最终采用的 <code>loss</code> 为 <code>improved Wasserstein loss</code>。</p>
+<h4 id="MS-SSIM"><a href="#MS-SSIM" class="headerlink" title="MS-SSIM"></a>MS-SSIM</h4><p><img src="/PG_GAN/image-20230105101714321.png" alt="image-20230105101714321"></p>
+<p>&emsp;&emsp;本文提出现有的 <code>MS-SSIM</code> 方法只能对大尺度的模式崩溃进行响应，但不能对较小的影响做出反应，如颜色或纹理变化的损失，而且也不能从与训练集的相似性方面直接评估图像质量。上图展示了现有的 <code>MS-SSIM</code> 方法的流程，其中 $c,s$ 表示特征，$L$ 表示低通滤波，$2\downarrow$ 表示降采样。</p>
+<p>&emsp;&emsp;本文基于同样的多尺度策略提出了另一种思路，也就是对于多张图像，每张图像逐步使用拉普拉斯金字塔进行多尺度滤波，对每一层的图像提取 <code>128</code> 个特征描述子，每个描述子由 <code>7x7</code> 个邻居的 <code>3</code> 个通道组成，对于提取出的描述子，首先标准化每个颜色通道的均值和标准差，然后通过计算它们的切片 <code>Wasserstein</code> 距离作为相似度。</p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p><img src="/PG_GAN/image-20230105114256331.png" alt="image-20230105114256331"></p>
+<p>&emsp;&emsp;该表使用了 <code>WGAN</code> 的 <code>baseline</code>，逐步地添加各个改进策略，用以进行消融实验验证策略有效性，其中 <code>Sliced Wasserstein distance</code> 下的 <code>128,64,32,16,Avg</code> 表示在不同尺度下的 <code>WSD</code>，其最终得到的图像如下图所示。</p>
+<p><img src="/PG_GAN/image-20230105115119346.png" alt="image-20230105115119346"></p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>PulseGAN</title>
+    <url>/PulseGAN/</url>
+    <content><![CDATA[<h2><center> PulseGAN: Learning to generate realistic pulse
+waveforms in remote photoplethysmography </center></h2>
+
+<p>【心率检测】【BHI2021】【<a href="https://arxiv.53yu.com/pdf/2006.02699">paper</a>】【<a href="https://github.com/miki998/PulseGAN.git">code非官方</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文引入了一种使用 GAN 训练的网络，网络并不直接从原始视频中获得 rppg 信号，而是使用其他方法已经估计出的粗糙 rppg 信号进行细化，BHI 是生物信息期刊，这篇文章相对其他论文具备更多的专业性指标，但是实验做得很少，没有在其他数据集内验证有效性。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/PulseGAN/image-20221207193415813.png" alt="image-20221207193415813"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>针对已有的粗糙的 rppg 信号估计更加精确的信号</li>
+<li>结合了 GAN 和 Conv（可惜这里 GAN 并非生成式任务，不然可以试着用 DM 代替）</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/PulseGAN/image-20221208122816922.png" alt="image-20221208122816922"></p>
+<p>&emsp;&emsp;这篇文章的网络结构很简单，主要分为两个部分：1. 已有的方法估计出的粗糙的 rppg 信号，2. 使用 GAN 进行对抗式训练。</p>
+<p>&emsp;&emsp;首先将输入 $V\in\mathbb R^{T\times C\times H\times W}$ 输入某个方法用于提取粗糙信号 $X\in\mathbb R^{T}$，为了快速训练和对运动鲁棒，本文选择的方法是 CHROM（又或许是因为 SOTA 很难再改进了），实际上这种方式在 Dual-GAN 里面也有运用，使用这种类似 CGAN 结构训练的话，一个直观的想法是直接从原视频中生成 rppg 信号。</p>
+<p>&emsp;&emsp;但是无论是这篇文章还是 Dual-GAN 都没有这么做的原因应该是原视频包含了太多的噪音。因此 CHROM 的预处理相当于剔除环境噪音，而 Dual-GAN 则采用 STMap 进行输入，在某种程度上也是去除环境噪音。</p>
+<p>&emsp;&emsp;将处理之后的粗糙信号 $X$ 输入 U-Net 形状的生成器 $G$，得到整形之后的输出 $G(X)\in\mathbb R^{T}$，接着借用 CGAN 的方式，将 $G(X)$ 和 $X$ 组合（cat）之后输入判别器 $D$ 并判断概率。</p>
+<p>&emsp;&emsp;判别器 $D$ 总共接受两个输入：1. $(G(X),X)$，2. $(X_C,X)$，其中 $X_C$ 为 GT。判别器期望对输入 1 判别为假，对输入 2 判别为真，生成器则相反。判别器估计之后的结果计算 loss 之后回传至生成器。</p>
+<p>&emsp;&emsp;其中，生成器 $G$ 的网路结构如图所示，整个网络是 U-Net 形状的网络，包含 6 个降采样和升采样模块，每个模块由 1d 卷积和 PReLU（在 ReLU 的基础上的改进，用于防止过拟合）组成，解码器则是对应的 1d 转置卷积。</p>
+<p><img src="/PulseGAN/image-20221208124435592.png" alt="image-20221208124435592" style="zoom:50%;"></p>
+<p>&emsp;&emsp;同上，判别器 $D$ 的网络结构如下：</p>
+<p><img src="/PulseGAN/image-20221208124701079.png" alt="image-20221208124701079" style="zoom:50%;"></p>
+<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;对抗训练的损失可以写为：</p>
 <script type="math/tex; mode=display">
-x=arg\min_{x\in R^{T\times C\times H\times W}} L_{rppg}(G_\theta(x),y)+\lambda L_f(x,z)\\
-s.t.\ \ S\bigotimes x=S\bigotimes z</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文的创新性比较高，整体的实现有点天马行空，消融实验只能做一下 $\lambda$，其他都是对比实验。</p>
-<ul>
-<li>$\lambda$ 的选择</li>
-</ul>
-<p>&emsp;&emsp;这部分选择了 7 种预训练的模型作为 $G$，分别探索了在不同 $\lambda$ 的选择下对于视频 PSNR 和 rppg 信号 MAE 的平衡性，最终选择了 $\lambda=0.1$（其实我感觉有点怪，这个 PSNR 都最低 51 了 $\dots\dots$ 正常来说 30+ 就是高质量图像了，35+ 都肉眼无法区别了，这意思感觉像是 $\lambda$ 可以不要一样，后面就知道为啥明明都 50+ 了还要选“平衡”）</p>
-<p><img src="/Privacy_Phys/image-20221124101025603.png" alt="image-20221124101025603" style="zoom:80%;"></p>
-<ul>
-<li>和 PulseEdit 的对比</li>
-</ul>
-<p>&emsp;&emsp;同样是之前选择的预训练模型，这里对比了在 PURE 和 MMSE 中和 PulseEdit 的结果，可以看出基本上在正常的 PSNR 下都是 PrivacyPhys 更好一些（就是为了全面超 PulseEdit 才选 0.1 的 $\lambda$ 以提高 PSNR）</p>
-<p><img src="/Privacy_Phys/image-20221124102201504.png" alt="image-20221124102201504"></p>
-<p><img src="/Privacy_Phys/image-20221124101931885.png" alt="image-20221124101931885"></p>
-<ul>
-<li>注意区域的对比</li>
-</ul>
-<p>&emsp;&emsp;可以看出相对来说，PrivacyPhys 还是更加关注了正确的区域，但是总觉得也就那样，和其他的注意力图展示出来差不少，整体来说 rppg fake 或许都不太好。</p>
-<p><img src="/Privacy_Phys/image-20221124102235096.png" alt="image-20221124102235096"></p>
+\begin{align}
+&L_G=\frac12(D(G(X),X)-1)^2+\lambda||X_c-G(X)||_1+\beta||X_{cf}-G_f(X)||_1\\
+&L_D=\frac12(D(G(X),X))^2+\frac12(D(X_c,X)-1)^2
+\end{align}</script><p>&emsp;&emsp;其中， $X_{cf}$ 和 $G_f$ 分别表示对 $X_c,\ G(X)$ 进行傅里叶变换向频率域的映射后的信号值，生成器期望：1. $G(X)$ 难以分辨真假，2. $G(x)$ 在时间域上接近 GT，3. $G(X)$ 在频率域上接近 GT；判别器期望：能够分辨 $G(X)$ 和 $X_c$。</p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文整体来说实验较少，主要实验是在 UBFC 上做了数据集内测试如下所所示，其中的 $HR_{mer}$ 表示平均错误率百分比，至少在 MAE 和 RMSE 上达到的结果只能说还 ok，毕竟在 21 年的时候 Siamese rppg 也发表了。</p>
+<p><img src="/PulseGAN/image-20221208130646082.png" alt="image-20221208130646082" style="zoom:67%;"></p>
+<p>&emsp;&emsp;接着是跨数据集测试，PURE → UBFC。可以看出指标下滑较多，因为只选了 DAE 做对比因此看上去还行，整体上不如 Siamese rppg，不过跨数据集只做了这一个略显寒酸了。</p>
+<p><img src="/PulseGAN/image-20221208131055463.png" alt="image-20221208131055463" style="zoom: 67%;"></p>
+<p>&emsp;&emsp;其他的实验测量了包括 AVNN，SDNN、IBI 等其他方法不测试的指标，因为没得比，因此主要是做离群值分析，或许是因为发在生物信息的期刊，对这方面的指标比较看重吧。</p>
 ]]></content>
       <categories>
         <category>paper</category>
@@ -2278,36 +2298,59 @@ p=\lceil\delta_c(n)\rceil-\delta_c(n)</script><p>&emsp;&emsp;故而在所有的�
       </categories>
   </entry>
   <entry>
-    <title>Orthogonal_VQGAN</title>
-    <url>/Orthogonal_VQGAN/</url>
-    <content><![CDATA[<h2><center> Exploration into Translation-Equivariant Image Quantization </center></h2>
+    <title>Privacy-Phys</title>
+    <url>/Privacy_Phys/</url>
+    <content><![CDATA[<h2><center> Privacy-Phys: Facial Video-based Physiological Modification for Privacy Protection </center></h2>
 
-<p>【VQGAN探索】【ICASSP<strong>(CCF_B)</strong>】【<a href="arXiv:2112.00384">paper</a>】【<a href>code</a>未开源】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了在 VQ 的时候由于码本中不同编码的堆叠，可能导致性能的下降以及平移等变性的缺失，因此以一种很简单的方式消除了堆叠，具体来说，即加入正交化损失，通过强制 codebook 正交化减少堆叠。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Orthogonal_VQGAN/image-20230330092831822.png" alt="image-20230330092831822" style="zoom:50%;"></p>
+<p>【心率监测】【SPL2022】【<a href="https://ieeexplore.ieee.org/document/9806161/">paper</a>】【<a href>code未开源</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种基于预训练的 3D-CNN 网络结构用于在保持视觉不变性的基础上修改视频中人脸的 rppg 信号，可以用于 IDEA 中的正样本生成模块之中。另外，本文讲故事的方式是：rppg 信号中具备人的生理和疾病等隐私信息，这些信息不希望被他人窃取，因此使用 PrivacyPhys 方法可以快速地修改 rppg 信号以干扰窃取，可以用于视频软件之中。</p>
+<p>&emsp;&emsp;一个有意思的点在于：本文所谓的预训练的网络其实完全不参与微调，梯度也不用来更新网络参数，而是直接更新结果。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Privacy_Phys/image-20221124091934773.png" alt="image-20221124091934773" style="zoom:80%;"></p>
 <span id="more"></span>
 <hr>
 <h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>正交化损失，用于减少堆叠以及保持平移等变性</li>
-<li>正交初始化，用于减少堆叠（以本文为经验可以得出的结果，具备明显的合理性）</li>
+<li>一种新的用于修改人脸视频中 rppg 信号的 3DCNN 网络</li>
+<li>该网络修改之后的视频可以混淆当前检测的 SOTA 方法（有点像 deepfake 和 detection 了，好怪)</li>
+<li>相比于之前的大作 PulseEdit，这个方法推理更加迅速</li>
 </ul>
-<h3 id="为什么要正交？"><a href="#为什么要正交？" class="headerlink" title="为什么要正交？"></a>为什么要正交？</h3><p>&emsp;&emsp;图像经过 CNN 之后的平移等变性缺失是老生常谈的话题，以可视化的例子如下所示，下图中随着图像主体的平移，普通的 CNN 结构（baseline）的置信度变化方差很大，而抗堆叠的方法会好很多。</p>
-<p><img src="/Orthogonal_VQGAN/video_00810.gif" alt></p>
-<p>&emsp;&emsp;所谓平移等变，事实上在分类任务中要求的应该是平移不变性，就是平移之后输出不变，对应在分割等任务上应该是平移等变，就是平移之后输出的 box 等跟随平移。但是我觉得在分类任务其实也得要求平移等变，并非以结果和输入等变，而是以特征图和输入等变，如下图所示。而平移不变性则是在等变的特征图的基础上后续预测网络的要求。</p>
-<p><img src="/Orthogonal_VQGAN/v2-73708d7f00e07e836bd63a96baad638e_1440w.webp" alt="img" style="zoom:50%;"></p>
-<p>&emsp;&emsp;之所以会缺失平移等变性，主要是因为在降采样的过程中，无论是卷积降采样还是池化降采样，都会损失相对位置信息，以 MaxPooling 为例，第一步取 max 实际上只是在一定程度上做了平均，算是一种信息的压缩，但是这里的压缩损失的只是细节信息，但是第二步的池化操作会把原本离得或近或远的 max 的 index 放在相邻位置。这种降采样导致在周期性平移（平移长度为步长整数倍）时可以获得平移等变的结果，而除此之外就会产生较大的误差。因此可以看出 baseline 并不是一直都差，而是周期性地好坏。</p>
-<h3 id="如何保证码本正交？"><a href="#如何保证码本正交？" class="headerlink" title="如何保证码本正交？"></a>如何保证码本正交？</h3><p>&emsp;&emsp;码本的正交可以最大限度地消除码本的冗余性，从而在特征向量少量移动时保证量化之后的向量尽可能不变。</p>
-<p>&emsp;&emsp;至于做法包含两个层面：</p>
-<ul>
-<li>初始化的时候将随机初始化的变量进行正交化处理</li>
-<li>使用正交化损失进行强制 codebook 正交化，orthogonality loss 写作：</li>
-</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/Privacy_Phys/image-20221124092312238.png" alt="image-20221124092312238" style="zoom:67%;"></p>
+<p>&emsp;&emsp;本文的前向过程非常简单，首先对于输入的视频 $z$，copy 一份同样的视频 $x$（$x$ 最后就是输出），同时根据人脸分割生成皮肤掩码 $S$，生成 $S$ 的目的是：心率编辑不应当修改除了人脸范围以外的其他像素。</p>
+<p>&emsp;&emsp;接着读入目标心率 $y$，通过一个训练好并且固定权重的 3DCNN，这里是 STN，但也可以使任何可以快速计算的网络，记为 $G_\theta$ ，对 $x$ 进行 rppg 信号提取，提取得到的信号记为 $G_\theta(x)$，然后开始计算 loss。</p>
+<p>&emsp;&emsp;loss 的计算分为两个部分：1.用于保证原始视频和新视频视觉效果一致的损失 $L_{f}$，2.用于保证修改之后的视频提取出的 rppg 信号和目标信号一致的损失 $L_{rppg}$，具体来说：</p>
 <script type="math/tex; mode=display">
-\mathcal L_{REG}(e)=\lambda\frac{1}{K^2}||l_2(e)^Tl_2(e)-I_K||_2^2</script><p>&emsp;&emsp;即，对码表的编码进行 l2_normlize 之后计算正交矩阵，使其和单位矩阵尽可能接近，$K^2$ 用以消除尺度误差，$\lambda$ 用以平衡权重。</p>
+\rm
+\begin{aligned}
+&L_{f}(x,z)=\frac1{T\cdot C\cdot H\cdot W}||x-z||_2^2\\
+&L_{rppg}(G_{\theta^*(x)},y)=L_{rppg}(\hat y,y)=\frac{-cov(\hat y, y)}{\sigma_{\hat y}\cdot \sigma_y}\\
+where\ \ \ \ &\sigma_y=\sqrt{\frac 1 T \sum_{t=1}^Ty(t)^2-(\frac 1 T \sum_{t=1}^Ty(t))^2}\\
+and\ \ \ \ &cov(\hat y,y)=\frac 1 T \sum_{t=1}^T\hat y(t)y(t)-\frac 1 T \sum_{t=1}^T\hat y(t)\cdot\frac 1 T \sum_{t=1}^Ty(t)
+\end{aligned}</script><p>&emsp;&emsp;简单概括来说就是：使用 MSELoss 限制视频的视觉一致性，使用 NPC 限制 rppg 信号的一致性。</p>
+<p>&emsp;&emsp;获得两个损失之后求和得到最终的损失：$L=L_{rppg}+\lambda L_f$，$\lambda$ 用于控制视频和 rppg 信号的重要程度。通过 $L$ 向输出 $x$ 求导得到 $\nabla_xL$，并使用此梯度更新 $x$，但是这里注意更新的其实是 $S\bigotimes x$，也就是只更新人脸 mask 之内的部分。具体实现中直接全部更新，更新之后再做掩码即可。</p>
+<p>&emsp;&emsp;整体来说，本文的优化目标可以看做：</p>
+<script type="math/tex; mode=display">
+x=arg\min_{x\in R^{T\times C\times H\times W}} L_{rppg}(G_\theta(x),y)+\lambda L_f(x,z)\\
+s.t.\ \ S\bigotimes x=S\bigotimes z</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文的创新性比较高，整体的实现有点天马行空，消融实验只能做一下 $\lambda$，其他都是对比实验。</p>
+<ul>
+<li>$\lambda$ 的选择</li>
+</ul>
+<p>&emsp;&emsp;这部分选择了 7 种预训练的模型作为 $G$，分别探索了在不同 $\lambda$ 的选择下对于视频 PSNR 和 rppg 信号 MAE 的平衡性，最终选择了 $\lambda=0.1$（其实我感觉有点怪，这个 PSNR 都最低 51 了 $\dots\dots$ 正常来说 30+ 就是高质量图像了，35+ 都肉眼无法区别了，这意思感觉像是 $\lambda$ 可以不要一样，后面就知道为啥明明都 50+ 了还要选“平衡”）</p>
+<p><img src="/Privacy_Phys/image-20221124101025603.png" alt="image-20221124101025603" style="zoom:80%;"></p>
+<ul>
+<li>和 PulseEdit 的对比</li>
+</ul>
+<p>&emsp;&emsp;同样是之前选择的预训练模型，这里对比了在 PURE 和 MMSE 中和 PulseEdit 的结果，可以看出基本上在正常的 PSNR 下都是 PrivacyPhys 更好一些（就是为了全面超 PulseEdit 才选 0.1 的 $\lambda$ 以提高 PSNR）</p>
+<p><img src="/Privacy_Phys/image-20221124102201504.png" alt="image-20221124102201504"></p>
+<p><img src="/Privacy_Phys/image-20221124101931885.png" alt="image-20221124101931885"></p>
+<ul>
+<li>注意区域的对比</li>
+</ul>
+<p>&emsp;&emsp;可以看出相对来说，PrivacyPhys 还是更加关注了正确的区域，但是总觉得也就那样，和其他的注意力图展示出来差不少，整体来说 rppg fake 或许都不太好。</p>
+<p><img src="/Privacy_Phys/image-20221124102235096.png" alt="image-20221124102235096"></p>
 ]]></content>
       <categories>
         <category>paper</category>
         <category>cv</category>
+        <category>hr</category>
       </categories>
   </entry>
   <entry>
@@ -2565,6 +2608,178 @@ L_v=\frac1d\sum\limits_{i=1}^{d}(\mathrm{CDF}_i(Q)-\mathrm{CDF}_i(P))^2</script>
       </categories>
   </entry>
   <entry>
+    <title>transformer_implements</title>
+    <url>/awesome_transformers/</url>
+    <content><![CDATA[<h2><center> transformer_implements </center></h2>
+
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;在 视频行为识别 / 视频实例分割 / 视频超分辨率 等领域具备一定效果的 transformer backbone</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><ul>
+<li>TeViT</li>
+<li>UniFormer</li>
+</ul>
+<span id="more"></span>
+<hr>
+<h4 id="TeViT-Temporally-Efficient-Vision-Transformer-for-Video-Instance-Segmentation"><a href="#TeViT-Temporally-Efficient-Vision-Transformer-for-Video-Instance-Segmentation" class="headerlink" title="TeViT : Temporally Efficient Vision Transformer for Video Instance Segmentation"></a>TeViT : Temporally Efficient Vision Transformer for Video Instance Segmentation</h4><p>CVPR2022Oral 视频语义分割 <a href="https://ieeexplore.ieee.org/document/9879803/">paper</a> <a href="https://github.com/hustvl/TeViT">code</a></p>
+<h5 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h5><ul>
+<li>一种信使 token+移位的时间维度特征融合方法</li>
+<li>多尺度的金字塔结构，生成多个不同尺度的特征图用于下一步分割头</li>
+</ul>
+<h5 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h5><p><img src="/awesome_transformers/image-20230308095622857.png" alt="image-20230308095622857" style="zoom:50%;"></p>
+<p>&emsp;&emsp;对于基于 transformer 的特征提取 backbone，串行地打四个不同 size 的 patch，将得到的 token 经过 embeding 输入网络，从而生成 4 个比原图像降采样 4,8,16,32 的特征图序列 $\{F_i^1,F_i^2,F_i^3,F_i^4\}_{i=1}^T$，每个 $F$ 都表示了 T 帧中不同感受野的特征，用于下一步的分类/回归任务。</p>
+<p>&emsp;&emsp;对于每个尺度下的 backbone，其具体操作如下：</p>
+<ul>
+<li>对一个 T 帧的 token $x_i\to(\frac{HW}{P^2},C)$，配备 M 个信使 token $m_i\to(M,C)$，两者 concat 之后为 $\{x_i,m_i\}_{i=1}^T\to(T,\frac{HW}{P^2}+M,C)$</li>
+<li>对于配备好信使 token 的新数据，在经过 backbone 的时候，每两个 MHSA+FFN 为一次循环，对每一次循环的操作如下：<ul>
+<li><img src="/awesome_transformers/image-20230308103204639.png" alt="image-20230308103204639" style="zoom:33%;"></li>
+<li>图中绿色部分代表信使 token，蓝色部分代表原始的 token，上下维度表示时间维度（图中显示为 5 帧），左右维度表示信使分组个数（图中显示为 4 组，注意，每组不见得只有一个信使 token），前后维度表示 channel</li>
+<li>在每轮循环中，第一个 MHSA+FFN 直接在 $\{x_i,m_i\}_{i=1}^T$ 上进行，目的是使所有的 $m$ 都学到自己对应原始 token 的信息</li>
+<li>接着进行 shift，位移的是信使 token，按组进行 shift，具体方式为逐组地上下位移，位移步长为 1122···</li>
+<li>再进行第二个 MHSA+FFN，和上一步一样的目的，交换不同帧序列的信息 token，以交换帧间信息</li>
+<li>接着进行反向 shift，即将之前 shift 的内容再换回去，该设计旨在随着网络的深入保持稳定的时间接受场</li>
+</ul>
+</li>
+<li>将此时输出的原始 token 记为特征序列 $\{F_i\}\to(T,\frac{HW}{P^2},C)$，此时得到的特征还原至 $(T,C,\frac H P,\frac WP)$ 接着打 patch，得到更小尺度的特征，如此循环四次，最终得到 4,8,16,32 的降采样序列（即 patch size 分别取 4,2,2,2）</li>
+<li>遵循 PVT，将四个特征序列 $\{F_i^{1,2,3,4}\}^T$ 输入 STQI（时空查询交互头，即上图的右半部分）这部分是任务导向的。</li>
+</ul>
+<h4 id="UniFormer-Unified-Transformer-for-Efficient-Spatiotemporal-Representation-Learning"><a href="#UniFormer-Unified-Transformer-for-Efficient-Spatiotemporal-Representation-Learning" class="headerlink" title="UniFormer : Unified Transformer for Efficient Spatiotemporal Representation Learning"></a>UniFormer : Unified Transformer for Efficient Spatiotemporal Representation Learning</h4><p>ICLR2022 视频动作识别 <a href="http://arxiv.org/abs/2201.04676">paper</a> <a href="https://github.com/Sense-X/UniFormer">code</a></p>
+<h5 id="特点-1"><a href="#特点-1" class="headerlink" title="特点"></a>特点</h5><ul>
+<li>提出一种基于关系聚合器的注意力结构，在形式上统一了 Conv 和 transformer，在取得大部分 transformer 架构结果的基础上加了 efficient</li>
+<li>通过 4 stage 的设置使其具备了多尺度信息</li>
+</ul>
+<h5 id="网络-1"><a href="#网络-1" class="headerlink" title="网络"></a>网络</h5><p><img src="/awesome_transformers/image-20230314164352127.png" alt="image-20230314164352127" style="zoom:50%;"></p>
+<p>&emsp;&emsp;具体来说，本文首先分析了 timesformer 在行为识别上的表现，展示了训练好的 timesformer 在第三层的输出，包括时间注意力和空间注意力，可以发现的结论是：对于第三层的输出，某个 patch 在时间上只对上下帧具备 att，在空间上只对临近位置有 att，从而得出一个结论：前期的浅层网络应当关注局部信息，而后期深层网络关注全局信息，使用纯 transformer 架构相当于前期用了较大的计算资源做了 Conv 的事情，故而应当对 transformer 的 att 计算方式进行额外的设计。</p>
+<p><img src="/awesome_transformers/image-20230310160622692.png" alt="image-20230310160622692" style="zoom: 50%;"></p>
+<p>&emsp;&emsp;因此本文设计了一种“统一化”的 transformer 注意力计算，其实大概就是用一种描述统一地描述了 conv 和标准 transformer，至于 DPE 和 FFN，实际上创新性不大，或许用处是有的。具体来说，在 4 个 stage 中，前两个做局部 transformer，后两个做全局 transformer。</p>
+<ul>
+<li>对于每一个 stage，输入的 $X_{in}$ 首先经过 PE 打 patch，目的是降采样，此时使用 DWConv，目的是尽可能减少计算量</li>
+<li>从上计算出 $X$，$X=DPE(X_{in})+X_{in}$</li>
+<li>将 $X$ 输入 MHRA（多头关系聚合器），具体来说，首先将 $X$ reshape 成 $(L=T\times H\times W,C)$，又分为 $N$ 个头，然后首先通过一个linear 进行等维度的映射，得到 $V_n(X)\to(L,\frac C N)$，目的是聚合上下文信息，同时这个值就可以看做 transformer 中的 $V$</li>
+<li>接着需要将 $A_n$ 和 $V_n$ 做乘法，作为第 $n$ 个头的输出结果，$A_n$ 的计算方式与 global 或者 local 有关：<ul>
+<li>对于 local，$A_n(X_i,X_j)=a_n^{i-j},\ j\in\Omega^{t\times h\times w}$，含义为在一个小的邻域范围 $\Omega$ 内对两个 token 之间的 att 矩阵计算为一个常数，这个常数基于学习得到，基本上实现了类似 Conv 的信息聚合方式</li>
+<li>对于 global，$A_n(X_i,X_j)=\frac{e^{Q_n(X_i)K_n(X_j)^T}}{\Sigma_{j’\in\Omega_{T\times H\times W}}e^{Q_n(X_i)K_n(X_j)^T}}$，含义为在全部 token 范围内对两个 token 之间的 att 矩阵表示为 Q 与 K 之间的 $QK^T$ 与 Q 和所有 K 之间的 $\sum QK^T$ 比值，在计算复杂度上，事实上对于原本的 transformer，也需要计算任意 $i,j$ 之间的 $Q^TK$ 结果</li>
+</ul>
+</li>
+<li>无论是对 local 还是 global，$A_n$ 都表示注意力矩阵 $QK^T$，只不过将 Conv 的计算逻辑使用注意力矩阵的方式重新表述了</li>
+<li>对于多头的结果，$A_nV_n$ 其实就是 $QK^TV$，从代码来看，softmax 和 scale 一个不少，上述 global 的公式表述也有问题，其实就是标准 att 计算过程，将多头的结果 Concat，之后和 U 相乘，也是 transformer 的标准操作</li>
+<li>输出的结果 $Y$ 记为 $Y=MHRA(Norm(X))+X$，并输入 FFN，FFN 如上图，很好理解</li>
+</ul>
+<p>&emsp;&emsp;由此得到的四个特征图用于下游任务，值得一提的是 efficient 的结果，看上去相对于 timesformer 取得基本一致的 acc 的时候算力小很多。</p>
+<p><img src="/awesome_transformers/image-20230314175746208.png" alt="image-20230314175746208"></p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>docx and help</title>
+    <url>/docxs/</url>
+    <content><![CDATA[<h2 id="文档教程收集"><a href="#文档教程收集" class="headerlink" title="文档教程收集"></a>文档教程收集</h2><p>&emsp;速查包括【markdown、 cuda编程、系统指令、Python三方库】 等文档或教程</p>
+<span id="more"></span>
+<h3 id="markdown"><a href="#markdown" class="headerlink" title="markdown"></a>markdown</h3><ul>
+<li><a href="https://markdown.com.cn/basic-syntax/">markdown基本语法</a></li>
+<li><a href="https://www.cnblogs.com/jockming/p/14120987.html">markdown数学表达式</a></li>
+<li><a href="https://emojipedia.org/">markdown_emoji</a></li>
+</ul>
+<hr>
+<h3 id="cuda编程"><a href="#cuda编程" class="headerlink" title="cuda编程"></a>cuda编程</h3><ul>
+<li><a href="https://face2ai.com/program-blog/#GPU%E7%BC%96%E7%A8%8B%EF%BC%88CUDA%EF%BC%89">谭升CUDA编程</a></li>
+</ul>
+<hr>
+<h3 id="系统指令"><a href="#系统指令" class="headerlink" title="系统指令"></a>系统指令</h3><ul>
+<li><a href="https://www.linuxcool.com/">linux</a></li>
+<li><a href="https://gitee.com/all-about-git">git</a></li>
+</ul>
+<hr>
+<h3 id="python-三方库"><a href="#python-三方库" class="headerlink" title="python 三方库"></a>python 三方库</h3><ul>
+<li><a href="https://pytorch.org/docs/stable/index.html">pytorch-en</a></li>
+<li><a href="https://pytorch-cn.readthedocs.io/zh/latest/">pytorch-zh</a></li>
+<li><a href="https://www.kancloud.cn/aollo/aolloopencv/269602">opencv-python-zh</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>docx</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>layered-neural-atlases</title>
+    <url>/layered-neural-atlases/</url>
+    <content><![CDATA[<h2><center> Layered Neural Atlases for Consistent Video Editing </center></h2>
+
+<p>【视频编辑】【SIGA2021】【<a href="https://arxiv.org/pdf/2109.11418.pdf">paper</a>】【<a href="https://github.com/ykasten/layered-neural-atlases">code</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>ds；本文使用基于 NeRF 的进行了视频编辑的工作。得到的模型将输入视频分为前景和背景并分别映射到两个图层。允许对背景图层或者前景图层的编辑并且一致性地传播到整个视频之中从而达到编辑视频的效果。本文除了 PSNR 之外没有其他数据指标，多为定性研究与消融实验。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/layered-neural-atlases/image-20221212163203372.png" alt="image-20221212163203372"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><p>（视频编辑第一次接触，都挺新的）</p>
+<ul>
+<li>仅使用四个 MLP 作为整个网络的 backbone</li>
+<li>对不同的数据来说，测试集和训练集一致，并且模型不可泛化</li>
+<li>设计了多个损失函数，针对可能出现的不同问题进行特有的限制</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/layered-neural-atlases/image-20221214093448979.png" alt="image-20221214093448979" style="zoom:67%;"></p>
+<p>ds；本文含参的网络模块只有四个，分别对应上图的：$\mathbb M_b, \mathbb M_f, \mathbb M_\alpha, \mathbb A$，这四个网络都是 MLP 结构，具体参数量不同</p>
+<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><script type="math/tex; mode=display">
+math\_express</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><hr>
+<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3>]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+        <category>video</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>LeetCode-11. 盛最多水的容器</title>
+    <url>/leetcode_11%E7%9B%9B%E6%9C%80%E5%A4%9A%E6%B0%B4%E7%9A%84%E5%AE%B9%E5%99%A8/</url>
+    <content><![CDATA[<h2 id="LeetCode-11-盛最多水的容器【M】"><a href="#LeetCode-11-盛最多水的容器【M】" class="headerlink" title="LeetCode-11. 盛最多水的容器【M】"></a>LeetCode-<a href="https://leetcode-cn.com/problems/container-with-most-water/">11. 盛最多水的容器</a>【M】</h2><h3 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h3><p>给定一个长度为 n 的整数数组 height 。有 n 条垂线，第 i 条线的两个端点是 (i, 0) 和 (i, height[i]) 。</p>
+<p>找出其中的两条线，使得它们与 x 轴共同构成的容器可以容纳最多的水。</p>
+<p>返回容器可以储存的最大水量。</p>
+<p>说明：你不能倾斜容器。</p>
+<span id="more"></span>
+<p>示例 1：</p>
+<p><img src="/leetcode_11%E7%9B%9B%E6%9C%80%E5%A4%9A%E6%B0%B4%E7%9A%84%E5%AE%B9%E5%99%A8/question_11.jpg" alt="img"></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">输入：[1,8,6,2,5,4,8,3,7]</span><br><span class="line">输出：49 </span><br><span class="line">解释：图中垂直线代表输入数组 [1,8,6,2,5,4,8,3,7]。在此情况下，容器能够容纳水（表示为蓝色部分）的最大值为 49。</span><br></pre></td></tr></table></figure>
+<p>示例 2：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">输入：height = [1,1]</span><br><span class="line">输出：1</span><br></pre></td></tr></table></figure>
+<p>提示：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">n == height.length</span><br><span class="line">2 &lt;= n &lt;= 105</span><br><span class="line">0 &lt;= height[i] &lt;= 104</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="解题思路"><a href="#解题思路" class="headerlink" title="解题思路"></a>解题思路</h3><h4 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h4><ul>
+<li>双指针法</li>
+</ul>
+<p>&emsp;&emsp;设置两个指针 p , v 分别从头部和尾部向中间缩小，缩小策略为：①移动当前较小的指针，②当能使最大值更新的时候更新最大值。代码执行逻辑如下：</p>
+<hr>
+<ul>
+<li>初始化最大值为两端为边的值</li>
+<li>当左指针小于右指针时<ul>
+<li>向中间移动更小的那个指针</li>
+<li>如果可以更新最大值则更新最大值</li>
+</ul>
+</li>
+<li>返回最大值</li>
+</ul>
+<hr>
+<h4 id="证明"><a href="#证明" class="headerlink" title="证明"></a>证明</h4><p>&emsp;&emsp;这里需要证明的关键在于：在小的指针固定时，大的指针无论如何向中间移动都不可能得到更小的结果。</p>
+<p>&emsp;&emsp;即：记求值函数为 $f(p,v)$ 指针 $x$ 对应的高度为 $h(x)$，若 $h(p)\leq h(v)$，则对 $\forall v’\leq v,f(p,v’)\leq f(p,v)$。这个定理的正确性保证了只移动值更小的指针就可以遍历所有可能的情况，从而得到最优解。</p>
+<p>&emsp;&emsp;接下来证明该定理：</p>
+<ul>
+<li><p>由于 $h(p)\leq h(v)$，则 $f(p,v)=(v-p)\times h(p)$，对于 $p,v’$，有 $f(p,v’)=(v’-p)\times \min(h(p),h(v’))$</p>
+</li>
+<li><p>由于 $v’-p\leq v-p$， 且 $\min(h(p),h(v’))\leq h(p)$</p>
+</li>
+<li><p>从而 $f(p,v’)=(v’-p)\times \min(h(p),h(v’))\leq (v-p)\times h(p)=f(p,v)$</p>
+</li>
+<li>即得证</li>
+</ul>
+<p>该方法时间复杂度为 $O(n)$，空间复杂度为 $O(1)$</p>
+<h4 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">maxArea</span>(<span class="params">self, height: <span class="type">List</span>[<span class="built_in">int</span>]</span>) -&gt; <span class="built_in">int</span>:</span><br><span class="line">        p,v = <span class="number">0</span>,<span class="built_in">len</span>(height)-<span class="number">1</span></span><br><span class="line">        maxs = (v-p)*<span class="built_in">min</span>(height[p], height[v])</span><br><span class="line">        <span class="keyword">while</span> p&lt;v:</span><br><span class="line">            <span class="keyword">if</span> height[p] &lt;= height[v]:</span><br><span class="line">                nmax = (v-p-<span class="number">1</span>)*<span class="built_in">min</span>(height[p+<span class="number">1</span>], height[v])</span><br><span class="line">                <span class="keyword">if</span> nmax &gt; maxs:</span><br><span class="line">                    maxs = nmax</span><br><span class="line">                p += <span class="number">1</span></span><br><span class="line"></span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                nmax = (v-p-<span class="number">1</span>)*<span class="built_in">min</span>(height[p], height[v-<span class="number">1</span>])</span><br><span class="line">                <span class="keyword">if</span> nmax &gt; maxs:</span><br><span class="line">                    maxs = nmax</span><br><span class="line">                v -= <span class="number">1</span></span><br><span class="line">           </span><br><span class="line">        <span class="keyword">return</span> maxs</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>code</category>
+        <category>LeetCode</category>
+      </categories>
+  </entry>
+  <entry>
     <title>Video-based_rppg_SSL</title>
     <url>/Video-based_rppg_SSL/</url>
     <content><![CDATA[<h2><center> Video-based Remote Physiological Measurement via Self-supervised Learning </center></h2>
@@ -2660,178 +2875,6 @@ L_v=\frac1d\sum\limits_{i=1}^{d}(\mathrm{CDF}_i(Q)-\mathrm{CDF}_i(P))^2</script>
       </categories>
   </entry>
   <entry>
-    <title>transformer_implements</title>
-    <url>/awesome_transformers/</url>
-    <content><![CDATA[<h2><center> transformer_implements </center></h2>
-
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;在 视频行为识别 / 视频实例分割 / 视频超分辨率 等领域具备一定效果的 transformer backbone</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><ul>
-<li>TeViT</li>
-<li>UniFormer</li>
-</ul>
-<span id="more"></span>
-<hr>
-<h4 id="TeViT-Temporally-Efficient-Vision-Transformer-for-Video-Instance-Segmentation"><a href="#TeViT-Temporally-Efficient-Vision-Transformer-for-Video-Instance-Segmentation" class="headerlink" title="TeViT : Temporally Efficient Vision Transformer for Video Instance Segmentation"></a>TeViT : Temporally Efficient Vision Transformer for Video Instance Segmentation</h4><p>CVPR2022Oral 视频语义分割 <a href="https://ieeexplore.ieee.org/document/9879803/">paper</a> <a href="https://github.com/hustvl/TeViT">code</a></p>
-<h5 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h5><ul>
-<li>一种信使 token+移位的时间维度特征融合方法</li>
-<li>多尺度的金字塔结构，生成多个不同尺度的特征图用于下一步分割头</li>
-</ul>
-<h5 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h5><p><img src="/awesome_transformers/image-20230308095622857.png" alt="image-20230308095622857" style="zoom:50%;"></p>
-<p>&emsp;&emsp;对于基于 transformer 的特征提取 backbone，串行地打四个不同 size 的 patch，将得到的 token 经过 embeding 输入网络，从而生成 4 个比原图像降采样 4,8,16,32 的特征图序列 $\{F_i^1,F_i^2,F_i^3,F_i^4\}_{i=1}^T$，每个 $F$ 都表示了 T 帧中不同感受野的特征，用于下一步的分类/回归任务。</p>
-<p>&emsp;&emsp;对于每个尺度下的 backbone，其具体操作如下：</p>
-<ul>
-<li>对一个 T 帧的 token $x_i\to(\frac{HW}{P^2},C)$，配备 M 个信使 token $m_i\to(M,C)$，两者 concat 之后为 $\{x_i,m_i\}_{i=1}^T\to(T,\frac{HW}{P^2}+M,C)$</li>
-<li>对于配备好信使 token 的新数据，在经过 backbone 的时候，每两个 MHSA+FFN 为一次循环，对每一次循环的操作如下：<ul>
-<li><img src="/awesome_transformers/image-20230308103204639.png" alt="image-20230308103204639" style="zoom:33%;"></li>
-<li>图中绿色部分代表信使 token，蓝色部分代表原始的 token，上下维度表示时间维度（图中显示为 5 帧），左右维度表示信使分组个数（图中显示为 4 组，注意，每组不见得只有一个信使 token），前后维度表示 channel</li>
-<li>在每轮循环中，第一个 MHSA+FFN 直接在 $\{x_i,m_i\}_{i=1}^T$ 上进行，目的是使所有的 $m$ 都学到自己对应原始 token 的信息</li>
-<li>接着进行 shift，位移的是信使 token，按组进行 shift，具体方式为逐组地上下位移，位移步长为 1122···</li>
-<li>再进行第二个 MHSA+FFN，和上一步一样的目的，交换不同帧序列的信息 token，以交换帧间信息</li>
-<li>接着进行反向 shift，即将之前 shift 的内容再换回去，该设计旨在随着网络的深入保持稳定的时间接受场</li>
-</ul>
-</li>
-<li>将此时输出的原始 token 记为特征序列 $\{F_i\}\to(T,\frac{HW}{P^2},C)$，此时得到的特征还原至 $(T,C,\frac H P,\frac WP)$ 接着打 patch，得到更小尺度的特征，如此循环四次，最终得到 4,8,16,32 的降采样序列（即 patch size 分别取 4,2,2,2）</li>
-<li>遵循 PVT，将四个特征序列 $\{F_i^{1,2,3,4}\}^T$ 输入 STQI（时空查询交互头，即上图的右半部分）这部分是任务导向的。</li>
-</ul>
-<h4 id="UniFormer-Unified-Transformer-for-Efficient-Spatiotemporal-Representation-Learning"><a href="#UniFormer-Unified-Transformer-for-Efficient-Spatiotemporal-Representation-Learning" class="headerlink" title="UniFormer : Unified Transformer for Efficient Spatiotemporal Representation Learning"></a>UniFormer : Unified Transformer for Efficient Spatiotemporal Representation Learning</h4><p>ICLR2022 视频动作识别 <a href="http://arxiv.org/abs/2201.04676">paper</a> <a href="https://github.com/Sense-X/UniFormer">code</a></p>
-<h5 id="特点-1"><a href="#特点-1" class="headerlink" title="特点"></a>特点</h5><ul>
-<li>提出一种基于关系聚合器的注意力结构，在形式上统一了 Conv 和 transformer，在取得大部分 transformer 架构结果的基础上加了 efficient</li>
-<li>通过 4 stage 的设置使其具备了多尺度信息</li>
-</ul>
-<h5 id="网络-1"><a href="#网络-1" class="headerlink" title="网络"></a>网络</h5><p><img src="/awesome_transformers/image-20230314164352127.png" alt="image-20230314164352127" style="zoom:50%;"></p>
-<p>&emsp;&emsp;具体来说，本文首先分析了 timesformer 在行为识别上的表现，展示了训练好的 timesformer 在第三层的输出，包括时间注意力和空间注意力，可以发现的结论是：对于第三层的输出，某个 patch 在时间上只对上下帧具备 att，在空间上只对临近位置有 att，从而得出一个结论：前期的浅层网络应当关注局部信息，而后期深层网络关注全局信息，使用纯 transformer 架构相当于前期用了较大的计算资源做了 Conv 的事情，故而应当对 transformer 的 att 计算方式进行额外的设计。</p>
-<p><img src="/awesome_transformers/image-20230310160622692.png" alt="image-20230310160622692" style="zoom: 50%;"></p>
-<p>&emsp;&emsp;因此本文设计了一种“统一化”的 transformer 注意力计算，其实大概就是用一种描述统一地描述了 conv 和标准 transformer，至于 DPE 和 FFN，实际上创新性不大，或许用处是有的。具体来说，在 4 个 stage 中，前两个做局部 transformer，后两个做全局 transformer。</p>
-<ul>
-<li>对于每一个 stage，输入的 $X_{in}$ 首先经过 PE 打 patch，目的是降采样，此时使用 DWConv，目的是尽可能减少计算量</li>
-<li>从上计算出 $X$，$X=DPE(X_{in})+X_{in}$</li>
-<li>将 $X$ 输入 MHRA（多头关系聚合器），具体来说，首先将 $X$ reshape 成 $(L=T\times H\times W,C)$，又分为 $N$ 个头，然后首先通过一个linear 进行等维度的映射，得到 $V_n(X)\to(L,\frac C N)$，目的是聚合上下文信息，同时这个值就可以看做 transformer 中的 $V$</li>
-<li>接着需要将 $A_n$ 和 $V_n$ 做乘法，作为第 $n$ 个头的输出结果，$A_n$ 的计算方式与 global 或者 local 有关：<ul>
-<li>对于 local，$A_n(X_i,X_j)=a_n^{i-j},\ j\in\Omega^{t\times h\times w}$，含义为在一个小的邻域范围 $\Omega$ 内对两个 token 之间的 att 矩阵计算为一个常数，这个常数基于学习得到，基本上实现了类似 Conv 的信息聚合方式</li>
-<li>对于 global，$A_n(X_i,X_j)=\frac{e^{Q_n(X_i)K_n(X_j)^T}}{\Sigma_{j’\in\Omega_{T\times H\times W}}e^{Q_n(X_i)K_n(X_j)^T}}$，含义为在全部 token 范围内对两个 token 之间的 att 矩阵表示为 Q 与 K 之间的 $QK^T$ 与 Q 和所有 K 之间的 $\sum QK^T$ 比值，在计算复杂度上，事实上对于原本的 transformer，也需要计算任意 $i,j$ 之间的 $Q^TK$ 结果</li>
-</ul>
-</li>
-<li>无论是对 local 还是 global，$A_n$ 都表示注意力矩阵 $QK^T$，只不过将 Conv 的计算逻辑使用注意力矩阵的方式重新表述了</li>
-<li>对于多头的结果，$A_nV_n$ 其实就是 $QK^TV$，从代码来看，softmax 和 scale 一个不少，上述 global 的公式表述也有问题，其实就是标准 att 计算过程，将多头的结果 Concat，之后和 U 相乘，也是 transformer 的标准操作</li>
-<li>输出的结果 $Y$ 记为 $Y=MHRA(Norm(X))+X$，并输入 FFN，FFN 如上图，很好理解</li>
-</ul>
-<p>&emsp;&emsp;由此得到的四个特征图用于下游任务，值得一提的是 efficient 的结果，看上去相对于 timesformer 取得基本一致的 acc 的时候算力小很多。</p>
-<p><img src="/awesome_transformers/image-20230314175746208.png" alt="image-20230314175746208"></p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>docx and help</title>
-    <url>/docxs/</url>
-    <content><![CDATA[<h2 id="文档教程收集"><a href="#文档教程收集" class="headerlink" title="文档教程收集"></a>文档教程收集</h2><p>&emsp;速查包括【markdown、 cuda编程、系统指令、Python三方库】 等文档或教程</p>
-<span id="more"></span>
-<h3 id="markdown"><a href="#markdown" class="headerlink" title="markdown"></a>markdown</h3><ul>
-<li><a href="https://markdown.com.cn/basic-syntax/">markdown基本语法</a></li>
-<li><a href="https://www.cnblogs.com/jockming/p/14120987.html">markdown数学表达式</a></li>
-<li><a href="https://emojipedia.org/">markdown_emoji</a></li>
-</ul>
-<hr>
-<h3 id="cuda编程"><a href="#cuda编程" class="headerlink" title="cuda编程"></a>cuda编程</h3><ul>
-<li><a href="https://face2ai.com/program-blog/#GPU%E7%BC%96%E7%A8%8B%EF%BC%88CUDA%EF%BC%89">谭升CUDA编程</a></li>
-</ul>
-<hr>
-<h3 id="系统指令"><a href="#系统指令" class="headerlink" title="系统指令"></a>系统指令</h3><ul>
-<li><a href="https://www.linuxcool.com/">linux</a></li>
-<li><a href="https://gitee.com/all-about-git">git</a></li>
-</ul>
-<hr>
-<h3 id="python-三方库"><a href="#python-三方库" class="headerlink" title="python 三方库"></a>python 三方库</h3><ul>
-<li><a href="https://pytorch.org/docs/stable/index.html">pytorch-en</a></li>
-<li><a href="https://pytorch-cn.readthedocs.io/zh/latest/">pytorch-zh</a></li>
-<li><a href="https://www.kancloud.cn/aollo/aolloopencv/269602">opencv-python-zh</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>docx</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>LeetCode-11. 盛最多水的容器</title>
-    <url>/leetcode_11%E7%9B%9B%E6%9C%80%E5%A4%9A%E6%B0%B4%E7%9A%84%E5%AE%B9%E5%99%A8/</url>
-    <content><![CDATA[<h2 id="LeetCode-11-盛最多水的容器【M】"><a href="#LeetCode-11-盛最多水的容器【M】" class="headerlink" title="LeetCode-11. 盛最多水的容器【M】"></a>LeetCode-<a href="https://leetcode-cn.com/problems/container-with-most-water/">11. 盛最多水的容器</a>【M】</h2><h3 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h3><p>给定一个长度为 n 的整数数组 height 。有 n 条垂线，第 i 条线的两个端点是 (i, 0) 和 (i, height[i]) 。</p>
-<p>找出其中的两条线，使得它们与 x 轴共同构成的容器可以容纳最多的水。</p>
-<p>返回容器可以储存的最大水量。</p>
-<p>说明：你不能倾斜容器。</p>
-<span id="more"></span>
-<p>示例 1：</p>
-<p><img src="/leetcode_11%E7%9B%9B%E6%9C%80%E5%A4%9A%E6%B0%B4%E7%9A%84%E5%AE%B9%E5%99%A8/question_11.jpg" alt="img"></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">输入：[1,8,6,2,5,4,8,3,7]</span><br><span class="line">输出：49 </span><br><span class="line">解释：图中垂直线代表输入数组 [1,8,6,2,5,4,8,3,7]。在此情况下，容器能够容纳水（表示为蓝色部分）的最大值为 49。</span><br></pre></td></tr></table></figure>
-<p>示例 2：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">输入：height = [1,1]</span><br><span class="line">输出：1</span><br></pre></td></tr></table></figure>
-<p>提示：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">n == height.length</span><br><span class="line">2 &lt;= n &lt;= 105</span><br><span class="line">0 &lt;= height[i] &lt;= 104</span><br></pre></td></tr></table></figure>
-<hr>
-<h3 id="解题思路"><a href="#解题思路" class="headerlink" title="解题思路"></a>解题思路</h3><h4 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h4><ul>
-<li>双指针法</li>
-</ul>
-<p>&emsp;&emsp;设置两个指针 p , v 分别从头部和尾部向中间缩小，缩小策略为：①移动当前较小的指针，②当能使最大值更新的时候更新最大值。代码执行逻辑如下：</p>
-<hr>
-<ul>
-<li>初始化最大值为两端为边的值</li>
-<li>当左指针小于右指针时<ul>
-<li>向中间移动更小的那个指针</li>
-<li>如果可以更新最大值则更新最大值</li>
-</ul>
-</li>
-<li>返回最大值</li>
-</ul>
-<hr>
-<h4 id="证明"><a href="#证明" class="headerlink" title="证明"></a>证明</h4><p>&emsp;&emsp;这里需要证明的关键在于：在小的指针固定时，大的指针无论如何向中间移动都不可能得到更小的结果。</p>
-<p>&emsp;&emsp;即：记求值函数为 $f(p,v)$ 指针 $x$ 对应的高度为 $h(x)$，若 $h(p)\leq h(v)$，则对 $\forall v’\leq v,f(p,v’)\leq f(p,v)$。这个定理的正确性保证了只移动值更小的指针就可以遍历所有可能的情况，从而得到最优解。</p>
-<p>&emsp;&emsp;接下来证明该定理：</p>
-<ul>
-<li><p>由于 $h(p)\leq h(v)$，则 $f(p,v)=(v-p)\times h(p)$，对于 $p,v’$，有 $f(p,v’)=(v’-p)\times \min(h(p),h(v’))$</p>
-</li>
-<li><p>由于 $v’-p\leq v-p$， 且 $\min(h(p),h(v’))\leq h(p)$</p>
-</li>
-<li><p>从而 $f(p,v’)=(v’-p)\times \min(h(p),h(v’))\leq (v-p)\times h(p)=f(p,v)$</p>
-</li>
-<li>即得证</li>
-</ul>
-<p>该方法时间复杂度为 $O(n)$，空间复杂度为 $O(1)$</p>
-<h4 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">maxArea</span>(<span class="params">self, height: <span class="type">List</span>[<span class="built_in">int</span>]</span>) -&gt; <span class="built_in">int</span>:</span><br><span class="line">        p,v = <span class="number">0</span>,<span class="built_in">len</span>(height)-<span class="number">1</span></span><br><span class="line">        maxs = (v-p)*<span class="built_in">min</span>(height[p], height[v])</span><br><span class="line">        <span class="keyword">while</span> p&lt;v:</span><br><span class="line">            <span class="keyword">if</span> height[p] &lt;= height[v]:</span><br><span class="line">                nmax = (v-p-<span class="number">1</span>)*<span class="built_in">min</span>(height[p+<span class="number">1</span>], height[v])</span><br><span class="line">                <span class="keyword">if</span> nmax &gt; maxs:</span><br><span class="line">                    maxs = nmax</span><br><span class="line">                p += <span class="number">1</span></span><br><span class="line"></span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                nmax = (v-p-<span class="number">1</span>)*<span class="built_in">min</span>(height[p], height[v-<span class="number">1</span>])</span><br><span class="line">                <span class="keyword">if</span> nmax &gt; maxs:</span><br><span class="line">                    maxs = nmax</span><br><span class="line">                v -= <span class="number">1</span></span><br><span class="line">           </span><br><span class="line">        <span class="keyword">return</span> maxs</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>code</category>
-        <category>LeetCode</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>layered-neural-atlases</title>
-    <url>/layered-neural-atlases/</url>
-    <content><![CDATA[<h2><center> Layered Neural Atlases for Consistent Video Editing </center></h2>
-
-<p>【视频编辑】【SIGA2021】【<a href="https://arxiv.org/pdf/2109.11418.pdf">paper</a>】【<a href="https://github.com/ykasten/layered-neural-atlases">code</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>ds；本文使用基于 NeRF 的进行了视频编辑的工作。得到的模型将输入视频分为前景和背景并分别映射到两个图层。允许对背景图层或者前景图层的编辑并且一致性地传播到整个视频之中从而达到编辑视频的效果。本文除了 PSNR 之外没有其他数据指标，多为定性研究与消融实验。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/layered-neural-atlases/image-20221212163203372.png" alt="image-20221212163203372"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><p>（视频编辑第一次接触，都挺新的）</p>
-<ul>
-<li>仅使用四个 MLP 作为整个网络的 backbone</li>
-<li>对不同的数据来说，测试集和训练集一致，并且模型不可泛化</li>
-<li>设计了多个损失函数，针对可能出现的不同问题进行特有的限制</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/layered-neural-atlases/image-20221214093448979.png" alt="image-20221214093448979" style="zoom:67%;"></p>
-<p>ds；本文含参的网络模块只有四个，分别对应上图的：$\mathbb M_b, \mathbb M_f, \mathbb M_\alpha, \mathbb A$，这四个网络都是 MLP 结构，具体参数量不同</p>
-<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><script type="math/tex; mode=display">
-math\_express</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><hr>
-<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3>]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-        <category>video</category>
-      </categories>
-  </entry>
-  <entry>
     <title>LeetCode-229.求众数 II</title>
     <url>/leetcode_229/</url>
     <content><![CDATA[<h2 id="LeetCode-229-求众数-II【M】"><a href="#LeetCode-229-求众数-II【M】" class="headerlink" title="LeetCode-229. 求众数 II【M】"></a>LeetCode-<a href="https://leetcode-cn.com/problems/majority-element-ii/">229. 求众数 II</a>【M】</h2><h3 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h3><p>给定一个大小为 <em>n</em> 的整数数组，找出其中所有出现超过 <code>⌊ n/3 ⌋</code> 次的元素。</p>
@@ -2875,63 +2918,6 @@ math\_express</script><h3 id="结果"><a href="#结果" class="headerlink" title
       <categories>
         <category>code</category>
         <category>LeetCode</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>PulseGAN</title>
-    <url>/PulseGAN/</url>
-    <content><![CDATA[<h2><center> PulseGAN: Learning to generate realistic pulse
-waveforms in remote photoplethysmography </center></h2>
-
-<p>【心率检测】【BHI2021】【<a href="https://arxiv.53yu.com/pdf/2006.02699">paper</a>】【<a href="https://github.com/miki998/PulseGAN.git">code非官方</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文引入了一种使用 GAN 训练的网络，网络并不直接从原始视频中获得 rppg 信号，而是使用其他方法已经估计出的粗糙 rppg 信号进行细化，BHI 是生物信息期刊，这篇文章相对其他论文具备更多的专业性指标，但是实验做得很少，没有在其他数据集内验证有效性。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/PulseGAN/image-20221207193415813.png" alt="image-20221207193415813"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>针对已有的粗糙的 rppg 信号估计更加精确的信号</li>
-<li>结合了 GAN 和 Conv（可惜这里 GAN 并非生成式任务，不然可以试着用 DM 代替）</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/PulseGAN/image-20221208122816922.png" alt="image-20221208122816922"></p>
-<p>&emsp;&emsp;这篇文章的网络结构很简单，主要分为两个部分：1. 已有的方法估计出的粗糙的 rppg 信号，2. 使用 GAN 进行对抗式训练。</p>
-<p>&emsp;&emsp;首先将输入 $V\in\mathbb R^{T\times C\times H\times W}$ 输入某个方法用于提取粗糙信号 $X\in\mathbb R^{T}$，为了快速训练和对运动鲁棒，本文选择的方法是 CHROM（又或许是因为 SOTA 很难再改进了），实际上这种方式在 Dual-GAN 里面也有运用，使用这种类似 CGAN 结构训练的话，一个直观的想法是直接从原视频中生成 rppg 信号。</p>
-<p>&emsp;&emsp;但是无论是这篇文章还是 Dual-GAN 都没有这么做的原因应该是原视频包含了太多的噪音。因此 CHROM 的预处理相当于剔除环境噪音，而 Dual-GAN 则采用 STMap 进行输入，在某种程度上也是去除环境噪音。</p>
-<p>&emsp;&emsp;将处理之后的粗糙信号 $X$ 输入 U-Net 形状的生成器 $G$，得到整形之后的输出 $G(X)\in\mathbb R^{T}$，接着借用 CGAN 的方式，将 $G(X)$ 和 $X$ 组合（cat）之后输入判别器 $D$ 并判断概率。</p>
-<p>&emsp;&emsp;判别器 $D$ 总共接受两个输入：1. $(G(X),X)$，2. $(X_C,X)$，其中 $X_C$ 为 GT。判别器期望对输入 1 判别为假，对输入 2 判别为真，生成器则相反。判别器估计之后的结果计算 loss 之后回传至生成器。</p>
-<p>&emsp;&emsp;其中，生成器 $G$ 的网路结构如图所示，整个网络是 U-Net 形状的网络，包含 6 个降采样和升采样模块，每个模块由 1d 卷积和 PReLU（在 ReLU 的基础上的改进，用于防止过拟合）组成，解码器则是对应的 1d 转置卷积。</p>
-<p><img src="/PulseGAN/image-20221208124435592.png" alt="image-20221208124435592" style="zoom:50%;"></p>
-<p>&emsp;&emsp;同上，判别器 $D$ 的网络结构如下：</p>
-<p><img src="/PulseGAN/image-20221208124701079.png" alt="image-20221208124701079" style="zoom:50%;"></p>
-<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;对抗训练的损失可以写为：</p>
-<script type="math/tex; mode=display">
-\begin{align}
-&L_G=\frac12(D(G(X),X)-1)^2+\lambda||X_c-G(X)||_1+\beta||X_{cf}-G_f(X)||_1\\
-&L_D=\frac12(D(G(X),X))^2+\frac12(D(X_c,X)-1)^2
-\end{align}</script><p>&emsp;&emsp;其中， $X_{cf}$ 和 $G_f$ 分别表示对 $X_c,\ G(X)$ 进行傅里叶变换向频率域的映射后的信号值，生成器期望：1. $G(X)$ 难以分辨真假，2. $G(x)$ 在时间域上接近 GT，3. $G(X)$ 在频率域上接近 GT；判别器期望：能够分辨 $G(X)$ 和 $X_c$。</p>
-<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文整体来说实验较少，主要实验是在 UBFC 上做了数据集内测试如下所所示，其中的 $HR_{mer}$ 表示平均错误率百分比，至少在 MAE 和 RMSE 上达到的结果只能说还 ok，毕竟在 21 年的时候 Siamese rppg 也发表了。</p>
-<p><img src="/PulseGAN/image-20221208130646082.png" alt="image-20221208130646082" style="zoom:67%;"></p>
-<p>&emsp;&emsp;接着是跨数据集测试，PURE → UBFC。可以看出指标下滑较多，因为只选了 DAE 做对比因此看上去还行，整体上不如 Siamese rppg，不过跨数据集只做了这一个略显寒酸了。</p>
-<p><img src="/PulseGAN/image-20221208131055463.png" alt="image-20221208131055463" style="zoom: 67%;"></p>
-<p>&emsp;&emsp;其他的实验测量了包括 AVNN，SDNN、IBI 等其他方法不测试的指标，因为没得比，因此主要是做离群值分析，或许是因为发在生物信息的期刊，对这方面的指标比较看重吧。</p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-        <category>hr</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>XXXX</title>
-    <url>/paper_template/</url>
-    <content><![CDATA[<h2><center> paper_name </center></h2>
-
-<p>【task】【conf_name】【<a href>paper</a>】【<a href>code</a>】</p>
-<h3 id="abstract"><a href="#abstract" class="headerlink" title="abstract"></a>abstract</h3><h3 id="overview"><a href="#overview" class="headerlink" title="overview"></a>overview</h3><span id="more"></span>
-<hr>
-<h3 id="contribution"><a href="#contribution" class="headerlink" title="contribution"></a>contribution</h3><h3 id="framework"><a href="#framework" class="headerlink" title="framework"></a>framework</h3><script type="math/tex; mode=display">
-math\_express</script><h3 id="experiment"><a href="#experiment" class="headerlink" title="experiment"></a>experiment</h3>]]></content>
-      <categories>
-        <category>template</category>
       </categories>
   </entry>
   <entry>
@@ -3034,54 +3020,6 @@ math\_express</script><h3 id="experiment"><a href="#experiment" class="headerlin
       </categories>
   </entry>
   <entry>
-    <title>represent-light-field-with-a-single-image</title>
-    <url>/represent-light-field-with-a-single-image/</url>
-    <content><![CDATA[<h2 id="Represent-LightField-With-A-Single-Image【光场压缩】【not-published】"><a href="#Represent-LightField-With-A-Single-Image【光场压缩】【not-published】" class="headerlink" title="Represent LightField With A Single Image【光场压缩】【not published】"></a><a href="https://gitee.com/bnucsy/represent-light-field-with-a-single-rgb-image">Represent LightField With A Single Image</a>【光场压缩】【not published】</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><ul>
-<li>提出了一种基于自编码器的光场压缩方法，构建了基于 U-Net 的编解码器使用单张RGB图进行光场压缩。</li>
-<li>得到的 RGB 表征在 0.07bpp 下𝑃𝑆𝑁𝑅为 41.31dB，重建光场𝑃𝑆𝑁𝑅值 36.51dB， 𝑆𝑆𝐼𝑀值为 0.96。</li>
-<li>在使用网络平台 JPEG 压缩后重建光场𝑃𝑆𝑁𝑅值为 35.48dB。</li>
-<li>对重建后光场应用重聚焦和深度估计任务，均取得了较好的结果。</li>
-</ul>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/represent-light-field-with-a-single-image/image-20220502140548979.png" alt="image-20220502140548979"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>限制使用单张 RGB 图像表征光场，并且该图像和光场中央视图视觉效果一致</li>
-<li>得到的 RGB 表征对 JPEG 压缩具备鲁棒性</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><ul>
-<li><p>网络概览</p>
-<p><img src="/represent-light-field-with-a-single-image/image-20220502140608358.png" alt="image-20220502140608358"></p>
-</li>
-<li><p>$E、D$ 网络结构</p>
-<p><img src="/represent-light-field-with-a-single-image/image-20220502140622337.png" alt="image-20220502140622337"></p>
-</li>
-<li><p>$J$ 网络结构</p>
-<p><img src="/represent-light-field-with-a-single-image/image-20220502140637615.png" alt="image-20220502140637615"></p>
-</li>
-</ul>
-<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>使用$MSELoss$，分别限制中央视图和光场，比率分别为$0.9$，$0.5$。</p>
-<script type="math/tex; mode=display">
-\rm arg \min\limits_{E,D,\alpha,\beta}:=\alpha\times||J(E(L))-L(\frac M 2,\frac N 2)||_2^2 + \beta\times ||D(J(E(L)))-L||_2^2</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><ul>
-<li><p>和传统方法对比</p>
-<p><img src="/represent-light-field-with-a-single-image/image-20220502140653242.png" alt="image-20220502140653242"></p>
-</li>
-<li><p>深度估计</p>
-<p><img src="/represent-light-field-with-a-single-image/image-20220502141337322.png" alt="image-20220502141337322" style="zoom:80%;"></p>
-</li>
-<li><p>重聚焦</p>
-<p><img src="/represent-light-field-with-a-single-image/image-20220502140504370.png" alt="image-20220502140504370"></p>
-</li>
-</ul>
-<hr>
-<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3><p>&emsp;自己的文章，启发即为过程性总结，全在毕设记录之中了</p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>mypaper</category>
-      </categories>
-  </entry>
-  <entry>
     <title>pctpose</title>
     <url>/pctpose/</url>
     <content><![CDATA[<h2><center> Human Pose as Compositional Tokens </center></h2>
@@ -3146,6 +3084,68 @@ math\_express</script><h3 id="experiment"><a href="#experiment" class="headerlin
       <categories>
         <category>paper</category>
         <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>represent-light-field-with-a-single-image</title>
+    <url>/represent-light-field-with-a-single-image/</url>
+    <content><![CDATA[<h2 id="Represent-LightField-With-A-Single-Image【光场压缩】【not-published】"><a href="#Represent-LightField-With-A-Single-Image【光场压缩】【not-published】" class="headerlink" title="Represent LightField With A Single Image【光场压缩】【not published】"></a><a href="https://gitee.com/bnucsy/represent-light-field-with-a-single-rgb-image">Represent LightField With A Single Image</a>【光场压缩】【not published】</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><ul>
+<li>提出了一种基于自编码器的光场压缩方法，构建了基于 U-Net 的编解码器使用单张RGB图进行光场压缩。</li>
+<li>得到的 RGB 表征在 0.07bpp 下𝑃𝑆𝑁𝑅为 41.31dB，重建光场𝑃𝑆𝑁𝑅值 36.51dB， 𝑆𝑆𝐼𝑀值为 0.96。</li>
+<li>在使用网络平台 JPEG 压缩后重建光场𝑃𝑆𝑁𝑅值为 35.48dB。</li>
+<li>对重建后光场应用重聚焦和深度估计任务，均取得了较好的结果。</li>
+</ul>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/represent-light-field-with-a-single-image/image-20220502140548979.png" alt="image-20220502140548979"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>限制使用单张 RGB 图像表征光场，并且该图像和光场中央视图视觉效果一致</li>
+<li>得到的 RGB 表征对 JPEG 压缩具备鲁棒性</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><ul>
+<li><p>网络概览</p>
+<p><img src="/represent-light-field-with-a-single-image/image-20220502140608358.png" alt="image-20220502140608358"></p>
+</li>
+<li><p>$E、D$ 网络结构</p>
+<p><img src="/represent-light-field-with-a-single-image/image-20220502140622337.png" alt="image-20220502140622337"></p>
+</li>
+<li><p>$J$ 网络结构</p>
+<p><img src="/represent-light-field-with-a-single-image/image-20220502140637615.png" alt="image-20220502140637615"></p>
+</li>
+</ul>
+<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>使用$MSELoss$，分别限制中央视图和光场，比率分别为$0.9$，$0.5$。</p>
+<script type="math/tex; mode=display">
+\rm arg \min\limits_{E,D,\alpha,\beta}:=\alpha\times||J(E(L))-L(\frac M 2,\frac N 2)||_2^2 + \beta\times ||D(J(E(L)))-L||_2^2</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><ul>
+<li><p>和传统方法对比</p>
+<p><img src="/represent-light-field-with-a-single-image/image-20220502140653242.png" alt="image-20220502140653242"></p>
+</li>
+<li><p>深度估计</p>
+<p><img src="/represent-light-field-with-a-single-image/image-20220502141337322.png" alt="image-20220502141337322" style="zoom:80%;"></p>
+</li>
+<li><p>重聚焦</p>
+<p><img src="/represent-light-field-with-a-single-image/image-20220502140504370.png" alt="image-20220502140504370"></p>
+</li>
+</ul>
+<hr>
+<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3><p>&emsp;自己的文章，启发即为过程性总结，全在毕设记录之中了</p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>mypaper</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>XXXX</title>
+    <url>/paper_template/</url>
+    <content><![CDATA[<h2><center> paper_name </center></h2>
+
+<p>【task】【conf_name】【<a href>paper</a>】【<a href>code</a>】</p>
+<h3 id="abstract"><a href="#abstract" class="headerlink" title="abstract"></a>abstract</h3><h3 id="overview"><a href="#overview" class="headerlink" title="overview"></a>overview</h3><span id="more"></span>
+<hr>
+<h3 id="contribution"><a href="#contribution" class="headerlink" title="contribution"></a>contribution</h3><h3 id="framework"><a href="#framework" class="headerlink" title="framework"></a>framework</h3><script type="math/tex; mode=display">
+math\_express</script><h3 id="experiment"><a href="#experiment" class="headerlink" title="experiment"></a>experiment</h3>]]></content>
+      <categories>
+        <category>template</category>
       </categories>
   </entry>
   <entry>
@@ -3228,6 +3228,63 @@ AdaIN(x_i,y)=y_{s,i}\frac{x_i-\mu(x_i)}{\sigma(x_i)}+y_{b,i}</script><p>&emsp;&e
 <p><img src="/styleGAN/image-20230106152818674.png" alt="image-20230106152818674" style="zoom: 50%;"></p>
 <h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;对于消融实验，本文逐渐向 PGGAN 中加入了自己的策略，从而得到了最终的 styleGAN，这个消融实验的方式也和 PGGAN 的很接近。消融实验展示了各个策略的有效性，其中指标为 FID，用于度量数据的分布一致性。其中加入噪音没有使指标更好，其本质的作用是使图像具备多样性。这些指标均为叠加使用策略。</p>
 <p><img src="/styleGAN/image-20230106153352569.png" alt="image-20230106153352569" style="zoom:50%;"></p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>styleVideoGAN</title>
+    <url>/styleVideoGAN/</url>
+    <content><![CDATA[<h2><center> StyleVideoGAN: A Temporal Generative Model using a Pretrained StyleGAN </center></h2>
+
+<p>【人脸视频生成】【<a href="https://arxiv.org/abs/2107.07224v1">paper</a>】【<a href>code未开源</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文使用预训练的 styleGAN 为基础，采用类似 pSp 的架构进行 $\mathcal W+$ 空间的视频序列监督，同时采用基于 GRU 架构的 RNN 网络自回归生成视频，为了避免视频生成时的片段重复现象，提出了“梯度角惩罚”。另外本文展示了效果不太好的“偏移技巧”，即将生成视频的运动转移到不同的主题。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/styleVideoGAN/image-20230410151337116.png" alt="image-20230410151337116"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>在预训练 styleGAN 的 $\mathcal W+$ 空间上对时间序列进行训练以生成 video，模型完全在 $\mathcal W+$ 空间监督</li>
+<li>提出一种 offset trick，用以将生成的视频运动转化至不同的主题</li>
+<li>使用 gradient angle penalty 惩罚 RNN，用以避免 RNN 生成视频时可能出现的循环问题</li>
+<li>该方法可以生成手部视频</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/styleVideoGAN/image-20230410151303114.png" alt="image-20230410151303114"></p>
+<p> &emsp;&emsp;本文的架构是一个 WGAN，具体来说，输入为 $(i,s)$，其中 $i\sim \mathcal N(0,1)^{32},\ s\sim \mathcal N(0,1)^{32\times(t-1)}$，也就是说，$i$ 就代表视频的第一帧，其余的 $s$ 都代表剩余帧。这些初始输入通过一系列 RNN 得到 $l$（这里的 $l$ 对标 styleGAN 中的 $z$），然后经过 $T$ 的特征映射（对标 styleGAN 的 $F$）并进一步学习仿射变换得到 $\mathcal W+$ 空间的各个帧的隐向量 $w$（这里的 $w$ 对标到 pSp 之中是 $18\times 512$ 的向量，包含一帧的所有粒度特征控制）。之后的 $C$ 即判别器，只是换了一个名字，之所以判别器需要包括 $E,\ TConv$ 两个部分，主要考虑到生成器与判别器的网络容量大小关系。</p>
+<p>&emsp;&emsp;整体来说，本文的前向流程如下：</p>
+<ul>
+<li>对于初始视频 $V$ 其中包含 $t$ 帧 $I_t$，首先将每一帧通过预训练的 pSp 映射至 $w_k^+\in\mathcal W+ ,\ k\in[0,t)$</li>
+<li>接着从 $\mathcal N(0,1)$ 中采样 $i$ 和 $t-1$ 个 $s$，输入生成器 $G$，$G(i,s)=\{l_k\},k\in[0,t)$</li>
+<li>将得到的 $t$ 个 $l$ 分别通过映射 $T$ 和 18 个仿射映射，得到 $w_k\in\mathcal W+,\ l\in[0,t)$</li>
+<li>对于 $w_k,\ w_k^+$，将其分别作为 fake 和 real 输入判别器 $C$，通过对抗训练得到合适的 $G$</li>
+</ul>
+<p>&emsp;&emsp;⛔本文的架构理论上可以生成任意长度的视频（测试时），训练为了考虑判别器还是只能产生 25 帧</p>
+<h4 id="G-的网络结构"><a href="#G-的网络结构" class="headerlink" title="$G$ 的网络结构"></a>$G$ 的网络结构</h4><p>&emsp;&emsp;生成器包含一个 $H$ 以及一个由 4 个GRU单元组成的 $P$，$P$ 处理“每时间步随机”，目的是产生多样的运动方式。为了初始化 GRU 内存，让 MLP $H$ 伪生成前三个单元的一些内存内容，而最后一个单元则用 $i$ 初始化。使用数学语言描述为：</p>
+<script type="math/tex; mode=display">
+(h_{0,0},h_{0,1},h_{0,2}):= H(i)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ h_{0,3}:= i\\
+((h_{k+1,0}, . . . ,h_{k+1,3}),l_{k+1}) := P(s_k,(h_{k,0}, . . . ,h_{k,3}))</script><p>&emsp;&emsp;简单来说，第 $k$ 层 $P_k$ 接收输入 $s_k$，和上一层传下来的四个隐特征 $\{h_{k-1,0\to3}\}$， 输出下一层 $P_{k+1}$ 所需要的隐特征，同时每一层输出的隐特征的最后一个直接当做输出。</p>
+<h4 id="损失函数（“梯度角惩罚”）（gradient-angle-penalty）"><a href="#损失函数（“梯度角惩罚”）（gradient-angle-penalty）" class="headerlink" title="损失函数（“梯度角惩罚”）（gradient angle penalty）"></a>损失函数（“梯度角惩罚”）（gradient angle penalty）</h4><p>&emsp;&emsp;本文的损失描述为：</p>
+<script type="math/tex; mode=display">
+\mathcal L =\mathcal L_{WGAN} + λ_{GP}\mathcal L_{GP} + λ_{GAP}\mathcal L_{GAP}</script><p>&emsp;&emsp;其中前两项记为 WGAN 的损失函数描述，最后一项即本文新提出的梯度角惩罚，其目的是防止使用 RNN 架构生成长视频时出现“循环视频片段”的情况。</p>
+<p>&emsp;&emsp;其具体的做法为：</p>
+<ul>
+<li>计算最后一帧相对于第一帧的偏移 $d,\ d=norm(l_{t-1}-l_0)$</li>
+<li>计算 $d$ 对每一个 $s$ 的梯度（$t-1$ 个 ），对其计算二阶范数（一阶应该也行），作为分子</li>
+<li>计算 $d$ 对 $i$ 的梯度，作为分母</li>
+<li>取 arctan，得到角度 $\phi$，最终的 $\mathcal L_{GAP}=max(0, \frac\pi 4-\phi)^2$</li>
+</ul>
+<p>即：</p>
+<p><img src="/styleVideoGAN/image-20230410213039520.png" alt="image-20230410213039520" style="zoom: 50%;"></p>
+<p>&emsp;&emsp;这个式子的有效性原理在于：假如视频的生成出现了循环，那么就说明生成的 video 没有太和随机采样的 $s$ 有关，即更多地和 $i$ 有关，此时关于 $i$ 的梯度会明显大于关于其他采样的 $s$ 的梯度，这时候 $\phi$ 就会接近 0，返回的 loss 也就会变大。</p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;在短视频和长视频上的 FID 和 FVD 的值，先 mark 一下，到时候可能要和他比一比</p>
+<p><img src="/styleVideoGAN/image-20230410213403647.png" alt="image-20230410213403647"></p>
+<p>&emsp;&emsp;生成的视频质量，还是很棒的（毕竟基于 pSp，至少放一些直接 reverse 的结果也不会差）</p>
+<p><img src="/styleVideoGAN/image-20230410213641532.png" alt="image-20230410213641532" style="zoom:50%;"></p>
+<p>&emsp;&emsp;偏移技巧：将生成的视频转化为不同的主题（也就是视频驱动人脸生成视频），效果满差的感觉，下图中上面是生成的正常视频，下面的左一，左二是普通的方法，左三，左四是他提出的基于 PCA 的正交迁移方法，因为效果属实不好，需要的话后期再看</p>
+<p><img src="/styleVideoGAN/image-20230410214149442.png" alt="image-20230410214149442"></p>
+<p>&emsp;&emsp;本文还专门强调自己虽然是专注于人脸视频生成，但是所设计的方法之中没有针对人脸设计的模块，因此也放了一些其他 domain 的结果，可以看出确实多了些多样性出来</p>
+<p><img src="/styleVideoGAN/image-20230410213805162.png" alt="image-20230410213805162"></p>
 ]]></content>
       <categories>
         <category>paper</category>
@@ -3703,63 +3760,6 @@ g(x)=W_g\times x</script><p>&emsp;&emsp;显然，对于 方程 $(2)$ 的前半�
 <h3 id="写向量"><a href="#写向量" class="headerlink" title="写向量"></a>写向量</h3>]]></content>
       <categories>
         <category>math_high_school</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>styleVideoGAN</title>
-    <url>/styleVideoGAN/</url>
-    <content><![CDATA[<h2><center> StyleVideoGAN: A Temporal Generative Model using a Pretrained StyleGAN </center></h2>
-
-<p>【人脸视频生成】【<a href="https://arxiv.org/abs/2107.07224v1">paper</a>】【<a href>code未开源</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文使用预训练的 styleGAN 为基础，采用类似 pSp 的架构进行 $\mathcal W+$ 空间的视频序列监督，同时采用基于 GRU 架构的 RNN 网络自回归生成视频，为了避免视频生成时的片段重复现象，提出了“梯度角惩罚”。另外本文展示了效果不太好的“偏移技巧”，即将生成视频的运动转移到不同的主题。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/styleVideoGAN/image-20230410151337116.png" alt="image-20230410151337116"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>在预训练 styleGAN 的 $\mathcal W+$ 空间上对时间序列进行训练以生成 video，模型完全在 $\mathcal W+$ 空间监督</li>
-<li>提出一种 offset trick，用以将生成的视频运动转化至不同的主题</li>
-<li>使用 gradient angle penalty 惩罚 RNN，用以避免 RNN 生成视频时可能出现的循环问题</li>
-<li>该方法可以生成手部视频</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/styleVideoGAN/image-20230410151303114.png" alt="image-20230410151303114"></p>
-<p> &emsp;&emsp;本文的架构是一个 WGAN，具体来说，输入为 $(i,s)$，其中 $i\sim \mathcal N(0,1)^{32},\ s\sim \mathcal N(0,1)^{32\times(t-1)}$，也就是说，$i$ 就代表视频的第一帧，其余的 $s$ 都代表剩余帧。这些初始输入通过一系列 RNN 得到 $l$（这里的 $l$ 对标 styleGAN 中的 $z$），然后经过 $T$ 的特征映射（对标 styleGAN 的 $F$）并进一步学习仿射变换得到 $\mathcal W+$ 空间的各个帧的隐向量 $w$（这里的 $w$ 对标到 pSp 之中是 $18\times 512$ 的向量，包含一帧的所有粒度特征控制）。之后的 $C$ 即判别器，只是换了一个名字，之所以判别器需要包括 $E,\ TConv$ 两个部分，主要考虑到生成器与判别器的网络容量大小关系。</p>
-<p>&emsp;&emsp;整体来说，本文的前向流程如下：</p>
-<ul>
-<li>对于初始视频 $V$ 其中包含 $t$ 帧 $I_t$，首先将每一帧通过预训练的 pSp 映射至 $w_k^+\in\mathcal W+ ,\ k\in[0,t)$</li>
-<li>接着从 $\mathcal N(0,1)$ 中采样 $i$ 和 $t-1$ 个 $s$，输入生成器 $G$，$G(i,s)=\{l_k\},k\in[0,t)$</li>
-<li>将得到的 $t$ 个 $l$ 分别通过映射 $T$ 和 18 个仿射映射，得到 $w_k\in\mathcal W+,\ l\in[0,t)$</li>
-<li>对于 $w_k,\ w_k^+$，将其分别作为 fake 和 real 输入判别器 $C$，通过对抗训练得到合适的 $G$</li>
-</ul>
-<p>&emsp;&emsp;⛔本文的架构理论上可以生成任意长度的视频（测试时），训练为了考虑判别器还是只能产生 25 帧</p>
-<h4 id="G-的网络结构"><a href="#G-的网络结构" class="headerlink" title="$G$ 的网络结构"></a>$G$ 的网络结构</h4><p>&emsp;&emsp;生成器包含一个 $H$ 以及一个由 4 个GRU单元组成的 $P$，$P$ 处理“每时间步随机”，目的是产生多样的运动方式。为了初始化 GRU 内存，让 MLP $H$ 伪生成前三个单元的一些内存内容，而最后一个单元则用 $i$ 初始化。使用数学语言描述为：</p>
-<script type="math/tex; mode=display">
-(h_{0,0},h_{0,1},h_{0,2}):= H(i)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ h_{0,3}:= i\\
-((h_{k+1,0}, . . . ,h_{k+1,3}),l_{k+1}) := P(s_k,(h_{k,0}, . . . ,h_{k,3}))</script><p>&emsp;&emsp;简单来说，第 $k$ 层 $P_k$ 接收输入 $s_k$，和上一层传下来的四个隐特征 $\{h_{k-1,0\to3}\}$， 输出下一层 $P_{k+1}$ 所需要的隐特征，同时每一层输出的隐特征的最后一个直接当做输出。</p>
-<h4 id="损失函数（“梯度角惩罚”）（gradient-angle-penalty）"><a href="#损失函数（“梯度角惩罚”）（gradient-angle-penalty）" class="headerlink" title="损失函数（“梯度角惩罚”）（gradient angle penalty）"></a>损失函数（“梯度角惩罚”）（gradient angle penalty）</h4><p>&emsp;&emsp;本文的损失描述为：</p>
-<script type="math/tex; mode=display">
-\mathcal L =\mathcal L_{WGAN} + λ_{GP}\mathcal L_{GP} + λ_{GAP}\mathcal L_{GAP}</script><p>&emsp;&emsp;其中前两项记为 WGAN 的损失函数描述，最后一项即本文新提出的梯度角惩罚，其目的是防止使用 RNN 架构生成长视频时出现“循环视频片段”的情况。</p>
-<p>&emsp;&emsp;其具体的做法为：</p>
-<ul>
-<li>计算最后一帧相对于第一帧的偏移 $d,\ d=norm(l_{t-1}-l_0)$</li>
-<li>计算 $d$ 对每一个 $s$ 的梯度（$t-1$ 个 ），对其计算二阶范数（一阶应该也行），作为分子</li>
-<li>计算 $d$ 对 $i$ 的梯度，作为分母</li>
-<li>取 arctan，得到角度 $\phi$，最终的 $\mathcal L_{GAP}=max(0, \frac\pi 4-\phi)^2$</li>
-</ul>
-<p>即：</p>
-<p><img src="/styleVideoGAN/image-20230410213039520.png" alt="image-20230410213039520" style="zoom: 50%;"></p>
-<p>&emsp;&emsp;这个式子的有效性原理在于：假如视频的生成出现了循环，那么就说明生成的 video 没有太和随机采样的 $s$ 有关，即更多地和 $i$ 有关，此时关于 $i$ 的梯度会明显大于关于其他采样的 $s$ 的梯度，这时候 $\phi$ 就会接近 0，返回的 loss 也就会变大。</p>
-<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;在短视频和长视频上的 FID 和 FVD 的值，先 mark 一下，到时候可能要和他比一比</p>
-<p><img src="/styleVideoGAN/image-20230410213403647.png" alt="image-20230410213403647"></p>
-<p>&emsp;&emsp;生成的视频质量，还是很棒的（毕竟基于 pSp，至少放一些直接 reverse 的结果也不会差）</p>
-<p><img src="/styleVideoGAN/image-20230410213641532.png" alt="image-20230410213641532" style="zoom:50%;"></p>
-<p>&emsp;&emsp;偏移技巧：将生成的视频转化为不同的主题（也就是视频驱动人脸生成视频），效果满差的感觉，下图中上面是生成的正常视频，下面的左一，左二是普通的方法，左三，左四是他提出的基于 PCA 的正交迁移方法，因为效果属实不好，需要的话后期再看</p>
-<p><img src="/styleVideoGAN/image-20230410214149442.png" alt="image-20230410214149442"></p>
-<p>&emsp;&emsp;本文还专门强调自己虽然是专注于人脸视频生成，但是所设计的方法之中没有针对人脸设计的模块，因此也放了一些其他 domain 的结果，可以看出确实多了些多样性出来</p>
-<p><img src="/styleVideoGAN/image-20230410213805162.png" alt="image-20230410213805162"></p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
       </categories>
   </entry>
 </search>
