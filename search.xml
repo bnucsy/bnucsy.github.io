@@ -1,6 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>A Learned Compact and Editable Light Field Representation</title>
+    <url>/A%20Learned%20Compact%20and%20Editable%20Light%20Field%20Representation/</url>
+    <content><![CDATA[<h2 id="A-Learned-Compact-and-Editable-Light-Field-Representation【光场压缩、编辑传播】【arxiv】"><a href="#A-Learned-Compact-and-Editable-Light-Field-Representation【光场压缩、编辑传播】【arxiv】" class="headerlink" title="A Learned Compact and Editable Light Field Representation【光场压缩、编辑传播】【arxiv】"></a><a href="https://arxiv.org/abs/2103.11314">A Learned Compact and Editable Light Field Representation</a>【光场压缩、编辑传播】【arxiv】</h2><center>P.S. 本文为自己重述，不完全忠实于原paper，难免出现错误</center>
+
+<p>&emsp;&emsp;该论文完成了光场数据的压缩表示，使用自编码器的方法将光场数据压缩为一个深度图和一个中央视觉图，并且支持编辑之后的中央视觉图和原深度图进行光场重建。</p>
+<p><img src="https://img-blog.csdnimg.cn/f7655d1624894b87a117e25801a7b14d.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" align="center" style="zoom: 80%;"></p>
+<span id="more"></span>
+<h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p> &emsp; &emsp; 所谓光场，即记录光线位置和方向的数据结构，这种数据表示方式经历了很大的变化历程，相关的介绍中<a href="https://www.leiphone.com/category/arvr/N14i2K6UmZzK5TcE.html">这个介绍</a>最为清晰和全面。<br>&emsp; &emsp;本文对于这种数据结构进行了自编码器的学习，综合考虑解码后与原图的结构差异，编码的中间层中央视觉图部分的RGB相似度，编辑后的中央视觉图的重建程度，完成了一种支持编辑的光场重建。这项工作的压缩部分解决了光场数据结构较大的问题，可编辑重建部分解决了二维图像处理到三维图像处理的迁移问题，总体来说意义重大。目前本文发布于<a href="https://arxiv.org/abs/2103.11314"> arxiv</a>，也许在不久之后会登上SIGGRAPH。</p>
+<h3 id="相关工作"><a href="#相关工作" class="headerlink" title="相关工作"></a>相关工作</h3><ul>
+<li><p>光场重建相关<br>&emsp; &emsp; 以往的光场重建工作主要集中于：①<a href="https://dl.acm.org/doi/10.1145/2682631#d32752538e1">从稀疏样本合成密集光场。</a>②<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6574844">通过光场估计视差。</a>③<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7406366">对光场合成的深度学习方法——该方法可以估计扭曲的视差，并更细致地描绘颜色。</a>④<a href="https://arxiv.org/pdf/1708.03292.pdf">通过单张照片合成光场。</a>⑤<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8953925">多平面图像表示光场。</a><br>&emsp; &emsp;这些工作尽管能够解决部分问题，但仍有局限，如前几个工作会出现某些伪影、重影。最后一类工作引出一个新的问题——如何通过编辑这种多平面图象进行光场编辑。<br>&emsp; &emsp;我认为本文的工作在某种程度上重复了④的工作内容，类似于AE和GAN之间的联系。在完成④的基础上，本文解决了⑤引出的可编辑性问题——通过分离特征和视图的方法。</p>
+</li>
+<li><p>光场编辑相关<br>&emsp; &emsp;以往的这些工作集中于：①目标重定位。②目标变形。③目标补充。④<a href="http://citeseerx.ist.psu.edu/viewdoc/download;jsessionid=36554C114E54C1449058A76D6684D6AB?doi=10.1.1.644.3384&rep=rep1&type=pdf">将稀疏编辑传播至全光场。</a>⑤<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7414488">将中心视图分解为不同深度的图层，通过图层进行光场编辑。</a><br>&emsp; &emsp;上述工作中④，⑤两个工作相比而言较为接近本文工作，因此没有给出①②③的原文链接，尤其是④，④最关键的难度在于进行光场编辑的一致性传播，与本文想法接近。有较强的借鉴意义。</p>
+<p>&emsp; </p>
+<h3 id="本文的工作"><a href="#本文的工作" class="headerlink" title="本文的工作"></a>本文的工作</h3><p>&emsp; &emsp;总体来说，本文能够对一个给定的4D光场，将其表示为一个元通道<code>在没有限制元通道的视觉形态的情况下，为什么它长得这么像一个灰度图？</code>和一个RGB图（视觉通道），这实现了4D光场数据的压缩，另一方面，针对视觉通道的编辑可以通过和元通道的结合重建光场，并一致性地传播到新的光场之中。<br>本文设计的网络结构：<img src="https://img-blog.csdnimg.cn/a35c15d6728748e487dc22097d88cf4c.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" width="50%" align="center"></p>
+</li>
+</ul>
+<ol>
+<li><h4 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h4><p>&emsp; &emsp;输入的4D光场视图即为$M\times N$张RGB图像，我们描述为$L = \{I_i\}_{i=1}^{M\times N}$，对于这个光场$L$,$L(u,v)$也就表示了某一个像素，其中$u$表示图片，$v$表示像素，也就是说$I_i$即为$L(u_i)$。</p>
+<p>&emsp; &emsp;在整个自编码器的设计过程之中，我们记编码器为$E$，解码器为$D$。</p>
+<p>&emsp; &emsp;一方面，对于输入的光场$L$，我们通过编码器生成一个元通道$Z$，即$Z = E(L)$，有$sizeof(Z) = sizeof(I_i)$。另一方面，对于传入的光场数据，我们获取中央视图$I_c$ <code>Ic具体是如何得到的呢？是L(x,0)么？</code>。对$I_c$进行编辑之后我们获得$\widetilde{I}_c$，接着我们把两者结合，通过解码网络获得编辑后光场$\widetilde L$，即 $\widetilde L = D(Z, \widetilde I _c)$。</p>
+</li>
+<li><h4 id="表示方式的选取"><a href="#表示方式的选取" class="headerlink" title="表示方式的选取"></a>表示方式的选取</h4><p>&emsp; &emsp;本节实际上主要阐述了为什么要选取元通道和视觉通道。</p>
+<p>&emsp; &emsp;中心视图 $I_c$ 捕获了光场的参考视觉内容，因此自编码器只需要学习表示元通道即可。元通道作为视觉通道互补的部分，意味着包括深度、视差、纹理、遮挡等等信息被隐式地编码到元通道之中。事实上本文做了<a href="https://blog.csdn.net/flyfish1986/article/details/104812229#:~:text=%E6%B6%88%E8%9E%8D%E5%AE%9E%E9%AA%8C%20%EF%BC%88%20ablation%20experiment%EF%BC%89,%E5%9C%A8%E6%9C%BA%E5%99%A8%20%E5%AD%A6%E4%B9%A0%20%EF%BC%8C%E7%89%B9%E5%88%AB%E6%98%AF%E5%A4%8D%E6%9D%82%E7%9A%84%E6%B7%B1%E5%BA%A6%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E7%9A%84%E8%83%8C%E6%99%AF%E4%B8%8B%EF%BC%8C%E5%B7%B2%E7%BB%8F%E9%87%87%E7%94%A8%E2%80%9C%20%E6%B6%88%E8%9E%8D%E7%A0%94%E7%A9%B6%20%E2%80%9D%E6%9D%A5%E6%8F%8F%E8%BF%B0%E5%8E%BB%E9%99%A4%E7%BD%91%E7%BB%9C%E7%9A%84%E6%9F%90%E4%BA%9B%E9%83%A8%E5%88%86%E7%9A%84%E8%BF%87%E7%A8%8B%EF%BC%8C%E4%BB%A5%E4%BE%BF%E6%9B%B4%E5%A5%BD%E5%9C%B0%E7%90%86%E8%A7%A3%E7%BD%91%E7%BB%9C%E7%9A%84%E8%A1%8C%E4%B8%BA%E3%80%82">消融实验</a>，使用深度图代替了元通道，取得了较差的结果。</p>
+<p>中央视觉图、元通道、深度图：<img src="https://img-blog.csdnimg.cn/ae4a919d4c164d27b71ae77dd83e9f50.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" width="50%" align="center"></p>
+<p>&emsp; &emsp;关于元通道的个数和是否必须存在的问题，本文解释道，当图片数目（角度分辨率）和图片大小（空间分辨率）增加的时候，单个元通道可能无法编码全部信息，这时候我们可以增加元通道的数目。至于和视觉图分离的原因，主要是考虑到光场的重建过程中对于编辑的视觉通道，我们需要原光场的结构，如果将元通道编码到视觉通道之中形成 $I^z$，那么编辑的过程就会破坏结构，光场不再能够重建。</p>
+<p>&emsp; &emsp;事实上，如果我们不考虑光场的重建问题，我们是可以将视觉通道和元通道合二为一的，此时我们只考虑数据压缩和光场生成的任务，该方法仍旧是一个很好的想法。这也将作为我的毕业设计的主要思想。</p>
+</li>
+<li><h4 id="编辑敏感的光场重建（解码器网络实现）"><a href="#编辑敏感的光场重建（解码器网络实现）" class="headerlink" title="编辑敏感的光场重建（解码器网络实现）"></a>编辑敏感的光场重建（解码器网络实现）</h4><p>&emsp; &emsp;本文将解码器的解释信息的方式分为两类：视图间视差图，以及其他信息（遮挡图和<a href="https://www.cnblogs.com/qingsunny/archive/2013/03/07/2947572.html#:~:text=%E5%AF%B9%E9%9D%9E%E6%9C%97%E4%BC%AF%E4%BD%93%E8%80%8C%E8%A8%80%EF%BC%8C%E5%AE%83%E5%AF%B9%E5%A4%AA%E9%98%B3%E7%9F%AD%E6%B3%A2%E8%BE%90%E5%B0%84%E7%9A%84%E5%8F%8D%E5%B0%84%E3%80%81%E6%95%A3%E5%B0%84%E8%83%BD%E5%8A%9B%E4%B8%8D%E4%BB%85%E9%9A%8F%E6%B3%A2%E9%95%BF%E8%80%8C%E5%8F%98%EF%BC%8C%E5%90%8C%E6%97%B6%E4%BA%A6%E9%9A%8F%E7%A9%BA%E9%97%B4%E6%96%B9%E5%90%91%E8%80%8C%E5%8F%98%E3%80%82%20%E6%89%80%E8%B0%93%E5%9C%B0%E7%89%A9%E7%9A%84%E6%B3%A2%E8%B0%B1%E7%89%B9%E5%BE%81%E6%98%AF%E6%8C%87%E8%AF%A5%E5%9C%B0%E7%89%A9%E5%AF%B9%E5%A4%AA%E9%98%B3%E8%BE%90%E5%B0%84%E7%9A%84%E5%8F%8D%E5%B0%84%E3%80%81%E6%95%A3%E5%B0%84%E8%83%BD%E5%8A%9B%E9%9A%8F%E6%B3%A2%E9%95%BF%E8%80%8C%E5%8F%98%E7%9A%84%E8%A7%84%E5%BE%8B%E3%80%82%20%E5%9C%B0%E7%89%A9%E6%B3%A2%E8%B0%B1%E7%89%B9%E5%BE%81%E4%B8%8E%E5%9C%B0%E7%89%A9%E7%9A%84%E7%BB%84%E6%88%90%E6%88%90%E4%BB%BD%EF%BC%8C%E7%89%A9%E4%BD%93%E5%86%85%E9%83%A8%E7%9A%84%E7%BB%93%E6%9E%84%E5%85%B3%E7%B3%BB%E5%AF%86%E5%88%87%EF%BC%8C%E9%80%9A%E4%BF%97%E8%AE%B2%E5%9C%B0%E7%89%A9%E6%B3%A2%E8%B0%B1%E7%89%B9%E5%BE%81%E4%B9%9F%E5%B0%B1%E6%98%AF%E5%9C%B0%E7%89%A9%E7%9A%84%E9%A2%9C%E8%89%B2%E7%89%B9%E5%BE%81%E3%80%82%20%E8%80%8C%E5%9C%B0%E7%89%A9%E7%9A%84%E6%96%B9%E5%90%91%E7%89%B9%E5%BE%81%E6%98%AF%E7%94%A8%E6%9D%A5%E6%8F%8F%E8%BF%B0%E5%9C%B0%E7%89%A9%E5%AF%B9%E5%A4%AA%E9%98%B3%E8%BE%90%E5%B0%84%E5%8F%8D%E5%B0%84%E3%80%81%E6%95%A3%E5%B0%84%E8%83%BD%E5%8A%9B%E5%9C%A8%E6%96%B9%E5%90%91%E7%A9%BA%E9%97%B4%E5%8F%98%E5%8C%96%E7%9A%84%EF%BC%8C%E8%BF%99%E7%A7%8D%E7%A9%BA%E9%97%B4%E5%8F%98%E5%8C%96%E7%89%B9%E5%BE%81%E4%B8%BB%E8%A6%81%E5%86%B3%E5%AE%9A%E4%BA%8E%E4%B8%A4%E7%A7%8D%E5%9B%A0%E7%B4%A0%EF%BC%8C%E5%85%B6%E4%B8%80%E6%98%AF%E7%89%A9%E4%BD%93%E7%9A%84%E8%A1%A8%E9%9D%A2%E7%B2%97%E7%B3%99%E5%BA%A6%EF%BC%8C%E5%AE%83%E4%B8%8D%E4%BB%85%E5%8F%96%E5%86%B3%E4%BA%8E%E8%A1%A8%E9%9D%A2%E5%B9%B3%E5%9D%87%E7%B2%97%E7%B3%99%E9%AB%98%E5%BA%A6%E5%80%BC%E4%B8%8E%E7%94%B5%E7%A3%81%E6%B3%A2%E6%B3%A2%E9%95%BF%E4%B9%8B%E9%97%B4%E7%9A%84%E6%AF%94%E4%BE%8B%E5%85%B3%E7%B3%BB%EF%BC%8C%E8%80%8C%E4%B8%94%E8%BF%98%E4%B8%8E%E8%A7%86%E8%A7%92%E5%85%B3%E7%B3%BB%E5%AF%86%E5%88%87%E3%80%82%20%E8%AE%BE%E6%B3%A2%E9%95%BF%E4%B8%BA%CE%BB%EF%BC%8C%E7%A9%BA%E9%97%B4%E5%85%B7%E6%9C%89%CE%B4%E5%88%86%E5%B8%83%E5%87%BD%E6%95%B0%E7%9A%84%E5%85%A5%E5%B0%84%E8%BE%90%E5%B0%84%EF%BC%8C%E4%BB%8E%20%28%CE%B80%EF%BC%8C%CF%860%29%20%E6%96%B9%E5%90%91%EF%BC%8C%E4%BB%A5%E8%BE%90%E5%B0%84%E4%BA%AE%E5%BA%A6L0,%28%CE%B80%EF%BC%8C%CF%860%EF%BC%8C%CE%BB%29%E6%8A%95%E5%B0%84%E5%90%91%E7%82%B9%E7%9B%AE%E6%A0%87%EF%BC%8C%E9%80%A0%E6%88%90%E8%AF%A5%E7%82%B9%E7%9B%AE%E6%A0%87%E7%9A%84%E8%BE%90%E7%85%A7%E5%BA%A6%E5%A2%9E%E9%87%8F%E4%B8%BAdE%20%28%CE%B80%EF%BC%8C%CF%860%EF%BC%8C%CE%BB%29%20%3D%20L0%20%28%CE%B80%EF%BC%8C%CF%860%EF%BC%8C%CE%BB%29%20cos%CE%B80%20d%CE%A9%E3%80%82">非朗博效应</a>）</p>
+<p> 本文设计的解码器网络：<img src="https://img-blog.csdnimg.cn/e0504d3786df4b37ad59995d8c678ae5.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" align="center" width="70%"></p>
+<p>&emsp; &emsp;在图中我们可以看到，解码器由三个不同的网络共同构成。$SepNet, DispNet, FusionNet$ 三个网络各自有着对应的任务。同时也有着一些方法，如 $warping$，以及涉及到 $Occlusion _ map, Disparity _ map,Feature_map$<code>遮挡图是通过特征图得到的么？是的话为什么可以直接得到，是物理方法么？</code>等的获取，接下来我们将一一介绍。</p>
+</li>
+</ol>
+<ul>
+<li><p>$SepNet$：该网络的作用是特征分离，具体地说，这个模块将元通道 $Z$ 分解为一系列特征映射 $\{F_i\}$，其中每个 $F_i$ 包含视图 $i$ 的特征信息，和视觉通道独立，可以和视觉通道结合重建视图 $i$。</p>
+</li>
+<li><p>$DispNet$：该网络的作用是视差恢复。具体来说，从特征图 $F_i$ 中提取出 $I_i$ 视差图 $D(u_i)$。接着我们如果给出某一个光场视图$L(u_j)$，我们可以得到合成视图（即warped方法）$\bar{L}(u_i)$：</p>
+<script type="math/tex; mode=display">
+\bar{L}(u_i,x)=L(u_j, x+(u_j-u_i)\times D(u_i,x))</script><p>&emsp; &emsp;因此，我们可以明确认识到，对于任何一个视差图$D(u_i)$，我们将其与$I_c$进行合成得到 $\bar L(u_i)$。此时我们得到的图理论上和$\widehat L(u_i)$一致（其中$\widehat L=L$，作为重建光场的目标），但实际上由于遮挡和非朗博效应总会出现不同。为了解决这个问题，我们需要另一个网络修复他，但是网络的执行时间可以由 $D(u_i)$ 的遮挡情况自适应地确定，为了度量遮挡程度，我们记 </p>
+<script type="math/tex; mode=display">
+O(u_i, x) = ||D(u_i,x)-D(u_c,x+(u_c-u_i)\times D(u_i,x))||_1</script><p>&emsp;&emsp;其中$D(u_c)$ 表示 $I_c$ 的视差图。并且有 $O(u_i,x)$越大，接下来的网络需要的时间就越长。</p>
+</li>
+<li><p>$FusionNet$：该网络的目的是重建遮挡细节和非朗博效应，这个网络通过大规模的训练达到将视觉图和遮挡图变回光场图像的目的。大规模的训练遇到的关键问题是数据问题，为了解决这个问题，本文提出了一个算子 $G$，算子 $G$ 通过平均采样的方式更改光场，对于原本的IO组$\{\widetilde I_c,\widehat L\}$，我们更改为$\{G( I_c),G(L)\}$，从而得到大规模数据。</p>
+</li>
+</ul>
+<ol>
+<li><h4 id="损失函数"><a href="#损失函数" class="headerlink" title="损失函数"></a>损失函数</h4><p>&emsp; &emsp;网络通过最小化损失函数联合训练编码和解码子网络，本文的损失函数分为三个部分，扭曲一致性损失（也就是$warped$模块） $\zeta_W$，视差正则损失 $\zeta_D$ ，重建损失 $\zeta_R$。故而总损失为：</p>
+<script type="math/tex; mode=display">
+\zeta = \omega_1\zeta_W + \omega_2\zeta_D + \omega_3\zeta_R</script><p>&emsp; &emsp;在这里，我们设定$\omega_1 = 0.5,\omega_2 = 0.01, \omega_3 = 1.0$。接下来我们将逐一介绍三个损失。</p>
+<p>&emsp; &emsp;$\zeta_W$：扭曲一致性损失。该损失用来度量$warped$之后的光场$\bar L$ 和中央视觉通道 $I_c$之间的差别，使得视差能够更好地被还原。公式写作：</p>
+<script type="math/tex; mode=display">
+\zeta_W = E_{L_i \in S}\{||\bar L_i - L_i||_1\}</script><p>&emsp;&emsp;<code>warp是一个物理方法，这个方法由于不考虑遮挡理论上本身就和预期结果不同，如果使用这种损失有没有可能会让视差的生成网络过拟合呢？（也就是视差的生成网络不去生成视差，而是某种能和中央通道直接合成光场的图片【这并不是值得开心的，因为之后还要和遮挡图进行进一步的融合】）</code></p>
+<p>&emsp; &emsp;其中，$S$ 即为光场构成的数据集，这个损失即为所有光场的中央视觉通道与对应的$\bar L_i$的一阶范数。该损失限制了从$DispNet$中生成的视差图，使其更加接近于真实视差。</p>
+<p>&emsp; &emsp;但是仅仅由这个损失进行限制仍然是不够的，由于这个损失并不能度量到没有纹理的区域的扭曲视图是否相近，这种失误将会造成遮挡部分无法进行一致性地传播，将会加大 $FusionNet$ 的训练量。为了解决这个问题，我们引入正则损失 $\zeta_D$，加强相邻视图的视差一致性。</p>
+<script type="math/tex; mode=display">
+\zeta_D = E_{L_i \in S}\{||D(u_i,x)-D(u_i-1,x+D(u_i,x))||_1\}</script><p>&emsp;&emsp;这个损失函数实际上限制了在预测后的光场中，相邻视图需要尽可能地一致，保证相邻视图之间的视差一致性。每个视图在某种程度上都会受到其他视图的影响和制约。</p>
+<p>&emsp; &emsp;在最后，我们通过重建的光场和原本的光场相一致的限制构造重建损耗 $\zeta_R$：</p>
+<script type="math/tex; mode=display">
+\zeta_R = E_{L_i\in S}\{\alpha||\widetilde L_i-\widehat L_i||_1+\beta||SSIM(\widetilde L_i, \widehat L_i)||_1\}</script><p>&emsp;&emsp;实验中，$SSIM(L_1,L_2)$表示两个光场的所有视角的平均$SSIM$值，<a href="https://baike.baidu.com/item/SSIM/2091025">计算见此</a>。并且预设$\alpha=1.0,\beta=0.02$。选取$SSIM$度量将在模糊区域获得更精确的细节。</p>
+</li>
+</ol>
+<h3 id="实现的细节"><a href="#实现的细节" class="headerlink" title="实现的细节"></a>实现的细节</h3><ol>
+<li><p>数据集<br>&emsp; &emsp;本文的数据集来自两个公开数据集，斯坦福和MIT的相机光场数据，总共收集了406个光场，每个光场有14*14个角度和376*541个像素。在训练的过程中，随机选取326个作为训练集，剩余80个作为测试集，对每个光场裁取7*7个角度以及每个角度128*128个像素组成的照片。对训练集进行了数据增强，即水平翻转或者旋转。通过数据增强，最终得到14447个光场样本进行训练。</p>
+</li>
+<li><p>训练<br>&emsp; &emsp;训练时编码子网和解码子网是联合训练的，但是这种训练方式较慢，本文提出将这个训练分为两个部分。首先是进行除了 $FusionNet$ 之外的网络进行训练，这个阶段迭代10000次，这个训练的目的是加速以及预热$DispNet$ 。在第二阶段，包括 $FusionNet$ 在内 的所有网络进行 50000 次训练。训练中使用Adam优化器，第一阶段学习率为0.0002，第二阶段学习率下降为第一阶段学习率的1%。</p>
+<p>&emsp; &emsp;另外，本文采用pytorch实现了方法，这个实验在两台NVDIA GeForce GTX 1080 Ti 上运行了48个小时。完成的模型对于7*7的光场输入编码元通道约需要0.04秒，重建光场约需要2秒。</p>
+<p>&emsp; &emsp;源代码和数据尚未开源，等待本文正式发布将会开源代码和数据。</p>
+</li>
+</ol>
+<h3 id="实验的结果"><a href="#实验的结果" class="headerlink" title="实验的结果"></a>实验的结果</h3><p>&emsp; &emsp;我们可以看到，无论是颜色编辑、颜色转换、阴影去除、风格转换、对比增强等针对2D图片的编辑方法，在本模型的支持下均完成了对于重建光场的一致性传播。<br> <img src="https://img-blog.csdnimg.cn/f7655d1624894b87a117e25801a7b14d.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" width="110%" align="center"></p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
     <title>Anchor_based_colorization</title>
     <url>/Anchor_based_colorization/</url>
     <content><![CDATA[<h2><center> Disentangled Image Colorization via Global Anchors </center></h2>
@@ -90,128 +166,6 @@
 <p><img src="/Anchor_based_colorization/image-20230214105919533.png" alt="image-20230214105919533" style="zoom: 50%;"></p>
 <p>&emsp;&emsp;同时在是否存在锚点分支、是否进行软像素分割、是否进行基于像素级别的增强、是否进行特征聚类四个方面分别进行了消融实验。</p>
 <p><img src="/Anchor_based_colorization/image-20230214105953306.png" alt="image-20230214105953306" style="zoom: 67%;"></p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>AutoHR</title>
-    <url>/AutoHR/</url>
-    <content><![CDATA[<h2><center> AutoHR: A Strong End-to-end Baseline for Remote Heart Rate Measurement with Neural Searching </center></h2>
-
-<p>【心率检测】【SPL2020】【<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&amp;arnumber=9133501">paper</a>】【<a href>code未开源</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种基于 NAS 的心率检测 backbone 设计策略，在操作域中加入了 TDC（时空差分卷积），同时提出了一种时域和频域的混合损失函数，在单数据集和跨数据集上的测试都取得了较好的结果，并且为了解决现有方法泛化能力弱的问题提出了新的数据增强策略，取得了端到端的 SOTA。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/AutoHR/image-20221106184645470.png" alt="image-20221106184645470"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>首次使用 NAS 搜索 HR 任务的网络，并且在 NAS 搜索中加入了 TDC</li>
-<li>提出了一种时域频域的 loss，提出两种数据增强策略</li>
-</ul>
-<h3 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h3><h4 id="NAS（神经结构搜索）"><a href="#NAS（神经结构搜索）" class="headerlink" title="NAS（神经结构搜索）"></a>NAS（神经结构搜索）</h4><p>&emsp;&emsp;NAS(Neural Architecture Search) 意图使用深度学习任务自主设计神经网络，其基本工作流程如下图所示。首先由人工给定搜索的空间以及搜索策略，由机器自主探索空间中的操作组成的网络结构，并根据其网络的表现更新网络架构和超参数。</p>
-<p><img src="/AutoHR/e082b8ba4993c229c993b7dfa19d4641.png" alt="img"></p>
-<p>&emsp;&emsp;但是 NAS 有着难以避免的问题：1.超参数和搜索空间的网络架构都是离散的，2.大量的超参数使得训练时间太长。为了解决这些问题，提出了层次化表示：Learning Transferable Architectures for Scalable Image Recognition，权重共享：Reinforcement Learning for Architecture Search by Network Transformation，表现预测：Progressive Neural Architecture Search 等方法。</p>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><h4 id="TDC"><a href="#TDC" class="headerlink" title="TDC"></a>TDC</h4><p>&emsp;&emsp;时空差分卷积（TDC）是一种新的卷积策略，其卷积过程大致如下图所示。具体来说，对第 $t$ 帧图像 $p_0$ 为位置的 3x3 卷积过程如下：对第 $t$ 帧图像的 $p_0$ 位置进行 expand 操作，扩展到整个 3x3 的大小，并且分别和 $t-1$，$t+1$ 帧的对应位置进行作差。注意这里的作差中 expand 的部分带有一个参数 $\theta$ 用来控制当前帧对临近帧的影响程度，对原位置直接进行卷积，并且将最终的结果相加。</p>
-<p><img src="/AutoHR/image-20221106184757405.png" alt="image-20221106184757405" style="zoom:50%;"></p>
-<p>&emsp;&emsp;上面的过程使用公式可以表示为：</p>
-<script type="math/tex; mode=display">
-O(p_0^t)=\mathop\sum\limits_{p_n^{t-1}\in\mathcal R_{t-1}}w(p_n^{t-1})·(I(p_0^{t-1}+p_n^{t-1})-\theta·I(p_0^t))</script><script type="math/tex; mode=display">
-+\mathop\sum\limits_{p_n^{t+1}\in\mathcal R_{t+1}}w(p_n^{t+1})·(I(p_0^{t+1}+p_n^{t+1})-\theta·I(p_0^t))</script><script type="math/tex; mode=display">
-+\mathop\sum\limits_{p_n^{t-1}\in\mathcal R_{t}}w(p_n^{t})·I(p_0^{t}+p_n^{t})</script><h4 id="前向过程"><a href="#前向过程" class="headerlink" title="前向过程"></a>前向过程</h4><p>&emsp;&emsp;正如概览图中所示，整个网络由一个有向无环图进行估计，记所有的操作空间为 $\mathcal O$，对于图中的每一个边 $(i,j)$，其输出为：$\tilde o^{(i,j)}(x_i)=\sum_{o\in\mathcal O}\eta_o^{(i,j)}·o(x_i)$，其中的 $o$  代表操作空间中的每一个操作，$\eta$ 由一个 softmax 的式子给出，$\eta_o^{(i,j)}=\frac{exp(\alpha_o^{(i,j)})}{\sum_{o’\in\mathcal O}exp(\alpha_{o’}^{(i,j)})}$，其中的 $\alpha_o^{(i,j)}$ 表示在边 $(i,j)$ 中操作 $o$ 的权重或系数。</p>
-<p>&emsp;&emsp;在这种表示下，可以通过如下式子进行训练从而找到最适合的 $\alpha$，在训练的过程中，由于有四个 block，这四个 block 可以以共享权重或不共享权重的方式训练，其中权重共享实际上是 NAS 的共识，这样不仅可以加速搜索，同样可以取得更好的结果。本文的消融实验也探讨了这部分。</p>
-<script type="math/tex; mode=display">
-\min\limits_\alpha \mathcal L_{val(\Phi^*(\alpha),\alpha)},\ s.t.\ \Phi^*(\alpha)=\arg \min\limits_\Phi\mathcal L_{train}(\Phi,\alpha)</script><p>&emsp;&emsp;通过这种方式找到的网络结构每个 cell 中的每一条边都含有所有的 $\mathcal O$ 中的网络算子，并且每一个算子都具备对应的权重，但是这样的网络结构太大，其中的多个算子中某些算子的权重其实非常低，因此作者采用这样的方法进行网络的剪枝以确定最终的网络：1.对于最终的输出 output 的入边，每个边选取一个权重最大的操作保留，2.对于其他的中间节点 B1,B2,B3 的入边，每个选取权重最大的两个操作保留。</p>
-<p><img src="/AutoHR/image-20221106195942710.png" alt="image-20221106195942710" style="zoom:50%;"></p>
-<h4 id="损失函数"><a href="#损失函数" class="headerlink" title="损失函数"></a>损失函数</h4><p>&emsp;&emsp;损失函数包括两个部分，分为时间和频率，其中时间部分就是所谓的线性相关性，具体由下式给出，并且这个函数在 rPPGNet 之中也用到了，不过 rPPGNet 更晚一些就是了。</p>
-<script type="math/tex; mode=display">
-\mathcal L_{np}=1-\frac{T\mathop\sum\limits_{i=1}^T y_iy_i^g-\mathop\sum\limits_{i=1}^Ty_i\mathop\sum\limits_{i=1}^Ty_i^g}{\sqrt{(T\mathop\sum\limits_{i=1}^Ty_i^2-(\mathop\sum\limits_{i=1}^Ty_i)^2)(T\mathop\sum\limits_{i=1}^T(y_i^g)^2-(\mathop\sum\limits_{i=1}^Ty_i^g)^2)}}</script><p>&emsp;&emsp;对于频率域，就是对 $y_i$ 求功率谱密度，然后和 GT 做比较，即：</p>
-<script type="math/tex; mode=display">
-\mathcal L_{fre}=\sum CE(PSD(y_i),y_i^g)</script><p>&emsp;&emsp;整体来说的损失函数由 $\mathcal L_{overall}=\lambda·\mathcal L_{time}+\mathcal L_{fre}$ 给出，其中 $\lambda$ 用于平衡损失。</p>
-<h4 id="数据增强"><a href="#数据增强" class="headerlink" title="数据增强"></a>数据增强</h4><p>&emsp;&emsp;本文针对现有数据集的两个问题提出了两个数据增强策略：1.头部运动可能导致 ROI 遮挡，2.HR 分布严重不平衡，呈倒 V 形。</p>
-<p>&emsp;&emsp;对于这两个问题的改进为：1.在随机时间片段（小于 20% 的空间大小和 20% 的时间长度）内随机擦除或切除部分时空管，模拟 ROI 遮挡的情况，2.对视频进行时间上采样和下采样，以生成具有极小或极大 HR 值的额外训练样本。具体来说，HR 值大于 90 bpm 的视频将被时间插值两次，而 HR 值小于 70 bpm 的视频将以采样率 2 下采样，分别模拟一半和两倍的心率。</p>
-<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文做了简单的消融实验，针对性地探究了 a）损失函数，b）TDC 中的 $\theta$ 值，c）是否具备 NAS / TDC 部分，d）是否使用数据增强策略。结果如下图所示，虽然基本上都没有提太多，但是每个方法都或多或少提了0.几 的点。</p>
-<p><img src="/AutoHR/image-20221106202041824.png" alt="image-20221106202041824" style="zoom:70%;"></p>
-<p>&emsp;&emsp;除了消融实验，本文还和目前的 SOTA 进行了比较，其中的△表示传统方法，◇表示非端到端的方法，☆表示端到端的深度学习方法。这里的 RhythmNet 是同年的论文，提出了 VIPL-HR，也是很棒的 SOTA 文章。</p>
-<p><img src="/AutoHR/image-20221106202146459.png" alt="image-20221106202146459" style="zoom:80%;"></p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-        <category>hr</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>A Learned Compact and Editable Light Field Representation</title>
-    <url>/A%20Learned%20Compact%20and%20Editable%20Light%20Field%20Representation/</url>
-    <content><![CDATA[<h2 id="A-Learned-Compact-and-Editable-Light-Field-Representation【光场压缩、编辑传播】【arxiv】"><a href="#A-Learned-Compact-and-Editable-Light-Field-Representation【光场压缩、编辑传播】【arxiv】" class="headerlink" title="A Learned Compact and Editable Light Field Representation【光场压缩、编辑传播】【arxiv】"></a><a href="https://arxiv.org/abs/2103.11314">A Learned Compact and Editable Light Field Representation</a>【光场压缩、编辑传播】【arxiv】</h2><center>P.S. 本文为自己重述，不完全忠实于原paper，难免出现错误</center>
-
-<p>&emsp;&emsp;该论文完成了光场数据的压缩表示，使用自编码器的方法将光场数据压缩为一个深度图和一个中央视觉图，并且支持编辑之后的中央视觉图和原深度图进行光场重建。</p>
-<p><img src="https://img-blog.csdnimg.cn/f7655d1624894b87a117e25801a7b14d.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" align="center" style="zoom: 80%;"></p>
-<span id="more"></span>
-<h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p> &emsp; &emsp; 所谓光场，即记录光线位置和方向的数据结构，这种数据表示方式经历了很大的变化历程，相关的介绍中<a href="https://www.leiphone.com/category/arvr/N14i2K6UmZzK5TcE.html">这个介绍</a>最为清晰和全面。<br>&emsp; &emsp;本文对于这种数据结构进行了自编码器的学习，综合考虑解码后与原图的结构差异，编码的中间层中央视觉图部分的RGB相似度，编辑后的中央视觉图的重建程度，完成了一种支持编辑的光场重建。这项工作的压缩部分解决了光场数据结构较大的问题，可编辑重建部分解决了二维图像处理到三维图像处理的迁移问题，总体来说意义重大。目前本文发布于<a href="https://arxiv.org/abs/2103.11314"> arxiv</a>，也许在不久之后会登上SIGGRAPH。</p>
-<h3 id="相关工作"><a href="#相关工作" class="headerlink" title="相关工作"></a>相关工作</h3><ul>
-<li><p>光场重建相关<br>&emsp; &emsp; 以往的光场重建工作主要集中于：①<a href="https://dl.acm.org/doi/10.1145/2682631#d32752538e1">从稀疏样本合成密集光场。</a>②<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6574844">通过光场估计视差。</a>③<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7406366">对光场合成的深度学习方法——该方法可以估计扭曲的视差，并更细致地描绘颜色。</a>④<a href="https://arxiv.org/pdf/1708.03292.pdf">通过单张照片合成光场。</a>⑤<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8953925">多平面图像表示光场。</a><br>&emsp; &emsp;这些工作尽管能够解决部分问题，但仍有局限，如前几个工作会出现某些伪影、重影。最后一类工作引出一个新的问题——如何通过编辑这种多平面图象进行光场编辑。<br>&emsp; &emsp;我认为本文的工作在某种程度上重复了④的工作内容，类似于AE和GAN之间的联系。在完成④的基础上，本文解决了⑤引出的可编辑性问题——通过分离特征和视图的方法。</p>
-</li>
-<li><p>光场编辑相关<br>&emsp; &emsp;以往的这些工作集中于：①目标重定位。②目标变形。③目标补充。④<a href="http://citeseerx.ist.psu.edu/viewdoc/download;jsessionid=36554C114E54C1449058A76D6684D6AB?doi=10.1.1.644.3384&rep=rep1&type=pdf">将稀疏编辑传播至全光场。</a>⑤<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7414488">将中心视图分解为不同深度的图层，通过图层进行光场编辑。</a><br>&emsp; &emsp;上述工作中④，⑤两个工作相比而言较为接近本文工作，因此没有给出①②③的原文链接，尤其是④，④最关键的难度在于进行光场编辑的一致性传播，与本文想法接近。有较强的借鉴意义。</p>
-<p>&emsp; </p>
-<h3 id="本文的工作"><a href="#本文的工作" class="headerlink" title="本文的工作"></a>本文的工作</h3><p>&emsp; &emsp;总体来说，本文能够对一个给定的4D光场，将其表示为一个元通道<code>在没有限制元通道的视觉形态的情况下，为什么它长得这么像一个灰度图？</code>和一个RGB图（视觉通道），这实现了4D光场数据的压缩，另一方面，针对视觉通道的编辑可以通过和元通道的结合重建光场，并一致性地传播到新的光场之中。<br>本文设计的网络结构：<img src="https://img-blog.csdnimg.cn/a35c15d6728748e487dc22097d88cf4c.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" width="50%" align="center"></p>
-</li>
-</ul>
-<ol>
-<li><h4 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h4><p>&emsp; &emsp;输入的4D光场视图即为$M\times N$张RGB图像，我们描述为$L = \{I_i\}_{i=1}^{M\times N}$，对于这个光场$L$,$L(u,v)$也就表示了某一个像素，其中$u$表示图片，$v$表示像素，也就是说$I_i$即为$L(u_i)$。</p>
-<p>&emsp; &emsp;在整个自编码器的设计过程之中，我们记编码器为$E$，解码器为$D$。</p>
-<p>&emsp; &emsp;一方面，对于输入的光场$L$，我们通过编码器生成一个元通道$Z$，即$Z = E(L)$，有$sizeof(Z) = sizeof(I_i)$。另一方面，对于传入的光场数据，我们获取中央视图$I_c$ <code>Ic具体是如何得到的呢？是L(x,0)么？</code>。对$I_c$进行编辑之后我们获得$\widetilde{I}_c$，接着我们把两者结合，通过解码网络获得编辑后光场$\widetilde L$，即 $\widetilde L = D(Z, \widetilde I _c)$。</p>
-</li>
-<li><h4 id="表示方式的选取"><a href="#表示方式的选取" class="headerlink" title="表示方式的选取"></a>表示方式的选取</h4><p>&emsp; &emsp;本节实际上主要阐述了为什么要选取元通道和视觉通道。</p>
-<p>&emsp; &emsp;中心视图 $I_c$ 捕获了光场的参考视觉内容，因此自编码器只需要学习表示元通道即可。元通道作为视觉通道互补的部分，意味着包括深度、视差、纹理、遮挡等等信息被隐式地编码到元通道之中。事实上本文做了<a href="https://blog.csdn.net/flyfish1986/article/details/104812229#:~:text=%E6%B6%88%E8%9E%8D%E5%AE%9E%E9%AA%8C%20%EF%BC%88%20ablation%20experiment%EF%BC%89,%E5%9C%A8%E6%9C%BA%E5%99%A8%20%E5%AD%A6%E4%B9%A0%20%EF%BC%8C%E7%89%B9%E5%88%AB%E6%98%AF%E5%A4%8D%E6%9D%82%E7%9A%84%E6%B7%B1%E5%BA%A6%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E7%9A%84%E8%83%8C%E6%99%AF%E4%B8%8B%EF%BC%8C%E5%B7%B2%E7%BB%8F%E9%87%87%E7%94%A8%E2%80%9C%20%E6%B6%88%E8%9E%8D%E7%A0%94%E7%A9%B6%20%E2%80%9D%E6%9D%A5%E6%8F%8F%E8%BF%B0%E5%8E%BB%E9%99%A4%E7%BD%91%E7%BB%9C%E7%9A%84%E6%9F%90%E4%BA%9B%E9%83%A8%E5%88%86%E7%9A%84%E8%BF%87%E7%A8%8B%EF%BC%8C%E4%BB%A5%E4%BE%BF%E6%9B%B4%E5%A5%BD%E5%9C%B0%E7%90%86%E8%A7%A3%E7%BD%91%E7%BB%9C%E7%9A%84%E8%A1%8C%E4%B8%BA%E3%80%82">消融实验</a>，使用深度图代替了元通道，取得了较差的结果。</p>
-<p>中央视觉图、元通道、深度图：<img src="https://img-blog.csdnimg.cn/ae4a919d4c164d27b71ae77dd83e9f50.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" width="50%" align="center"></p>
-<p>&emsp; &emsp;关于元通道的个数和是否必须存在的问题，本文解释道，当图片数目（角度分辨率）和图片大小（空间分辨率）增加的时候，单个元通道可能无法编码全部信息，这时候我们可以增加元通道的数目。至于和视觉图分离的原因，主要是考虑到光场的重建过程中对于编辑的视觉通道，我们需要原光场的结构，如果将元通道编码到视觉通道之中形成 $I^z$，那么编辑的过程就会破坏结构，光场不再能够重建。</p>
-<p>&emsp; &emsp;事实上，如果我们不考虑光场的重建问题，我们是可以将视觉通道和元通道合二为一的，此时我们只考虑数据压缩和光场生成的任务，该方法仍旧是一个很好的想法。这也将作为我的毕业设计的主要思想。</p>
-</li>
-<li><h4 id="编辑敏感的光场重建（解码器网络实现）"><a href="#编辑敏感的光场重建（解码器网络实现）" class="headerlink" title="编辑敏感的光场重建（解码器网络实现）"></a>编辑敏感的光场重建（解码器网络实现）</h4><p>&emsp; &emsp;本文将解码器的解释信息的方式分为两类：视图间视差图，以及其他信息（遮挡图和<a href="https://www.cnblogs.com/qingsunny/archive/2013/03/07/2947572.html#:~:text=%E5%AF%B9%E9%9D%9E%E6%9C%97%E4%BC%AF%E4%BD%93%E8%80%8C%E8%A8%80%EF%BC%8C%E5%AE%83%E5%AF%B9%E5%A4%AA%E9%98%B3%E7%9F%AD%E6%B3%A2%E8%BE%90%E5%B0%84%E7%9A%84%E5%8F%8D%E5%B0%84%E3%80%81%E6%95%A3%E5%B0%84%E8%83%BD%E5%8A%9B%E4%B8%8D%E4%BB%85%E9%9A%8F%E6%B3%A2%E9%95%BF%E8%80%8C%E5%8F%98%EF%BC%8C%E5%90%8C%E6%97%B6%E4%BA%A6%E9%9A%8F%E7%A9%BA%E9%97%B4%E6%96%B9%E5%90%91%E8%80%8C%E5%8F%98%E3%80%82%20%E6%89%80%E8%B0%93%E5%9C%B0%E7%89%A9%E7%9A%84%E6%B3%A2%E8%B0%B1%E7%89%B9%E5%BE%81%E6%98%AF%E6%8C%87%E8%AF%A5%E5%9C%B0%E7%89%A9%E5%AF%B9%E5%A4%AA%E9%98%B3%E8%BE%90%E5%B0%84%E7%9A%84%E5%8F%8D%E5%B0%84%E3%80%81%E6%95%A3%E5%B0%84%E8%83%BD%E5%8A%9B%E9%9A%8F%E6%B3%A2%E9%95%BF%E8%80%8C%E5%8F%98%E7%9A%84%E8%A7%84%E5%BE%8B%E3%80%82%20%E5%9C%B0%E7%89%A9%E6%B3%A2%E8%B0%B1%E7%89%B9%E5%BE%81%E4%B8%8E%E5%9C%B0%E7%89%A9%E7%9A%84%E7%BB%84%E6%88%90%E6%88%90%E4%BB%BD%EF%BC%8C%E7%89%A9%E4%BD%93%E5%86%85%E9%83%A8%E7%9A%84%E7%BB%93%E6%9E%84%E5%85%B3%E7%B3%BB%E5%AF%86%E5%88%87%EF%BC%8C%E9%80%9A%E4%BF%97%E8%AE%B2%E5%9C%B0%E7%89%A9%E6%B3%A2%E8%B0%B1%E7%89%B9%E5%BE%81%E4%B9%9F%E5%B0%B1%E6%98%AF%E5%9C%B0%E7%89%A9%E7%9A%84%E9%A2%9C%E8%89%B2%E7%89%B9%E5%BE%81%E3%80%82%20%E8%80%8C%E5%9C%B0%E7%89%A9%E7%9A%84%E6%96%B9%E5%90%91%E7%89%B9%E5%BE%81%E6%98%AF%E7%94%A8%E6%9D%A5%E6%8F%8F%E8%BF%B0%E5%9C%B0%E7%89%A9%E5%AF%B9%E5%A4%AA%E9%98%B3%E8%BE%90%E5%B0%84%E5%8F%8D%E5%B0%84%E3%80%81%E6%95%A3%E5%B0%84%E8%83%BD%E5%8A%9B%E5%9C%A8%E6%96%B9%E5%90%91%E7%A9%BA%E9%97%B4%E5%8F%98%E5%8C%96%E7%9A%84%EF%BC%8C%E8%BF%99%E7%A7%8D%E7%A9%BA%E9%97%B4%E5%8F%98%E5%8C%96%E7%89%B9%E5%BE%81%E4%B8%BB%E8%A6%81%E5%86%B3%E5%AE%9A%E4%BA%8E%E4%B8%A4%E7%A7%8D%E5%9B%A0%E7%B4%A0%EF%BC%8C%E5%85%B6%E4%B8%80%E6%98%AF%E7%89%A9%E4%BD%93%E7%9A%84%E8%A1%A8%E9%9D%A2%E7%B2%97%E7%B3%99%E5%BA%A6%EF%BC%8C%E5%AE%83%E4%B8%8D%E4%BB%85%E5%8F%96%E5%86%B3%E4%BA%8E%E8%A1%A8%E9%9D%A2%E5%B9%B3%E5%9D%87%E7%B2%97%E7%B3%99%E9%AB%98%E5%BA%A6%E5%80%BC%E4%B8%8E%E7%94%B5%E7%A3%81%E6%B3%A2%E6%B3%A2%E9%95%BF%E4%B9%8B%E9%97%B4%E7%9A%84%E6%AF%94%E4%BE%8B%E5%85%B3%E7%B3%BB%EF%BC%8C%E8%80%8C%E4%B8%94%E8%BF%98%E4%B8%8E%E8%A7%86%E8%A7%92%E5%85%B3%E7%B3%BB%E5%AF%86%E5%88%87%E3%80%82%20%E8%AE%BE%E6%B3%A2%E9%95%BF%E4%B8%BA%CE%BB%EF%BC%8C%E7%A9%BA%E9%97%B4%E5%85%B7%E6%9C%89%CE%B4%E5%88%86%E5%B8%83%E5%87%BD%E6%95%B0%E7%9A%84%E5%85%A5%E5%B0%84%E8%BE%90%E5%B0%84%EF%BC%8C%E4%BB%8E%20%28%CE%B80%EF%BC%8C%CF%860%29%20%E6%96%B9%E5%90%91%EF%BC%8C%E4%BB%A5%E8%BE%90%E5%B0%84%E4%BA%AE%E5%BA%A6L0,%28%CE%B80%EF%BC%8C%CF%860%EF%BC%8C%CE%BB%29%E6%8A%95%E5%B0%84%E5%90%91%E7%82%B9%E7%9B%AE%E6%A0%87%EF%BC%8C%E9%80%A0%E6%88%90%E8%AF%A5%E7%82%B9%E7%9B%AE%E6%A0%87%E7%9A%84%E8%BE%90%E7%85%A7%E5%BA%A6%E5%A2%9E%E9%87%8F%E4%B8%BAdE%20%28%CE%B80%EF%BC%8C%CF%860%EF%BC%8C%CE%BB%29%20%3D%20L0%20%28%CE%B80%EF%BC%8C%CF%860%EF%BC%8C%CE%BB%29%20cos%CE%B80%20d%CE%A9%E3%80%82">非朗博效应</a>）</p>
-<p> 本文设计的解码器网络：<img src="https://img-blog.csdnimg.cn/e0504d3786df4b37ad59995d8c678ae5.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" align="center" width="70%"></p>
-<p>&emsp; &emsp;在图中我们可以看到，解码器由三个不同的网络共同构成。$SepNet, DispNet, FusionNet$ 三个网络各自有着对应的任务。同时也有着一些方法，如 $warping$，以及涉及到 $Occlusion _ map, Disparity _ map,Feature_map$<code>遮挡图是通过特征图得到的么？是的话为什么可以直接得到，是物理方法么？</code>等的获取，接下来我们将一一介绍。</p>
-</li>
-</ol>
-<ul>
-<li><p>$SepNet$：该网络的作用是特征分离，具体地说，这个模块将元通道 $Z$ 分解为一系列特征映射 $\{F_i\}$，其中每个 $F_i$ 包含视图 $i$ 的特征信息，和视觉通道独立，可以和视觉通道结合重建视图 $i$。</p>
-</li>
-<li><p>$DispNet$：该网络的作用是视差恢复。具体来说，从特征图 $F_i$ 中提取出 $I_i$ 视差图 $D(u_i)$。接着我们如果给出某一个光场视图$L(u_j)$，我们可以得到合成视图（即warped方法）$\bar{L}(u_i)$：</p>
-<script type="math/tex; mode=display">
-\bar{L}(u_i,x)=L(u_j, x+(u_j-u_i)\times D(u_i,x))</script><p>&emsp; &emsp;因此，我们可以明确认识到，对于任何一个视差图$D(u_i)$，我们将其与$I_c$进行合成得到 $\bar L(u_i)$。此时我们得到的图理论上和$\widehat L(u_i)$一致（其中$\widehat L=L$，作为重建光场的目标），但实际上由于遮挡和非朗博效应总会出现不同。为了解决这个问题，我们需要另一个网络修复他，但是网络的执行时间可以由 $D(u_i)$ 的遮挡情况自适应地确定，为了度量遮挡程度，我们记 </p>
-<script type="math/tex; mode=display">
-O(u_i, x) = ||D(u_i,x)-D(u_c,x+(u_c-u_i)\times D(u_i,x))||_1</script><p>&emsp;&emsp;其中$D(u_c)$ 表示 $I_c$ 的视差图。并且有 $O(u_i,x)$越大，接下来的网络需要的时间就越长。</p>
-</li>
-<li><p>$FusionNet$：该网络的目的是重建遮挡细节和非朗博效应，这个网络通过大规模的训练达到将视觉图和遮挡图变回光场图像的目的。大规模的训练遇到的关键问题是数据问题，为了解决这个问题，本文提出了一个算子 $G$，算子 $G$ 通过平均采样的方式更改光场，对于原本的IO组$\{\widetilde I_c,\widehat L\}$，我们更改为$\{G( I_c),G(L)\}$，从而得到大规模数据。</p>
-</li>
-</ul>
-<ol>
-<li><h4 id="损失函数"><a href="#损失函数" class="headerlink" title="损失函数"></a>损失函数</h4><p>&emsp; &emsp;网络通过最小化损失函数联合训练编码和解码子网络，本文的损失函数分为三个部分，扭曲一致性损失（也就是$warped$模块） $\zeta_W$，视差正则损失 $\zeta_D$ ，重建损失 $\zeta_R$。故而总损失为：</p>
-<script type="math/tex; mode=display">
-\zeta = \omega_1\zeta_W + \omega_2\zeta_D + \omega_3\zeta_R</script><p>&emsp; &emsp;在这里，我们设定$\omega_1 = 0.5,\omega_2 = 0.01, \omega_3 = 1.0$。接下来我们将逐一介绍三个损失。</p>
-<p>&emsp; &emsp;$\zeta_W$：扭曲一致性损失。该损失用来度量$warped$之后的光场$\bar L$ 和中央视觉通道 $I_c$之间的差别，使得视差能够更好地被还原。公式写作：</p>
-<script type="math/tex; mode=display">
-\zeta_W = E_{L_i \in S}\{||\bar L_i - L_i||_1\}</script><p>&emsp;&emsp;<code>warp是一个物理方法，这个方法由于不考虑遮挡理论上本身就和预期结果不同，如果使用这种损失有没有可能会让视差的生成网络过拟合呢？（也就是视差的生成网络不去生成视差，而是某种能和中央通道直接合成光场的图片【这并不是值得开心的，因为之后还要和遮挡图进行进一步的融合】）</code></p>
-<p>&emsp; &emsp;其中，$S$ 即为光场构成的数据集，这个损失即为所有光场的中央视觉通道与对应的$\bar L_i$的一阶范数。该损失限制了从$DispNet$中生成的视差图，使其更加接近于真实视差。</p>
-<p>&emsp; &emsp;但是仅仅由这个损失进行限制仍然是不够的，由于这个损失并不能度量到没有纹理的区域的扭曲视图是否相近，这种失误将会造成遮挡部分无法进行一致性地传播，将会加大 $FusionNet$ 的训练量。为了解决这个问题，我们引入正则损失 $\zeta_D$，加强相邻视图的视差一致性。</p>
-<script type="math/tex; mode=display">
-\zeta_D = E_{L_i \in S}\{||D(u_i,x)-D(u_i-1,x+D(u_i,x))||_1\}</script><p>&emsp;&emsp;这个损失函数实际上限制了在预测后的光场中，相邻视图需要尽可能地一致，保证相邻视图之间的视差一致性。每个视图在某种程度上都会受到其他视图的影响和制约。</p>
-<p>&emsp; &emsp;在最后，我们通过重建的光场和原本的光场相一致的限制构造重建损耗 $\zeta_R$：</p>
-<script type="math/tex; mode=display">
-\zeta_R = E_{L_i\in S}\{\alpha||\widetilde L_i-\widehat L_i||_1+\beta||SSIM(\widetilde L_i, \widehat L_i)||_1\}</script><p>&emsp;&emsp;实验中，$SSIM(L_1,L_2)$表示两个光场的所有视角的平均$SSIM$值，<a href="https://baike.baidu.com/item/SSIM/2091025">计算见此</a>。并且预设$\alpha=1.0,\beta=0.02$。选取$SSIM$度量将在模糊区域获得更精确的细节。</p>
-</li>
-</ol>
-<h3 id="实现的细节"><a href="#实现的细节" class="headerlink" title="实现的细节"></a>实现的细节</h3><ol>
-<li><p>数据集<br>&emsp; &emsp;本文的数据集来自两个公开数据集，斯坦福和MIT的相机光场数据，总共收集了406个光场，每个光场有14*14个角度和376*541个像素。在训练的过程中，随机选取326个作为训练集，剩余80个作为测试集，对每个光场裁取7*7个角度以及每个角度128*128个像素组成的照片。对训练集进行了数据增强，即水平翻转或者旋转。通过数据增强，最终得到14447个光场样本进行训练。</p>
-</li>
-<li><p>训练<br>&emsp; &emsp;训练时编码子网和解码子网是联合训练的，但是这种训练方式较慢，本文提出将这个训练分为两个部分。首先是进行除了 $FusionNet$ 之外的网络进行训练，这个阶段迭代10000次，这个训练的目的是加速以及预热$DispNet$ 。在第二阶段，包括 $FusionNet$ 在内 的所有网络进行 50000 次训练。训练中使用Adam优化器，第一阶段学习率为0.0002，第二阶段学习率下降为第一阶段学习率的1%。</p>
-<p>&emsp; &emsp;另外，本文采用pytorch实现了方法，这个实验在两台NVDIA GeForce GTX 1080 Ti 上运行了48个小时。完成的模型对于7*7的光场输入编码元通道约需要0.04秒，重建光场约需要2秒。</p>
-<p>&emsp; &emsp;源代码和数据尚未开源，等待本文正式发布将会开源代码和数据。</p>
-</li>
-</ol>
-<h3 id="实验的结果"><a href="#实验的结果" class="headerlink" title="实验的结果"></a>实验的结果</h3><p>&emsp; &emsp;我们可以看到，无论是颜色编辑、颜色转换、阴影去除、风格转换、对比增强等针对2D图片的编辑方法，在本模型的支持下均完成了对于重建光场的一致性传播。<br> <img src="https://img-blog.csdnimg.cn/f7655d1624894b87a117e25801a7b14d.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" width="110%" align="center"></p>
 ]]></content>
       <categories>
         <category>paper</category>
@@ -362,6 +316,52 @@ mask = \begin{pmatrix}
       <categories>
         <category>paper</category>
         <category>nlp</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>AutoHR</title>
+    <url>/AutoHR/</url>
+    <content><![CDATA[<h2><center> AutoHR: A Strong End-to-end Baseline for Remote Heart Rate Measurement with Neural Searching </center></h2>
+
+<p>【心率检测】【SPL2020】【<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&amp;arnumber=9133501">paper</a>】【<a href>code未开源</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种基于 NAS 的心率检测 backbone 设计策略，在操作域中加入了 TDC（时空差分卷积），同时提出了一种时域和频域的混合损失函数，在单数据集和跨数据集上的测试都取得了较好的结果，并且为了解决现有方法泛化能力弱的问题提出了新的数据增强策略，取得了端到端的 SOTA。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/AutoHR/image-20221106184645470.png" alt="image-20221106184645470"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>首次使用 NAS 搜索 HR 任务的网络，并且在 NAS 搜索中加入了 TDC</li>
+<li>提出了一种时域频域的 loss，提出两种数据增强策略</li>
+</ul>
+<h3 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h3><h4 id="NAS（神经结构搜索）"><a href="#NAS（神经结构搜索）" class="headerlink" title="NAS（神经结构搜索）"></a>NAS（神经结构搜索）</h4><p>&emsp;&emsp;NAS(Neural Architecture Search) 意图使用深度学习任务自主设计神经网络，其基本工作流程如下图所示。首先由人工给定搜索的空间以及搜索策略，由机器自主探索空间中的操作组成的网络结构，并根据其网络的表现更新网络架构和超参数。</p>
+<p><img src="/AutoHR/e082b8ba4993c229c993b7dfa19d4641.png" alt="img"></p>
+<p>&emsp;&emsp;但是 NAS 有着难以避免的问题：1.超参数和搜索空间的网络架构都是离散的，2.大量的超参数使得训练时间太长。为了解决这些问题，提出了层次化表示：Learning Transferable Architectures for Scalable Image Recognition，权重共享：Reinforcement Learning for Architecture Search by Network Transformation，表现预测：Progressive Neural Architecture Search 等方法。</p>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><h4 id="TDC"><a href="#TDC" class="headerlink" title="TDC"></a>TDC</h4><p>&emsp;&emsp;时空差分卷积（TDC）是一种新的卷积策略，其卷积过程大致如下图所示。具体来说，对第 $t$ 帧图像 $p_0$ 为位置的 3x3 卷积过程如下：对第 $t$ 帧图像的 $p_0$ 位置进行 expand 操作，扩展到整个 3x3 的大小，并且分别和 $t-1$，$t+1$ 帧的对应位置进行作差。注意这里的作差中 expand 的部分带有一个参数 $\theta$ 用来控制当前帧对临近帧的影响程度，对原位置直接进行卷积，并且将最终的结果相加。</p>
+<p><img src="/AutoHR/image-20221106184757405.png" alt="image-20221106184757405" style="zoom:50%;"></p>
+<p>&emsp;&emsp;上面的过程使用公式可以表示为：</p>
+<script type="math/tex; mode=display">
+O(p_0^t)=\mathop\sum\limits_{p_n^{t-1}\in\mathcal R_{t-1}}w(p_n^{t-1})·(I(p_0^{t-1}+p_n^{t-1})-\theta·I(p_0^t))</script><script type="math/tex; mode=display">
++\mathop\sum\limits_{p_n^{t+1}\in\mathcal R_{t+1}}w(p_n^{t+1})·(I(p_0^{t+1}+p_n^{t+1})-\theta·I(p_0^t))</script><script type="math/tex; mode=display">
++\mathop\sum\limits_{p_n^{t-1}\in\mathcal R_{t}}w(p_n^{t})·I(p_0^{t}+p_n^{t})</script><h4 id="前向过程"><a href="#前向过程" class="headerlink" title="前向过程"></a>前向过程</h4><p>&emsp;&emsp;正如概览图中所示，整个网络由一个有向无环图进行估计，记所有的操作空间为 $\mathcal O$，对于图中的每一个边 $(i,j)$，其输出为：$\tilde o^{(i,j)}(x_i)=\sum_{o\in\mathcal O}\eta_o^{(i,j)}·o(x_i)$，其中的 $o$  代表操作空间中的每一个操作，$\eta$ 由一个 softmax 的式子给出，$\eta_o^{(i,j)}=\frac{exp(\alpha_o^{(i,j)})}{\sum_{o’\in\mathcal O}exp(\alpha_{o’}^{(i,j)})}$，其中的 $\alpha_o^{(i,j)}$ 表示在边 $(i,j)$ 中操作 $o$ 的权重或系数。</p>
+<p>&emsp;&emsp;在这种表示下，可以通过如下式子进行训练从而找到最适合的 $\alpha$，在训练的过程中，由于有四个 block，这四个 block 可以以共享权重或不共享权重的方式训练，其中权重共享实际上是 NAS 的共识，这样不仅可以加速搜索，同样可以取得更好的结果。本文的消融实验也探讨了这部分。</p>
+<script type="math/tex; mode=display">
+\min\limits_\alpha \mathcal L_{val(\Phi^*(\alpha),\alpha)},\ s.t.\ \Phi^*(\alpha)=\arg \min\limits_\Phi\mathcal L_{train}(\Phi,\alpha)</script><p>&emsp;&emsp;通过这种方式找到的网络结构每个 cell 中的每一条边都含有所有的 $\mathcal O$ 中的网络算子，并且每一个算子都具备对应的权重，但是这样的网络结构太大，其中的多个算子中某些算子的权重其实非常低，因此作者采用这样的方法进行网络的剪枝以确定最终的网络：1.对于最终的输出 output 的入边，每个边选取一个权重最大的操作保留，2.对于其他的中间节点 B1,B2,B3 的入边，每个选取权重最大的两个操作保留。</p>
+<p><img src="/AutoHR/image-20221106195942710.png" alt="image-20221106195942710" style="zoom:50%;"></p>
+<h4 id="损失函数"><a href="#损失函数" class="headerlink" title="损失函数"></a>损失函数</h4><p>&emsp;&emsp;损失函数包括两个部分，分为时间和频率，其中时间部分就是所谓的线性相关性，具体由下式给出，并且这个函数在 rPPGNet 之中也用到了，不过 rPPGNet 更晚一些就是了。</p>
+<script type="math/tex; mode=display">
+\mathcal L_{np}=1-\frac{T\mathop\sum\limits_{i=1}^T y_iy_i^g-\mathop\sum\limits_{i=1}^Ty_i\mathop\sum\limits_{i=1}^Ty_i^g}{\sqrt{(T\mathop\sum\limits_{i=1}^Ty_i^2-(\mathop\sum\limits_{i=1}^Ty_i)^2)(T\mathop\sum\limits_{i=1}^T(y_i^g)^2-(\mathop\sum\limits_{i=1}^Ty_i^g)^2)}}</script><p>&emsp;&emsp;对于频率域，就是对 $y_i$ 求功率谱密度，然后和 GT 做比较，即：</p>
+<script type="math/tex; mode=display">
+\mathcal L_{fre}=\sum CE(PSD(y_i),y_i^g)</script><p>&emsp;&emsp;整体来说的损失函数由 $\mathcal L_{overall}=\lambda·\mathcal L_{time}+\mathcal L_{fre}$ 给出，其中 $\lambda$ 用于平衡损失。</p>
+<h4 id="数据增强"><a href="#数据增强" class="headerlink" title="数据增强"></a>数据增强</h4><p>&emsp;&emsp;本文针对现有数据集的两个问题提出了两个数据增强策略：1.头部运动可能导致 ROI 遮挡，2.HR 分布严重不平衡，呈倒 V 形。</p>
+<p>&emsp;&emsp;对于这两个问题的改进为：1.在随机时间片段（小于 20% 的空间大小和 20% 的时间长度）内随机擦除或切除部分时空管，模拟 ROI 遮挡的情况，2.对视频进行时间上采样和下采样，以生成具有极小或极大 HR 值的额外训练样本。具体来说，HR 值大于 90 bpm 的视频将被时间插值两次，而 HR 值小于 70 bpm 的视频将以采样率 2 下采样，分别模拟一半和两倍的心率。</p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文做了简单的消融实验，针对性地探究了 a）损失函数，b）TDC 中的 $\theta$ 值，c）是否具备 NAS / TDC 部分，d）是否使用数据增强策略。结果如下图所示，虽然基本上都没有提太多，但是每个方法都或多或少提了0.几 的点。</p>
+<p><img src="/AutoHR/image-20221106202041824.png" alt="image-20221106202041824" style="zoom:70%;"></p>
+<p>&emsp;&emsp;除了消融实验，本文还和目前的 SOTA 进行了比较，其中的△表示传统方法，◇表示非端到端的方法，☆表示端到端的深度学习方法。这里的 RhythmNet 是同年的论文，提出了 VIPL-HR，也是很棒的 SOTA 文章。</p>
+<p><img src="/AutoHR/image-20221106202146459.png" alt="image-20221106202146459" style="zoom:80%;"></p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+        <category>hr</category>
       </categories>
   </entry>
   <entry>
@@ -1063,90 +1063,6 @@ L_t=\mathbb E_{x_0,t,z}[||z-z_\theta(\sqrt{\bar\alpha_t}x_0+\sqrt{1-\bar \alpha_
       </categories>
   </entry>
   <entry>
-    <title>pSp</title>
-    <url>/Encoding%20in%20Style/</url>
-    <content><![CDATA[<h2><center> Encoding in Style: a StyleGAN Encoder for Image-to-Image Translation </center></h2>
-
-<p>【图像生成】【CVPR2021】【<a href="https://ieeexplore.ieee.org/document/9578137/">paper</a>】【<a href="https://github.com/eladrich/pixel2style2pixel">code</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>ds；本文就是大名鼎鼎的 pSp，相比于 image2styleGAN 的逆映射后优化的方式，本文直接提出了一种以 ResNet 为 backbone，以 FPN 为架构的编码器，可以将任意图像通过训练好的编码器映射到隐空间。实现了人脸转向、特征融合、使用素描或分割图生成不同的人脸、人脸补全、人脸条件生成、人脸超分等任务。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Encoding%20in%20Style/image-20230116090923513.png" alt="image-20230116090923513"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>使用基于学习的编码器而不是基于优化的方式进行图像编码</li>
-<li>一个通用的解决 image2image 的端到端框架</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/Encoding%20in%20Style/image-20230120114938291.png" alt="image-20230120114938291"></p>
-<p>ds；pSp 框架基于 StyleGAN 的生成器和其提出的 $\cal W+$ 空间，这个 $\cal W+$ 空间是 styleGAN2 中的一个小改进，相当于把随机生成的 $z$ 向量通过几个随即层映射到了一个可控的 $\cal W+$空间。</p>
-<p>ds；但是这里做的不是 GAN，而是图像风格迁移之类的任务，所以需要先将图片映射到 latent space 里，这个 latent space 是一个解耦合的空间，也就是将原本可能特征之间有相关性的矩阵映射为矩阵之间的特征无相关性。最简单的方法就是将图片通过一个 encoder (ResNet,VGG等等) 直接 embedding 到 $\cal W+$空间维度，但是这种方法效果并不够好，无法很好 encoding 原图像的细节。</p>
-<p>ds；在 StyleGAN 里，其使用了一个金字塔型的 encoding，从粗到细粒度，框架图如图。按照这种思想，pSp同样提出了一个三层的金字塔特征框架，先通过 ResNet 提取三层 vector，每一层层过一个 map2style 的全连接层之后再过一个全连接层 A 输入到 styleGAN 生成器的各个 style 中去，每一个 style 都有一个 $w$ 。所以最后 pSp 生成的图像是由 styleGAN 预训练好的生成器得到的图片。模型的输出为：</p>
-<script type="math/tex; mode=display">
-pSp(x):=G(E(x)+\bar w)</script><p>ds；其中，$E$ 为 pSp 训练的 encoder，$\bar w$ 则是所有向量的平均，最后过一遍 styleGAN 的生成器 $G$ 。</p>
-<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>ds；接下来介绍 pSp 的损失函数，这里需要训练的只有 pSp Encoder，其损失函数则为：</p>
-<script type="math/tex; mode=display">
-\mathcal L(x)=\lambda_1\mathcal L_{construct}(x)+\lambda_2\mathcal L_{LPIPS}(x)+\lambda_3\mathcal L_{ID}(x)+\lambda_4\mathcal L_{reg}(x)</script><p>其中</p>
-<p>第一个是一个像素级别的L2损失，即目标像素点和训练像素点的均方差。</p>
-<p><img src="https://pic4.zhimg.com/80/v2-7ee43749261fdda21324d5a1154f29ab_720w.webp" alt="img"></p>
-<p>像素点损失</p>
-<p>感知损失，这是CVPR 2018 的一篇 poster提出的一种新的损失函数，这个是F是训出来的，没有直接的定义，整体就是传统的用cosine计算图片之间的相似度在人类眼中结果并不好，例如高斯模糊之后的图像在和原图计算L2损失的时候并没有很相近，但是却丢失了很多的特征信息，所以使用一个训练好的模型来计算两张图片之间的相似度比单纯用cosine等低层次的计算效果好。</p>
-<p><img src="https://pic2.zhimg.com/80/v2-8757390f90c350a0994b6b2a308631d1_720w.webp" alt="img"></p>
-<p>感知损失</p>
-<p>因为上面用到了，所以计算以下生成的encoding的与w平均的均方差。</p>
-<p><img src="https://pic1.zhimg.com/80/v2-c25c4d9eeb51e67579fdb8fe23070d80_720w.webp" alt="img"></p>
-<p>计算生成损失</p>
-<p>最后就是一个人脸损失，也是在styleGAN上的一个创新点，用预训练好的人脸识别模型计算输入和生成图片的cosine相似度</p>
-<p><img src="https://pic1.zhimg.com/80/v2-ec7cc46e6568f0a1cc2aafdf5cd43434_720w.webp" alt="img"></p>
-<p>最后把所有的Loss加在一起就是整个encoder的损失函数了。</p>
-<script type="math/tex; mode=display">
-math\_express</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><hr>
-<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3>]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>GPEN</title>
-    <url>/GPEN/</url>
-    <content><![CDATA[<h2><center> GAN Prior Embedded Network for Blind Face Restoration in the Wild </center></h2>
-
-<p>【盲图重建】【CVPR2021】【<a href="http://arxiv.org/abs/2105.06070">paper</a>】【<a href="https://github.com/yangxy/GPEN">code</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文采用了训练好的 styleGAN2 作为先验网络嵌入到重建架构之中，重建架构使用 U-net 网络，对于 Encoder，其在降采样过程中的中间表示被送入对应的 Decoder (styleGAN2) 层作为 noise；其整体的输出作为 $z$ 经由 mapping 映射至 $w$ 输入预训练的 styleGAN2。整个网络架构均进行梯度更新。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/GPEN/image-20230207141302512.png" alt="image-20230207141302512"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>使用可以微调的预训练 styleGAN2 嵌入重建网络</li>
-<li>styleGAN2 的 $z$ 和 noise 分别从 Encoder 的深层和浅层特征中产生，相应地重构图像的全局结构、局部人脸细节和背景</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/GPEN/image-20230207151021723.png" alt="image-20230207151021723"></p>
-<p>&emsp;&emsp;网络分为两个部分，第一部分为上图中 (a) 展示的 styleGAN2 的 backbone，唯一区别之处在于在 (b) 部分中展示的 B(noise) 输入时采用的是 concat 而非原版 styleGAN2 中的 add。</p>
-<p>&emsp;&emsp;其中的 Mod 和 Demod 是 styleGAN2 的操作，对于 Mod，其输入除了 A 输出的 $y_i$ 之外还有下面的 Conv 的权重 $w$，其操作即为 $w’=y_i\cdot w$，而对于 Demod，其输入为 $w’$，操作为：$w’’=w’/\sqrt{\sum w’^2+\epsilon}$，其等价于 $w’’=w’/\sigma_{w’}$，$\epsilon$ 只为了保证分母不为 0。</p>
-<p>&emsp;&emsp;训练时首先训练 styleGAN2，使用 HQ 的人脸数据集沿用标准训练方法进行训练，训练得到的 GAN 网络插入 UNet 之中作为 Decoder 部分并使用构造的 LQ-HQ 样本对进行微调，在微调的过程中采用的损失函数由三部分组成，分别为：对抗学习损失 $L_A$，内容重建损失 $L_C$，特征匹配损失 $L_F$，其总表达式为：$L=L_A+\alpha L_C+\beta L_F,\ (\alpha=1,\ \beta=0.02)$，具体表达式为：</p>
-<script type="math/tex; mode=display">
-\begin{aligned}
-&L_A=\min_G\max_DE_{(X)}\log(1+\exp(-D(G\cdot E(\tilde X))))\\
-&L_C=||G\cdot E(\tilde X)-X||_1\\
-&L_F=\min_GE_{(X)}(\Sigma^T_{i=0}||D^i(X)-D^i(G\cdot E(\tilde X))||_2)
-\end{aligned}</script><p>&emsp;&emsp;其中，$i$ 表示判别器的第 $i$ 层，$T$ 表示总层数，$X\ ,\tilde X$ 分别表示 HQ 和 LQ 的图像，$\tilde X$ 由如下公式得到：</p>
-<script type="math/tex; mode=display">
-\tilde X=((X\otimes k)\downarrow_s+n_\sigma)_{JPEG_q}</script><p>&emsp;&emsp;其中，$k,\ n_\sigma$ 分别表示模糊核，标准差为 $\sigma$ 的高斯噪声、$\otimes,\ \downarrow_s,\ JPEG_q$ 分别表示二维卷积、标准 $s$ 倍下采样器和压缩质量为 $q$ 的 $JPEG$ 压缩算子。对于每个图像，模糊核 $k$ 是从一组模糊模型中随机选择的，包括具有不同核大小的高斯模糊和运动模糊。其中各个参数范围为：$\sigma\in[0,25],\ q\in[5,50],\ s\in[10, 200]$。</p>
-<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文的消融实现测试了：不微调 GAN，取消 GAN 的噪声，将噪声按照 GAN 原本的方式进行相加，结果如下图，可以看出噪声级联或者相加其实影响不大，其他的倒是意料之中的产生了较大的影响：</p>
-<p><img src="/GPEN/image-20230207212557985.png" alt="image-20230207212557985" style="zoom:50%;"></p>
-<p>&emsp;&emsp;相比于其他的 BFR(Blind Face Restoration) 的指标：</p>
-<p><img src="/GPEN/image-20230207212710232.png" alt="image-20230207212710232" style="zoom:50%;"></p>
-<p>&emsp;&emsp;相比于其他 FSR(Face Super-Resolution) 的指标和结果可视化：</p>
-<p><img src="/GPEN/image-20230207212930980.png" alt="image-20230207212930980"></p>
-<p><img src="/GPEN/image-20230207213017505.png" alt="image-20230207213017505" style="zoom:80%;"></p>
-<p>&emsp;&emsp;本文还提出了一个指标：将不同的算法得到的图像交给真人进行打分：“对从互联网上收集的113幅真实世界的LQ人脸图像的BFR结果以随机顺序呈现给17名志愿者进行主观评价”，并给出了对应的分数直方图：</p>
-<p><img src="/GPEN/image-20230207213216895.png" alt="image-20230207213216895" style="zoom:50%;"></p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-      </categories>
-  </entry>
-  <entry>
     <title>diffusion models 2</title>
     <url>/Diffusion_Model_2/</url>
     <content><![CDATA[<h2><center> diffusion theories </center></h2>
@@ -1290,6 +1206,90 @@ dx=[f(x,t)-g^2(t)\nabla_x\log p(x_t)]dt+g(t)dw\tag {13}</script></li>
 \begin{equation} \mathbb{E}_{t \in \mathcal{U}(0, T)}\mathbb{E}_{p_t(\mathbf{x})}[\lambda(t) \| \nabla_\mathbf{x} \log p_t(\mathbf{x}) - \mathbf{s}_\theta(\mathbf{x}, t) \|_2^2], \end{equation} \tag {14}</script><p>&emsp;&emsp;其中，$\mathcal{U}(0, T)$ 表示时间间隔内的均匀分布 $[0,T]$， $\lambda: \mathbb{R} \to \mathbb{R}_{&gt;0}$ 是正加权函数。通常我们使用 $\lambda(t) \propto 1/ \mathbb{E}[| \nabla_{\mathbf{x}(t)} \log p(\mathbf{x}(t) \mid \mathbf{x}(0))|_2^2]$ 以平衡不同分数匹配损失随时间的大小。由此便可以展开训练。</p>
 <h4 id="VP-SDE-和-VE-SDE"><a href="#VP-SDE-和-VE-SDE" class="headerlink" title="VP-SDE 和 VE-SDE"></a>VP-SDE 和 VE-SDE</h4><p>&emsp;&emsp;对于原始式子式 $1$，当我们令 $f(x,t)=0,\ g(t)=\frac{d}{dt}\sigma_t^2$ 时，SDE 被称为 VE（方差爆炸）SDE，也就对应着 SMLD 分数扩散模型，由此可以推出 VE-SDE 的更新公式为：$x_{t+\Delta t}=x_t+\sqrt{\sigma_{t+\Delta t}^2-\sigma_t^2}\epsilon$。</p>
 <p>&emsp;&emsp;对于原始式子式 $1$，当我们令 $\{\bar\beta_i\}_1^T=\{T\beta_i\}_1^T$，$\beta(\frac iT)=\bar\beta_i$，$f(x,t)=-\frac12\beta(t)x_t,\ g(t)=\sqrt{\beta(t)}$ 时，SDE 被称为 VP（方差收缩）SDE，也就对应着 DDPM 去噪扩散模型，由此可以推出 VP-SDE 的更新公式为：$x_{t+\Delta t}=\sqrt{1-\beta_{t+\Delta t}}x_t+\sqrt{\beta_{t+\Delta t}}\epsilon$。</p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>pSp</title>
+    <url>/Encoding%20in%20Style/</url>
+    <content><![CDATA[<h2><center> Encoding in Style: a StyleGAN Encoder for Image-to-Image Translation </center></h2>
+
+<p>【图像生成】【CVPR2021】【<a href="https://ieeexplore.ieee.org/document/9578137/">paper</a>】【<a href="https://github.com/eladrich/pixel2style2pixel">code</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>ds；本文就是大名鼎鼎的 pSp，相比于 image2styleGAN 的逆映射后优化的方式，本文直接提出了一种以 ResNet 为 backbone，以 FPN 为架构的编码器，可以将任意图像通过训练好的编码器映射到隐空间。实现了人脸转向、特征融合、使用素描或分割图生成不同的人脸、人脸补全、人脸条件生成、人脸超分等任务。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Encoding%20in%20Style/image-20230116090923513.png" alt="image-20230116090923513"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>使用基于学习的编码器而不是基于优化的方式进行图像编码</li>
+<li>一个通用的解决 image2image 的端到端框架</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/Encoding%20in%20Style/image-20230120114938291.png" alt="image-20230120114938291"></p>
+<p>ds；pSp 框架基于 StyleGAN 的生成器和其提出的 $\cal W+$ 空间，这个 $\cal W+$ 空间是 styleGAN2 中的一个小改进，相当于把随机生成的 $z$ 向量通过几个随即层映射到了一个可控的 $\cal W+$空间。</p>
+<p>ds；但是这里做的不是 GAN，而是图像风格迁移之类的任务，所以需要先将图片映射到 latent space 里，这个 latent space 是一个解耦合的空间，也就是将原本可能特征之间有相关性的矩阵映射为矩阵之间的特征无相关性。最简单的方法就是将图片通过一个 encoder (ResNet,VGG等等) 直接 embedding 到 $\cal W+$空间维度，但是这种方法效果并不够好，无法很好 encoding 原图像的细节。</p>
+<p>ds；在 StyleGAN 里，其使用了一个金字塔型的 encoding，从粗到细粒度，框架图如图。按照这种思想，pSp同样提出了一个三层的金字塔特征框架，先通过 ResNet 提取三层 vector，每一层层过一个 map2style 的全连接层之后再过一个全连接层 A 输入到 styleGAN 生成器的各个 style 中去，每一个 style 都有一个 $w$ 。所以最后 pSp 生成的图像是由 styleGAN 预训练好的生成器得到的图片。模型的输出为：</p>
+<script type="math/tex; mode=display">
+pSp(x):=G(E(x)+\bar w)</script><p>ds；其中，$E$ 为 pSp 训练的 encoder，$\bar w$ 则是所有向量的平均，最后过一遍 styleGAN 的生成器 $G$ 。</p>
+<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>ds；接下来介绍 pSp 的损失函数，这里需要训练的只有 pSp Encoder，其损失函数则为：</p>
+<script type="math/tex; mode=display">
+\mathcal L(x)=\lambda_1\mathcal L_{construct}(x)+\lambda_2\mathcal L_{LPIPS}(x)+\lambda_3\mathcal L_{ID}(x)+\lambda_4\mathcal L_{reg}(x)</script><p>其中</p>
+<p>第一个是一个像素级别的L2损失，即目标像素点和训练像素点的均方差。</p>
+<p><img src="https://pic4.zhimg.com/80/v2-7ee43749261fdda21324d5a1154f29ab_720w.webp" alt="img"></p>
+<p>像素点损失</p>
+<p>感知损失，这是CVPR 2018 的一篇 poster提出的一种新的损失函数，这个是F是训出来的，没有直接的定义，整体就是传统的用cosine计算图片之间的相似度在人类眼中结果并不好，例如高斯模糊之后的图像在和原图计算L2损失的时候并没有很相近，但是却丢失了很多的特征信息，所以使用一个训练好的模型来计算两张图片之间的相似度比单纯用cosine等低层次的计算效果好。</p>
+<p><img src="https://pic2.zhimg.com/80/v2-8757390f90c350a0994b6b2a308631d1_720w.webp" alt="img"></p>
+<p>感知损失</p>
+<p>因为上面用到了，所以计算以下生成的encoding的与w平均的均方差。</p>
+<p><img src="https://pic1.zhimg.com/80/v2-c25c4d9eeb51e67579fdb8fe23070d80_720w.webp" alt="img"></p>
+<p>计算生成损失</p>
+<p>最后就是一个人脸损失，也是在styleGAN上的一个创新点，用预训练好的人脸识别模型计算输入和生成图片的cosine相似度</p>
+<p><img src="https://pic1.zhimg.com/80/v2-ec7cc46e6568f0a1cc2aafdf5cd43434_720w.webp" alt="img"></p>
+<p>最后把所有的Loss加在一起就是整个encoder的损失函数了。</p>
+<script type="math/tex; mode=display">
+math\_express</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><hr>
+<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3>]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>GPEN</title>
+    <url>/GPEN/</url>
+    <content><![CDATA[<h2><center> GAN Prior Embedded Network for Blind Face Restoration in the Wild </center></h2>
+
+<p>【盲图重建】【CVPR2021】【<a href="http://arxiv.org/abs/2105.06070">paper</a>】【<a href="https://github.com/yangxy/GPEN">code</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文采用了训练好的 styleGAN2 作为先验网络嵌入到重建架构之中，重建架构使用 U-net 网络，对于 Encoder，其在降采样过程中的中间表示被送入对应的 Decoder (styleGAN2) 层作为 noise；其整体的输出作为 $z$ 经由 mapping 映射至 $w$ 输入预训练的 styleGAN2。整个网络架构均进行梯度更新。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/GPEN/image-20230207141302512.png" alt="image-20230207141302512"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>使用可以微调的预训练 styleGAN2 嵌入重建网络</li>
+<li>styleGAN2 的 $z$ 和 noise 分别从 Encoder 的深层和浅层特征中产生，相应地重构图像的全局结构、局部人脸细节和背景</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/GPEN/image-20230207151021723.png" alt="image-20230207151021723"></p>
+<p>&emsp;&emsp;网络分为两个部分，第一部分为上图中 (a) 展示的 styleGAN2 的 backbone，唯一区别之处在于在 (b) 部分中展示的 B(noise) 输入时采用的是 concat 而非原版 styleGAN2 中的 add。</p>
+<p>&emsp;&emsp;其中的 Mod 和 Demod 是 styleGAN2 的操作，对于 Mod，其输入除了 A 输出的 $y_i$ 之外还有下面的 Conv 的权重 $w$，其操作即为 $w’=y_i\cdot w$，而对于 Demod，其输入为 $w’$，操作为：$w’’=w’/\sqrt{\sum w’^2+\epsilon}$，其等价于 $w’’=w’/\sigma_{w’}$，$\epsilon$ 只为了保证分母不为 0。</p>
+<p>&emsp;&emsp;训练时首先训练 styleGAN2，使用 HQ 的人脸数据集沿用标准训练方法进行训练，训练得到的 GAN 网络插入 UNet 之中作为 Decoder 部分并使用构造的 LQ-HQ 样本对进行微调，在微调的过程中采用的损失函数由三部分组成，分别为：对抗学习损失 $L_A$，内容重建损失 $L_C$，特征匹配损失 $L_F$，其总表达式为：$L=L_A+\alpha L_C+\beta L_F,\ (\alpha=1,\ \beta=0.02)$，具体表达式为：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+&L_A=\min_G\max_DE_{(X)}\log(1+\exp(-D(G\cdot E(\tilde X))))\\
+&L_C=||G\cdot E(\tilde X)-X||_1\\
+&L_F=\min_GE_{(X)}(\Sigma^T_{i=0}||D^i(X)-D^i(G\cdot E(\tilde X))||_2)
+\end{aligned}</script><p>&emsp;&emsp;其中，$i$ 表示判别器的第 $i$ 层，$T$ 表示总层数，$X\ ,\tilde X$ 分别表示 HQ 和 LQ 的图像，$\tilde X$ 由如下公式得到：</p>
+<script type="math/tex; mode=display">
+\tilde X=((X\otimes k)\downarrow_s+n_\sigma)_{JPEG_q}</script><p>&emsp;&emsp;其中，$k,\ n_\sigma$ 分别表示模糊核，标准差为 $\sigma$ 的高斯噪声、$\otimes,\ \downarrow_s,\ JPEG_q$ 分别表示二维卷积、标准 $s$ 倍下采样器和压缩质量为 $q$ 的 $JPEG$ 压缩算子。对于每个图像，模糊核 $k$ 是从一组模糊模型中随机选择的，包括具有不同核大小的高斯模糊和运动模糊。其中各个参数范围为：$\sigma\in[0,25],\ q\in[5,50],\ s\in[10, 200]$。</p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文的消融实现测试了：不微调 GAN，取消 GAN 的噪声，将噪声按照 GAN 原本的方式进行相加，结果如下图，可以看出噪声级联或者相加其实影响不大，其他的倒是意料之中的产生了较大的影响：</p>
+<p><img src="/GPEN/image-20230207212557985.png" alt="image-20230207212557985" style="zoom:50%;"></p>
+<p>&emsp;&emsp;相比于其他的 BFR(Blind Face Restoration) 的指标：</p>
+<p><img src="/GPEN/image-20230207212710232.png" alt="image-20230207212710232" style="zoom:50%;"></p>
+<p>&emsp;&emsp;相比于其他 FSR(Face Super-Resolution) 的指标和结果可视化：</p>
+<p><img src="/GPEN/image-20230207212930980.png" alt="image-20230207212930980"></p>
+<p><img src="/GPEN/image-20230207213017505.png" alt="image-20230207213017505" style="zoom:80%;"></p>
+<p>&emsp;&emsp;本文还提出了一个指标：将不同的算法得到的图像交给真人进行打分：“对从互联网上收集的113幅真实世界的LQ人脸图像的BFR结果以随机顺序呈现给17名志愿者进行主观评价”，并给出了对应的分数直方图：</p>
+<p><img src="/GPEN/image-20230207213216895.png" alt="image-20230207213216895" style="zoom:50%;"></p>
 ]]></content>
       <categories>
         <category>paper</category>
@@ -1448,6 +1448,64 @@ dx=[f(x,t)-g^2(t)\nabla_x\log p(x_t)]dt+g(t)dw\tag {13}</script></li>
       </categories>
   </entry>
   <entry>
+    <title>HR_STVEN_rPPGNet</title>
+    <url>/HR_STVEN_rPPGNet/</url>
+    <content><![CDATA[<h2><center>Remote Heart Rate Measurement from Highly Compressed Facial Videos: an End-to-end Deep Learning Solution with Video Enhancement</center></h2>
+
+<p>【心率检测】【ICCV2019】【<a href="https://openaccess.thecvf.com/content_ICCV_2019/papers/Yu_Remote_Heart_Rate_Measurement_From_Highly_Compressed_Facial_Videos_An_ICCV_2019_paper.pdf">paper</a>】【<a href="https://github.com/ZitongYu/STVEN_rPPGNet">code</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种可以加强压缩视频的网络 STVEN 和一个更有效的 rPPG 信号估计网络 rPPGNet，总共探索了包括 x264/AVC，x265/HEVC，MPEG4 三种传统压缩算法，整体的网络结构可以接受压缩后的视频并且获得在同等输入条件下相对于其他网络结构的最优解。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/HR_STVEN_rPPGNet/STVEN_network.png" alt></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>一个可以增强视频质量的网络 STVEN，相比于其余的增强/去噪网络对 HR 更有效</li>
+<li>一个更加有效的 rPPG 信号估计网络 rPPGNet，其具备复杂的约束条件</li>
+<li>一个在 rPPGNet 中用于计算注意力图的无参数模块</li>
+<li>第一次实际意义上探索了使用压缩视频作为输入的网络结构</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p>&emsp;&emsp;整体的网络结构正如概览图所示，整体来说分为 STVEN 和 rPPGNet 两个子模块，其一负责加强视频质量，其二负责从视频输入中重建 rPPG 信号。具体来说，这两个子模块都是基于 CNN 的架构，参数分别如下图所示，其中的 ST_Block 是 R(2+1)D 的结构，SGAP 是空间 Global Average Pooling 的缩写。在训练的过程中，两个子模块进行联合训练。</p>
+<p><img src="/HR_STVEN_rPPGNet/image-20221031160806850.png" alt="image-20221031160806850" style="zoom:50%;"></p>
+<h4 id="STVEN"><a href="#STVEN" class="headerlink" title="STVEN"></a>STVEN</h4><p>&emsp;&emsp;STVEN 是一个 video-2-video 的网络结构，在此工作的预想下可以从一些特定的比特率下压缩的视频还原出 GT，并且具备尽可能好的 HR 语义信息。整个 STVEN 的网络基于一个未证明的假设：在不同的比特率下的压缩图像的数据分布不同，而同一个比特率下数据分布较为一致。首先介绍一些符号表示：</p>
+<ul>
+<li><p>压缩后的视频序列为 $\C=[0,1,2,…,C]$，其中 $0,C$ 分别表示多种压缩率下的最低和最高比特率</p>
+</li>
+<li><p>对于某一个比特率下的视频，记为 $c_k^\tau=[c_{k1},c_{k2},…,c_{k\tau}]$，其中 $k\in\C$，$\tau$ 表示视频的帧数</p>
+</li>
+<li>对于 STVEN，记为 $G$，其接受两个输入，包括：$c_i^{\tau}$ 和 $k$，即长度为 $\tau$ 的压缩率为 $i$ 的视频和数字 $k$。输出为 根据 $c_i^\tau$ 更改其数据分布得到的新的压缩率为 $k$ 的视频，表示为 $\hat c_k^\tau=[\hat c_{k1},…,\hat c_{k\tau}]$</li>
+</ul>
+<p>&emsp;&emsp;在训练的过程中我们主要希望 $G$ 函数能够达到两个优化目标：1.良好的重建性，2.循环处理不变性。为了达到良好的重建性，本文选取了两个指标进行约束，分别是 MSE 和 L1 损失。因此 loss 写为：</p>
+<script type="math/tex; mode=display">
+\rm \mathcal L_{rec} = E_{k\in\C,t}||c_0^\tau(t)-G(c_k^\tau,0)(t)||_2^2+E_{k\in\C,t}||c_k^\tau(t)-G(c_0^\tau,k)(t)||</script><p>&emsp;&emsp;其中 $t\in [1,\tau]$ 表示该视频的第几个帧，至于为什么 loss 形式不一样，作者简单说了一下，估计就是效果不好吧，毕竟 L1 L2 应该都是基于像素级别的损失。</p>
+<p>&emsp;&emsp;为了达到良好的循环处理不变性，也就是过两次 $G$ 之后仍然保持一致，loss 描述为：</p>
+<script type="math/tex; mode=display">
+\rm \mathcal L_{cyc}=E_{k\in\C,t}||c_k^\tau(t)-G(G(c_k^\tau,0),k)(t)|| + E_{k\in\C,t}||c_0^\tau(t)-G(G(c_0^\tau,k),0)(t)||</script><p>&emsp;&emsp;两个 loss 的组合可以表示为：</p>
+<script type="math/tex; mode=display">
+\rm \mathcal L_{STVEN}=\mathcal L_{rec}+ \mathcal L_{cyc}</script><p>&emsp;&emsp;通过这样的约束条件训练出的 STVEN 支持将任何比特率的视频压缩/解压缩到任何比特率，尤其对于低比特率的视频可以通过解压缩的方式实现数据增强。但是局限性是明显的：参与训练的数据的压缩算法是传统且局限的，目前基于深度学习的表征压缩数据大概并不服从同一分布。</p>
+<h4 id="rPPGNet"><a href="#rPPGNet" class="headerlink" title="rPPGNet"></a>rPPGNet</h4><p>&emsp;&emsp;rPPGNet 由三个部分组成：时空卷积网络，基于皮肤的注意力模块，分阶段的约束模块。</p>
+<p>&emsp;&emsp;对于时空卷积网络，其本身是基于 R(2+1)D 的 3D CNN 网络，具体参数在之前已经展示，像概览图中所示，其本身是一个逐步降采样的过程。需要注意的是，这里的目的是从 ECG 信号中恢复 rPPG 信号，由于两个信号只需要具备同样的峰值而不需要具备同样的值，因此采用负皮尔森相关系数作为 loss，描述为：</p>
+<script type="math/tex; mode=display">
+\rm \mathcal L_{np}=1-\frac{T\mathop\sum\limits_{i=1}^T y_iy_i^g-\mathop\sum\limits_{i=1}^Ty_i\mathop\sum\limits_{i=1}^Ty_i^g}{\sqrt{(T\mathop\sum\limits_{i=1}^Ty_i^2-(\mathop\sum\limits_{i=1}^Ty_i)^2)(T\mathop\sum\limits_{i=1}^T(y_i^g)^2-(\mathop\sum\limits_{i=1}^Ty_i^g)^2)}}</script><p>&emsp;&emsp;同时，本文将在时空卷积网络的中间层（第三个 ST_Block）的输出单独拿出来，希望这个图也能和 ECG 信号保持线性一致性，因此对于第一个模块，loss 描述为下式，其中 $\alpha,\beta$ 用于平衡两部分的重要性，$\beta$ 要小一些。</p>
+<script type="math/tex; mode=display">
+\rm \mathcal L_{rPPG}=\alpha\mathcal L_{np}+\beta\mathcal L_{np}^{mid}</script><p>&emsp;&emsp;对于基于皮肤的注意力模块，其是一个没有参数的计算模块，具体计算方式如下图所示，这个模块理论上是即插即用的模块，但是在本文中仅在第一个 ST_Block 后加入了这个模块（代码里面写的有点乱没看懂，主要问题在于论文里面已经说了这个模块是无参数的，但是在代码之中和 skin 相关的代码里面居然有 conv：答案：基于皮肤的注意力中，皮肤分割是有参数的，注意力是没参数的），最后这个模块选择使用交叉熵函数作为 loss，论文中没有给出公式，但是根据代码看起来是这样：$\rm \mathcal L_{skin}=CB(M,M^{GT})$，其中 $\rm M=Softmax(\sigma(AvgPool(F))+\sigma(MaxPool(F))+S)$，$F\,,S$ 在下图中给出。</p>
+<p><img src="/HR_STVEN_rPPGNet/image-20221031200834676.png" alt="image-20221031200834676" style="zoom:67%;"></p>
+<p>&emsp;&emsp;对于分区的约束模块，将整个模型最后输出的 skin 图像分为四个部分如下图所示，对于每个部分经过 AVGPool 和一个 conv3d 可以得到输出，这些输出表示每个部分预测出的 rPPG 信号，这些 rPPG 信号也需要和 ECG 信号具备同样的线性一致性，因此也使用负皮尔森相关性 loss：$\rm \mathcal L_{parts}=\mathop\sum\limits_{i=1}^N\mathcal L_{np}^{part_i}$</p>
+<p><img src="/HR_STVEN_rPPGNet/image-20221031204557742.png" alt="image-20221031204557742" style="zoom:67%;"></p>
+<p>&emsp;&emsp;总的来说，对于 rPPGNet，其 loss 描述为：</p>
+<script type="math/tex; mode=display">
+\rm \mathcal L_{rPPGNet}=\mathcal L_{rPPG} + \gamma\mathcal L_{skin}+\delta\mathcal L_{parts}</script><p>&emsp;&emsp;为了两个模块的联合训练，本文又引入了一个联合训练的感知损失 $\mathcal L_p$，真给我整破防了，这也太长了，代码开源也就开了一半，这么复杂的限制和损失居然是有效的？</p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;消融实验如下图所示，从下图可以看出每一部分都是有必要的，并且这些小模块可以结合在一起得到更好的效果。需要注意的是这里仅展示了 rPPGNet，没有 STVEN 部分。<img src="/HR_STVEN_rPPGNet/image-20221031211829326.png" alt="image-20221031211829326"></p>
+<p>&emsp;&emsp;和其他方法对压缩视频的效果对比，论文包含 x264,x265,MPEG 三种压缩方法，这里只展示 x265 的：<img src="/HR_STVEN_rPPGNet/image-20221031212837912.png" alt="image-20221031212837912"></p>
+<p>&emsp;&emsp;通过这张图大致可以看出本文的网络是具备一定效果的，需要注意的是这里仅展示了 rPPGNet，没有 STVEN 部分，但是也就那样，没比其他的好了多少。</p>
+<p>&emsp;&emsp;接下来接上 STVEN 之后和仅有 rPPGNet 单独做了对比实验，实验结果如下图所示，可以看出加上 STVEN 之后是多少有提点的，提点的效果并不是比特率越高越明显，因为他还做了一个 MPEG 的实验，平均提点大约 2。（但是其实随便找一个自动压缩视频的网站对视频进行上传再下载，他肯定掉点，现在各大网站的压缩算法都是自己做的，不再用 HEVC 了）</p>
+<p><img src="/HR_STVEN_rPPGNet/image-20221031213025215.png" alt="image-20221031213025215" style="zoom:50%;"></p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+        <category>hr</category>
+      </categories>
+  </entry>
+  <entry>
     <title>I3D</title>
     <url>/I3D/</url>
     <content><![CDATA[<h2 id="Quo-Vadis-Action-Recognition-A-New-Model-and-the-Kinetics-Dataset-【视频动作识别】-CVPR2017"><a href="#Quo-Vadis-Action-Recognition-A-New-Model-and-the-Kinetics-Dataset-【视频动作识别】-CVPR2017" class="headerlink" title="Quo Vadis, Action Recognition? A New Model and the Kinetics Dataset 【视频动作识别】 CVPR2017"></a><a href="https://openaccess.thecvf.com/content_cvpr_2017/papers/Carreira_Quo_Vadis_Action_CVPR_2017_paper.pdf">Quo Vadis, Action Recognition? A New Model and the Kinetics Dataset</a> 【视频动作识别】 CVPR2017</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种新的视频理解网络结构，和一个新的数据集。这两个都是里程碑式的工作，对于新网络架构，其名字叫做“膨胀的3D网络”，方法简单有效，仅是将 2D 卷积核进行 3D 膨胀，相对于以往的训练 3D 卷积核，关键就在于先训练 2D 网络，再在不改变权重的情况下进行扩张后进行微调。新的数据集也十分有效，大小适合，范围多样，是视频理解领域新工作绕不开的测试数据集。</p>
@@ -1538,6 +1596,21 @@ Uniform and Re-balanced Samplings </center></h2>
       </categories>
   </entry>
   <entry>
+    <title>基于transformer的光场超分辨率重建</title>
+    <url>/Light%20Field%20Image%20Super-Resolution%20With%20Transformers/</url>
+    <content><![CDATA[<h2 id="Light-Field-Image-Super-Resolution-With-Transformers【光场超分】【SLP】"><a href="#Light-Field-Image-Super-Resolution-With-Transformers【光场超分】【SLP】" class="headerlink" title="Light Field Image Super-Resolution With Transformers【光场超分】【SLP】"></a><a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&amp;arnumber=9695363">Light Field Image Super-Resolution With Transformers</a>【光场超分】【SLP】</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文将transformer方法应用到了光场超分的领域，提出了一个简单且有效的baseline，相对于SOTA具有更小的计算代价和更优的效果。具体来说，提出了角度转换和空间转换两个模块，意图更好地学习不同视图之间的互补性。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Light%20Field%20Image%20Super-Resolution%20With%20Transformers/image-20220504094155843.png" alt="image-20220504094155843"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><h3 id="理论"><a href="#理论" class="headerlink" title="理论"></a>理论</h3><h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><script type="math/tex; mode=display">
+math\_express</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><hr>
+<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3>]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
     <title>毕设进度记录</title>
     <url>/LightFieldCompress/</url>
     <content><![CDATA[<h2 id="基于单张RGB图像的光场表征"><a href="#基于单张RGB图像的光场表征" class="headerlink" title="基于单张RGB图像的光场表征"></a><center>基于单张RGB图像的光场表征</center></h2><p>&emsp;&emsp;本文是为了完成毕业论文进行的文献收集和阅读，在此对各个具备较高参考性的文章进行总结提炼，本文最主要参考的文章进行了精读，<a href="http://bnucsy.gitee.io/2022/05/02/A%20Learned%20Compact%20and%20Editable%20Light%20Field%20Representation/">链接见此</a>。初步的设想下，本文的自编码器分为编码器和解码器两个子网络，编码器把一个光场输入编码为一个RGB图像，光场的结构性信息理论上被隐式地编码到RGB图像之中。而解码器则利用这个图像进行光场重建。</p>
@@ -1610,21 +1683,6 @@ o(L_r(x,u),D(x,u))[即 \widehat L]=\widetilde o(L_r(x,u),D(x,u)) +L_r(x,u)</scri
       <categories>
         <category>paper</category>
         <category>mypaper</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>基于transformer的光场超分辨率重建</title>
-    <url>/Light%20Field%20Image%20Super-Resolution%20With%20Transformers/</url>
-    <content><![CDATA[<h2 id="Light-Field-Image-Super-Resolution-With-Transformers【光场超分】【SLP】"><a href="#Light-Field-Image-Super-Resolution-With-Transformers【光场超分】【SLP】" class="headerlink" title="Light Field Image Super-Resolution With Transformers【光场超分】【SLP】"></a><a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&amp;arnumber=9695363">Light Field Image Super-Resolution With Transformers</a>【光场超分】【SLP】</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文将transformer方法应用到了光场超分的领域，提出了一个简单且有效的baseline，相对于SOTA具有更小的计算代价和更优的效果。具体来说，提出了角度转换和空间转换两个模块，意图更好地学习不同视图之间的互补性。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Light%20Field%20Image%20Super-Resolution%20With%20Transformers/image-20220504094155843.png" alt="image-20220504094155843"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><h3 id="理论"><a href="#理论" class="headerlink" title="理论"></a>理论</h3><h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><script type="math/tex; mode=display">
-math\_express</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><hr>
-<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3>]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
       </categories>
   </entry>
   <entry>
@@ -1737,64 +1795,6 @@ math\_express</script><h3 id="结果"><a href="#结果" class="headerlink" title
       <categories>
         <category>paper</category>
         <category>cv</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>HR_STVEN_rPPGNet</title>
-    <url>/HR_STVEN_rPPGNet/</url>
-    <content><![CDATA[<h2><center>Remote Heart Rate Measurement from Highly Compressed Facial Videos: an End-to-end Deep Learning Solution with Video Enhancement</center></h2>
-
-<p>【心率检测】【ICCV2019】【<a href="https://openaccess.thecvf.com/content_ICCV_2019/papers/Yu_Remote_Heart_Rate_Measurement_From_Highly_Compressed_Facial_Videos_An_ICCV_2019_paper.pdf">paper</a>】【<a href="https://github.com/ZitongYu/STVEN_rPPGNet">code</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种可以加强压缩视频的网络 STVEN 和一个更有效的 rPPG 信号估计网络 rPPGNet，总共探索了包括 x264/AVC，x265/HEVC，MPEG4 三种传统压缩算法，整体的网络结构可以接受压缩后的视频并且获得在同等输入条件下相对于其他网络结构的最优解。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/HR_STVEN_rPPGNet/STVEN_network.png" alt></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>一个可以增强视频质量的网络 STVEN，相比于其余的增强/去噪网络对 HR 更有效</li>
-<li>一个更加有效的 rPPG 信号估计网络 rPPGNet，其具备复杂的约束条件</li>
-<li>一个在 rPPGNet 中用于计算注意力图的无参数模块</li>
-<li>第一次实际意义上探索了使用压缩视频作为输入的网络结构</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p>&emsp;&emsp;整体的网络结构正如概览图所示，整体来说分为 STVEN 和 rPPGNet 两个子模块，其一负责加强视频质量，其二负责从视频输入中重建 rPPG 信号。具体来说，这两个子模块都是基于 CNN 的架构，参数分别如下图所示，其中的 ST_Block 是 R(2+1)D 的结构，SGAP 是空间 Global Average Pooling 的缩写。在训练的过程中，两个子模块进行联合训练。</p>
-<p><img src="/HR_STVEN_rPPGNet/image-20221031160806850.png" alt="image-20221031160806850" style="zoom:50%;"></p>
-<h4 id="STVEN"><a href="#STVEN" class="headerlink" title="STVEN"></a>STVEN</h4><p>&emsp;&emsp;STVEN 是一个 video-2-video 的网络结构，在此工作的预想下可以从一些特定的比特率下压缩的视频还原出 GT，并且具备尽可能好的 HR 语义信息。整个 STVEN 的网络基于一个未证明的假设：在不同的比特率下的压缩图像的数据分布不同，而同一个比特率下数据分布较为一致。首先介绍一些符号表示：</p>
-<ul>
-<li><p>压缩后的视频序列为 $\C=[0,1,2,…,C]$，其中 $0,C$ 分别表示多种压缩率下的最低和最高比特率</p>
-</li>
-<li><p>对于某一个比特率下的视频，记为 $c_k^\tau=[c_{k1},c_{k2},…,c_{k\tau}]$，其中 $k\in\C$，$\tau$ 表示视频的帧数</p>
-</li>
-<li>对于 STVEN，记为 $G$，其接受两个输入，包括：$c_i^{\tau}$ 和 $k$，即长度为 $\tau$ 的压缩率为 $i$ 的视频和数字 $k$。输出为 根据 $c_i^\tau$ 更改其数据分布得到的新的压缩率为 $k$ 的视频，表示为 $\hat c_k^\tau=[\hat c_{k1},…,\hat c_{k\tau}]$</li>
-</ul>
-<p>&emsp;&emsp;在训练的过程中我们主要希望 $G$ 函数能够达到两个优化目标：1.良好的重建性，2.循环处理不变性。为了达到良好的重建性，本文选取了两个指标进行约束，分别是 MSE 和 L1 损失。因此 loss 写为：</p>
-<script type="math/tex; mode=display">
-\rm \mathcal L_{rec} = E_{k\in\C,t}||c_0^\tau(t)-G(c_k^\tau,0)(t)||_2^2+E_{k\in\C,t}||c_k^\tau(t)-G(c_0^\tau,k)(t)||</script><p>&emsp;&emsp;其中 $t\in [1,\tau]$ 表示该视频的第几个帧，至于为什么 loss 形式不一样，作者简单说了一下，估计就是效果不好吧，毕竟 L1 L2 应该都是基于像素级别的损失。</p>
-<p>&emsp;&emsp;为了达到良好的循环处理不变性，也就是过两次 $G$ 之后仍然保持一致，loss 描述为：</p>
-<script type="math/tex; mode=display">
-\rm \mathcal L_{cyc}=E_{k\in\C,t}||c_k^\tau(t)-G(G(c_k^\tau,0),k)(t)|| + E_{k\in\C,t}||c_0^\tau(t)-G(G(c_0^\tau,k),0)(t)||</script><p>&emsp;&emsp;两个 loss 的组合可以表示为：</p>
-<script type="math/tex; mode=display">
-\rm \mathcal L_{STVEN}=\mathcal L_{rec}+ \mathcal L_{cyc}</script><p>&emsp;&emsp;通过这样的约束条件训练出的 STVEN 支持将任何比特率的视频压缩/解压缩到任何比特率，尤其对于低比特率的视频可以通过解压缩的方式实现数据增强。但是局限性是明显的：参与训练的数据的压缩算法是传统且局限的，目前基于深度学习的表征压缩数据大概并不服从同一分布。</p>
-<h4 id="rPPGNet"><a href="#rPPGNet" class="headerlink" title="rPPGNet"></a>rPPGNet</h4><p>&emsp;&emsp;rPPGNet 由三个部分组成：时空卷积网络，基于皮肤的注意力模块，分阶段的约束模块。</p>
-<p>&emsp;&emsp;对于时空卷积网络，其本身是基于 R(2+1)D 的 3D CNN 网络，具体参数在之前已经展示，像概览图中所示，其本身是一个逐步降采样的过程。需要注意的是，这里的目的是从 ECG 信号中恢复 rPPG 信号，由于两个信号只需要具备同样的峰值而不需要具备同样的值，因此采用负皮尔森相关系数作为 loss，描述为：</p>
-<script type="math/tex; mode=display">
-\rm \mathcal L_{np}=1-\frac{T\mathop\sum\limits_{i=1}^T y_iy_i^g-\mathop\sum\limits_{i=1}^Ty_i\mathop\sum\limits_{i=1}^Ty_i^g}{\sqrt{(T\mathop\sum\limits_{i=1}^Ty_i^2-(\mathop\sum\limits_{i=1}^Ty_i)^2)(T\mathop\sum\limits_{i=1}^T(y_i^g)^2-(\mathop\sum\limits_{i=1}^Ty_i^g)^2)}}</script><p>&emsp;&emsp;同时，本文将在时空卷积网络的中间层（第三个 ST_Block）的输出单独拿出来，希望这个图也能和 ECG 信号保持线性一致性，因此对于第一个模块，loss 描述为下式，其中 $\alpha,\beta$ 用于平衡两部分的重要性，$\beta$ 要小一些。</p>
-<script type="math/tex; mode=display">
-\rm \mathcal L_{rPPG}=\alpha\mathcal L_{np}+\beta\mathcal L_{np}^{mid}</script><p>&emsp;&emsp;对于基于皮肤的注意力模块，其是一个没有参数的计算模块，具体计算方式如下图所示，这个模块理论上是即插即用的模块，但是在本文中仅在第一个 ST_Block 后加入了这个模块（代码里面写的有点乱没看懂，主要问题在于论文里面已经说了这个模块是无参数的，但是在代码之中和 skin 相关的代码里面居然有 conv：答案：基于皮肤的注意力中，皮肤分割是有参数的，注意力是没参数的），最后这个模块选择使用交叉熵函数作为 loss，论文中没有给出公式，但是根据代码看起来是这样：$\rm \mathcal L_{skin}=CB(M,M^{GT})$，其中 $\rm M=Softmax(\sigma(AvgPool(F))+\sigma(MaxPool(F))+S)$，$F\,,S$ 在下图中给出。</p>
-<p><img src="/HR_STVEN_rPPGNet/image-20221031200834676.png" alt="image-20221031200834676" style="zoom:67%;"></p>
-<p>&emsp;&emsp;对于分区的约束模块，将整个模型最后输出的 skin 图像分为四个部分如下图所示，对于每个部分经过 AVGPool 和一个 conv3d 可以得到输出，这些输出表示每个部分预测出的 rPPG 信号，这些 rPPG 信号也需要和 ECG 信号具备同样的线性一致性，因此也使用负皮尔森相关性 loss：$\rm \mathcal L_{parts}=\mathop\sum\limits_{i=1}^N\mathcal L_{np}^{part_i}$</p>
-<p><img src="/HR_STVEN_rPPGNet/image-20221031204557742.png" alt="image-20221031204557742" style="zoom:67%;"></p>
-<p>&emsp;&emsp;总的来说，对于 rPPGNet，其 loss 描述为：</p>
-<script type="math/tex; mode=display">
-\rm \mathcal L_{rPPGNet}=\mathcal L_{rPPG} + \gamma\mathcal L_{skin}+\delta\mathcal L_{parts}</script><p>&emsp;&emsp;为了两个模块的联合训练，本文又引入了一个联合训练的感知损失 $\mathcal L_p$，真给我整破防了，这也太长了，代码开源也就开了一半，这么复杂的限制和损失居然是有效的？</p>
-<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;消融实验如下图所示，从下图可以看出每一部分都是有必要的，并且这些小模块可以结合在一起得到更好的效果。需要注意的是这里仅展示了 rPPGNet，没有 STVEN 部分。<img src="/HR_STVEN_rPPGNet/image-20221031211829326.png" alt="image-20221031211829326"></p>
-<p>&emsp;&emsp;和其他方法对压缩视频的效果对比，论文包含 x264,x265,MPEG 三种压缩方法，这里只展示 x265 的：<img src="/HR_STVEN_rPPGNet/image-20221031212837912.png" alt="image-20221031212837912"></p>
-<p>&emsp;&emsp;通过这张图大致可以看出本文的网络是具备一定效果的，需要注意的是这里仅展示了 rPPGNet，没有 STVEN 部分，但是也就那样，没比其他的好了多少。</p>
-<p>&emsp;&emsp;接下来接上 STVEN 之后和仅有 rPPGNet 单独做了对比实验，实验结果如下图所示，可以看出加上 STVEN 之后是多少有提点的，提点的效果并不是比特率越高越明显，因为他还做了一个 MPEG 的实验，平均提点大约 2。（但是其实随便找一个自动压缩视频的网站对视频进行上传再下载，他肯定掉点，现在各大网站的压缩算法都是自己做的，不再用 HEVC 了）</p>
-<p><img src="/HR_STVEN_rPPGNet/image-20221031213025215.png" alt="image-20221031213025215" style="zoom:50%;"></p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-        <category>hr</category>
       </categories>
   </entry>
   <entry>
@@ -2044,39 +2044,6 @@ z^{proto}=\gamma z^{proto}+(1-\gamma) \mathbb E_{x^{(i)}\sim p(\mathcal T)}\frac
       </categories>
   </entry>
   <entry>
-    <title>Orthogonal_VQGAN</title>
-    <url>/Orthogonal_VQGAN/</url>
-    <content><![CDATA[<h2><center> Exploration into Translation-Equivariant Image Quantization </center></h2>
-
-<p>【VQGAN探索】【ICASSP<strong>(CCF_B)</strong>】【<a href="arXiv:2112.00384">paper</a>】【<a href>code</a>未开源】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了在 VQ 的时候由于码本中不同编码的堆叠，可能导致性能的下降以及平移等变性的缺失，因此以一种很简单的方式消除了堆叠，具体来说，即加入正交化损失，通过强制 codebook 正交化减少堆叠。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Orthogonal_VQGAN/image-20230330092831822.png" alt="image-20230330092831822" style="zoom:50%;"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>正交化损失，用于减少堆叠以及保持平移等变性</li>
-<li>正交初始化，用于减少堆叠（以本文为经验可以得出的结果，具备明显的合理性）</li>
-</ul>
-<h3 id="为什么要正交？"><a href="#为什么要正交？" class="headerlink" title="为什么要正交？"></a>为什么要正交？</h3><p>&emsp;&emsp;图像经过 CNN 之后的平移等变性缺失是老生常谈的话题，以可视化的例子如下所示，下图中随着图像主体的平移，普通的 CNN 结构（baseline）的置信度变化方差很大，而抗堆叠的方法会好很多。</p>
-<p><img src="/Orthogonal_VQGAN/video_00810.gif" alt></p>
-<p>&emsp;&emsp;所谓平移等变，事实上在分类任务中要求的应该是平移不变性，就是平移之后输出不变，对应在分割等任务上应该是平移等变，就是平移之后输出的 box 等跟随平移。但是我觉得在分类任务其实也得要求平移等变，并非以结果和输入等变，而是以特征图和输入等变，如下图所示。而平移不变性则是在等变的特征图的基础上后续预测网络的要求。</p>
-<p><img src="/Orthogonal_VQGAN/v2-73708d7f00e07e836bd63a96baad638e_1440w.webp" alt="img" style="zoom:50%;"></p>
-<p>&emsp;&emsp;之所以会缺失平移等变性，主要是因为在降采样的过程中，无论是卷积降采样还是池化降采样，都会损失相对位置信息，以 MaxPooling 为例，第一步取 max 实际上只是在一定程度上做了平均，算是一种信息的压缩，但是这里的压缩损失的只是细节信息，但是第二步的池化操作会把原本离得或近或远的 max 的 index 放在相邻位置。这种降采样导致在周期性平移（平移长度为步长整数倍）时可以获得平移等变的结果，而除此之外就会产生较大的误差。因此可以看出 baseline 并不是一直都差，而是周期性地好坏。</p>
-<h3 id="如何保证码本正交？"><a href="#如何保证码本正交？" class="headerlink" title="如何保证码本正交？"></a>如何保证码本正交？</h3><p>&emsp;&emsp;码本的正交可以最大限度地消除码本的冗余性，从而在特征向量少量移动时保证量化之后的向量尽可能不变。</p>
-<p>&emsp;&emsp;至于做法包含两个层面：</p>
-<ul>
-<li>初始化的时候将随机初始化的变量进行正交化处理</li>
-<li>使用正交化损失进行强制 codebook 正交化，orthogonality loss 写作：</li>
-</ul>
-<script type="math/tex; mode=display">
-\mathcal L_{REG}(e)=\lambda\frac{1}{K^2}||l_2(e)^Tl_2(e)-I_K||_2^2</script><p>&emsp;&emsp;即，对码表的编码进行 l2_normlize 之后计算正交矩阵，使其和单位矩阵尽可能接近，$K^2$ 用以消除尺度误差，$\lambda$ 用以平衡权重。</p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-      </categories>
-  </entry>
-  <entry>
     <title>NUWA</title>
     <url>/NUWA/</url>
     <content><![CDATA[<h2><center> NUWA: Visual Synthesis Pre-training for Neural visUal World creAtion </center></h2>
@@ -2129,6 +2096,39 @@ z^{proto}=\gamma z^{proto}+(1-\gamma) \mathbb E_{x^{(i)}\sim p(\mathcal T)}\frac
 <li>视频预测结果（FVD）</li>
 </ul>
 <p><img src="/NUWA/image-20230412113018082.png" alt="image-20230412113018082" style="zoom:40%;"></p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Orthogonal_VQGAN</title>
+    <url>/Orthogonal_VQGAN/</url>
+    <content><![CDATA[<h2><center> Exploration into Translation-Equivariant Image Quantization </center></h2>
+
+<p>【VQGAN探索】【ICASSP<strong>(CCF_B)</strong>】【<a href="arXiv:2112.00384">paper</a>】【<a href>code</a>未开源】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了在 VQ 的时候由于码本中不同编码的堆叠，可能导致性能的下降以及平移等变性的缺失，因此以一种很简单的方式消除了堆叠，具体来说，即加入正交化损失，通过强制 codebook 正交化减少堆叠。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Orthogonal_VQGAN/image-20230330092831822.png" alt="image-20230330092831822" style="zoom:50%;"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>正交化损失，用于减少堆叠以及保持平移等变性</li>
+<li>正交初始化，用于减少堆叠（以本文为经验可以得出的结果，具备明显的合理性）</li>
+</ul>
+<h3 id="为什么要正交？"><a href="#为什么要正交？" class="headerlink" title="为什么要正交？"></a>为什么要正交？</h3><p>&emsp;&emsp;图像经过 CNN 之后的平移等变性缺失是老生常谈的话题，以可视化的例子如下所示，下图中随着图像主体的平移，普通的 CNN 结构（baseline）的置信度变化方差很大，而抗堆叠的方法会好很多。</p>
+<p><img src="/Orthogonal_VQGAN/video_00810.gif" alt></p>
+<p>&emsp;&emsp;所谓平移等变，事实上在分类任务中要求的应该是平移不变性，就是平移之后输出不变，对应在分割等任务上应该是平移等变，就是平移之后输出的 box 等跟随平移。但是我觉得在分类任务其实也得要求平移等变，并非以结果和输入等变，而是以特征图和输入等变，如下图所示。而平移不变性则是在等变的特征图的基础上后续预测网络的要求。</p>
+<p><img src="/Orthogonal_VQGAN/v2-73708d7f00e07e836bd63a96baad638e_1440w.webp" alt="img" style="zoom:50%;"></p>
+<p>&emsp;&emsp;之所以会缺失平移等变性，主要是因为在降采样的过程中，无论是卷积降采样还是池化降采样，都会损失相对位置信息，以 MaxPooling 为例，第一步取 max 实际上只是在一定程度上做了平均，算是一种信息的压缩，但是这里的压缩损失的只是细节信息，但是第二步的池化操作会把原本离得或近或远的 max 的 index 放在相邻位置。这种降采样导致在周期性平移（平移长度为步长整数倍）时可以获得平移等变的结果，而除此之外就会产生较大的误差。因此可以看出 baseline 并不是一直都差，而是周期性地好坏。</p>
+<h3 id="如何保证码本正交？"><a href="#如何保证码本正交？" class="headerlink" title="如何保证码本正交？"></a>如何保证码本正交？</h3><p>&emsp;&emsp;码本的正交可以最大限度地消除码本的冗余性，从而在特征向量少量移动时保证量化之后的向量尽可能不变。</p>
+<p>&emsp;&emsp;至于做法包含两个层面：</p>
+<ul>
+<li>初始化的时候将随机初始化的变量进行正交化处理</li>
+<li>使用正交化损失进行强制 codebook 正交化，orthogonality loss 写作：</li>
+</ul>
+<script type="math/tex; mode=display">
+\mathcal L_{REG}(e)=\lambda\frac{1}{K^2}||l_2(e)^Tl_2(e)-I_K||_2^2</script><p>&emsp;&emsp;即，对码表的编码进行 l2_normlize 之后计算正交矩阵，使其和单位矩阵尽可能接近，$K^2$ 用以消除尺度误差，$\lambda$ 用以平衡权重。</p>
 ]]></content>
       <categories>
         <category>paper</category>
@@ -2354,41 +2354,6 @@ waveforms in remote photoplethysmography </center></h2>
       </categories>
   </entry>
   <entry>
-    <title>Siamese-rPPG</title>
-    <url>/Siamese-rPPG/</url>
-    <content><![CDATA[<h2><center> Siamese-rPPG network: remote photoplethysmography signal estimation from face videos </center></h2>
-
-<p>【心率监测】【SAC2020】【<a href="https://dl.acm.org/doi/10.1145/3341105.3373905">paper</a>】【<a href>code未开源</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种基于孪生网络的 rppg 估计网络，这种网络结构以一种十分简单的思路对人脸进行分割，通过简单的 3DCNN 取得了很好的结果，这篇文章当初觉得太简单没有看，但看数据居然和 Dual-GAN 差不多。这篇文章整体来说比较容易，但是一些处理能够引发思考：心率估计是否不太需要复杂的非线性计算能力？</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Siamese-rPPG/image-20221201152359197.png" alt="image-20221201152359197" style="zoom:50%;"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>使用孪生网络针对不同 ROI 进行提取，这应该是最早的对不同 ROI 能够提取同样心率的假设</li>
-<li>假设同一个 clip 的 ROI 区域关键点很接近（在新的 VIPL 等数据集上似乎不太适用）</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p>&emsp;&emsp;对于同一个视频，首先将其裁剪成 clip $v$，这里在实现的时候选取的帧数较高，$v\in R^{600\times W\times H\times C}$，接着对于每一个 clip 的第一帧使用 dlib 库函数标定人脸关键点，并且通过该信息区分出额头区域和脸颊区域的大致 crop 范围，接下来对剩余视频的每一帧不再执行人脸关键点标定，而是直接使用第一帧的结果。这种方式是极其简单的偷懒方式，但也是有原因的，rppg 估计的网络大多没有大幅度的动作变化，并且简单裁剪之后就可以得到粗略的人脸对齐结果。</p>
-<p>&emsp;&emsp;对于获得的额头区域和脸颊区域，分别取出 $v_{forehead},\ v_{check}$，将其输入一个孪生网络，该孪生网络具备两个相同的分支，具体来说每个分支的结构如下：</p>
-<p><img src="/Siamese-rPPG/image-20221201152916471.png" alt="image-20221201152916471" style="zoom: 33%;"></p>
-<p>&emsp;&emsp;通过网络之后将会分别得到两个预测结果，分别记为 $x_{forehead},\ x_{check}$，接下来是一个 late fusion，这里的 fusion 策略也很关键，本文最初尝试了 Conv+pooling 结构，如下图所示：</p>
-<p><img src="/Siamese-rPPG/image-20221202102636322.png" alt="image-20221202102636322" style="zoom:50%;"></p>
-<p>&emsp;&emsp;但是这样的结果很差，因此最终本文选择了直接使用两个信号的加法，即 $x=x_{forehead}+x_{check}$，这里又是一点，在某个程度上证明了对于 rppg 估计任务也许简单的策略才是好的。对于得到的结果，本文选择 NPCLoss，离谱的是居然还说明了一下为啥选择 NPC，或许是因为文章发得比较早？现在早已是固定的选择了。计算出 loss 之后进行梯度回传，这里是我比较疑惑的点，因为参数共享的网络梯度回传有不同的做法，不说清楚的话不知道是怎么做的，猜想应该是先锁住一个，回传并更新另一个的梯度，再锁住另一个并更新之前被锁住分支的参数，然后更新之前锁住的梯度。</p>
-<p>&emsp;&emsp;接着为了评估网络效果，对 HR 的计算也很简单，不使用 PSD，而是直接用 fft，然后去除心率 &lt; 40 或者 &gt; 180 的，再在剩余的频率中取最大值，其实和 PSD 差不多，毕竟 PSD 也是根据 fft 来的，不过或许和现在的方法比起来稍显落后。</p>
-<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文的结果在 UBFC 和 PURE 上做了测试，这两个数据集都属于比较简单的，结果相对来说比较容易达到好的效果，本文这种用简单方法做出来的结果反而好得很，在更复杂的数据集上或许会变差一些。</p>
-<p><img src="/Siamese-rPPG/image-20221202105220447.png" alt="image-20221202105220447" style="zoom:40%;"></p>
-<p><img src="/Siamese-rPPG/image-20221202105209149.png" alt="image-20221202105209149" style="zoom:50%;"></p>
-<p>&emsp;&emsp;同时还有跨数据集的测试，效果比较差一些，应该是简单的策略匹配简单的数据集和简单的任务吧，可以看到在 PURE 训练的结果在 UBFC 上迁移效果比较差，反过来则不是这样。这或许也是因为 UBFC 相对于 PURE 更加有利于模型的训练。</p>
-<p><img src="/Siamese-rPPG/image-20221202105303143.png" alt="image-20221202105303143" style="zoom:67%;"></p>
-<hr>
-<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3><p>&emsp;&emsp;本文总共采用了三个简单化处理的策略：1. 使用每个 clip 的第一帧标定 ROI，其余帧不再检测，2. 使用加法做 late fusion，而不是基于学习的方法，3. 使用 ftt 提取 HR，而不是用 PSD。有意思的是在这种设置下效果反而不错，有这么一种可能，虽然心率监测的任务看起来玄学一些，但是对于稀疏编码了生理信号的视频，也许提取 ppg 信号不太需要模型具备复杂的高维映射能力。</p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-        <category>hr</category>
-      </categories>
-  </entry>
-  <entry>
     <title>SiNC</title>
     <url>/SiNC/</url>
     <content><![CDATA[<h2><center> Non-Contrastive Unsupervised Learning of Physiological Signals from Video </center></h2>
@@ -2427,6 +2392,41 @@ L_v=\frac1d\sum\limits_{i=1}^{d}(\mathrm{CDF}_i(Q)-\mathrm{CDF}_i(P))^2</script>
       <categories>
         <category>paper</category>
         <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Siamese-rPPG</title>
+    <url>/Siamese-rPPG/</url>
+    <content><![CDATA[<h2><center> Siamese-rPPG network: remote photoplethysmography signal estimation from face videos </center></h2>
+
+<p>【心率监测】【SAC2020】【<a href="https://dl.acm.org/doi/10.1145/3341105.3373905">paper</a>】【<a href>code未开源</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种基于孪生网络的 rppg 估计网络，这种网络结构以一种十分简单的思路对人脸进行分割，通过简单的 3DCNN 取得了很好的结果，这篇文章当初觉得太简单没有看，但看数据居然和 Dual-GAN 差不多。这篇文章整体来说比较容易，但是一些处理能够引发思考：心率估计是否不太需要复杂的非线性计算能力？</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Siamese-rPPG/image-20221201152359197.png" alt="image-20221201152359197" style="zoom:50%;"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>使用孪生网络针对不同 ROI 进行提取，这应该是最早的对不同 ROI 能够提取同样心率的假设</li>
+<li>假设同一个 clip 的 ROI 区域关键点很接近（在新的 VIPL 等数据集上似乎不太适用）</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p>&emsp;&emsp;对于同一个视频，首先将其裁剪成 clip $v$，这里在实现的时候选取的帧数较高，$v\in R^{600\times W\times H\times C}$，接着对于每一个 clip 的第一帧使用 dlib 库函数标定人脸关键点，并且通过该信息区分出额头区域和脸颊区域的大致 crop 范围，接下来对剩余视频的每一帧不再执行人脸关键点标定，而是直接使用第一帧的结果。这种方式是极其简单的偷懒方式，但也是有原因的，rppg 估计的网络大多没有大幅度的动作变化，并且简单裁剪之后就可以得到粗略的人脸对齐结果。</p>
+<p>&emsp;&emsp;对于获得的额头区域和脸颊区域，分别取出 $v_{forehead},\ v_{check}$，将其输入一个孪生网络，该孪生网络具备两个相同的分支，具体来说每个分支的结构如下：</p>
+<p><img src="/Siamese-rPPG/image-20221201152916471.png" alt="image-20221201152916471" style="zoom: 33%;"></p>
+<p>&emsp;&emsp;通过网络之后将会分别得到两个预测结果，分别记为 $x_{forehead},\ x_{check}$，接下来是一个 late fusion，这里的 fusion 策略也很关键，本文最初尝试了 Conv+pooling 结构，如下图所示：</p>
+<p><img src="/Siamese-rPPG/image-20221202102636322.png" alt="image-20221202102636322" style="zoom:50%;"></p>
+<p>&emsp;&emsp;但是这样的结果很差，因此最终本文选择了直接使用两个信号的加法，即 $x=x_{forehead}+x_{check}$，这里又是一点，在某个程度上证明了对于 rppg 估计任务也许简单的策略才是好的。对于得到的结果，本文选择 NPCLoss，离谱的是居然还说明了一下为啥选择 NPC，或许是因为文章发得比较早？现在早已是固定的选择了。计算出 loss 之后进行梯度回传，这里是我比较疑惑的点，因为参数共享的网络梯度回传有不同的做法，不说清楚的话不知道是怎么做的，猜想应该是先锁住一个，回传并更新另一个的梯度，再锁住另一个并更新之前被锁住分支的参数，然后更新之前锁住的梯度。</p>
+<p>&emsp;&emsp;接着为了评估网络效果，对 HR 的计算也很简单，不使用 PSD，而是直接用 fft，然后去除心率 &lt; 40 或者 &gt; 180 的，再在剩余的频率中取最大值，其实和 PSD 差不多，毕竟 PSD 也是根据 fft 来的，不过或许和现在的方法比起来稍显落后。</p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文的结果在 UBFC 和 PURE 上做了测试，这两个数据集都属于比较简单的，结果相对来说比较容易达到好的效果，本文这种用简单方法做出来的结果反而好得很，在更复杂的数据集上或许会变差一些。</p>
+<p><img src="/Siamese-rPPG/image-20221202105220447.png" alt="image-20221202105220447" style="zoom:40%;"></p>
+<p><img src="/Siamese-rPPG/image-20221202105209149.png" alt="image-20221202105209149" style="zoom:50%;"></p>
+<p>&emsp;&emsp;同时还有跨数据集的测试，效果比较差一些，应该是简单的策略匹配简单的数据集和简单的任务吧，可以看到在 PURE 训练的结果在 UBFC 上迁移效果比较差，反过来则不是这样。这或许也是因为 UBFC 相对于 PURE 更加有利于模型的训练。</p>
+<p><img src="/Siamese-rPPG/image-20221202105303143.png" alt="image-20221202105303143" style="zoom:67%;"></p>
+<hr>
+<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3><p>&emsp;&emsp;本文总共采用了三个简单化处理的策略：1. 使用每个 clip 的第一帧标定 ROI，其余帧不再检测，2. 使用加法做 late fusion，而不是基于学习的方法，3. 使用 ftt 提取 HR，而不是用 PSD。有意思的是在这种设置下效果反而不错，有这么一种可能，虽然心率监测的任务看起来玄学一些，但是对于稀疏编码了生理信号的视频，也许提取 ppg 信号不太需要模型具备复杂的高维映射能力。</p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+        <category>hr</category>
       </categories>
   </entry>
   <entry>
