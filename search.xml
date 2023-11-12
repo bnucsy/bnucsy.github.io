@@ -1,82 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>A Learned Compact and Editable Light Field Representation</title>
-    <url>/A%20Learned%20Compact%20and%20Editable%20Light%20Field%20Representation/</url>
-    <content><![CDATA[<h2 id="A-Learned-Compact-and-Editable-Light-Field-Representation【光场压缩、编辑传播】【arxiv】"><a href="#A-Learned-Compact-and-Editable-Light-Field-Representation【光场压缩、编辑传播】【arxiv】" class="headerlink" title="A Learned Compact and Editable Light Field Representation【光场压缩、编辑传播】【arxiv】"></a><a href="https://arxiv.org/abs/2103.11314">A Learned Compact and Editable Light Field Representation</a>【光场压缩、编辑传播】【arxiv】</h2><center>P.S. 本文为自己重述，不完全忠实于原paper，难免出现错误</center>
-
-<p>&emsp;&emsp;该论文完成了光场数据的压缩表示，使用自编码器的方法将光场数据压缩为一个深度图和一个中央视觉图，并且支持编辑之后的中央视觉图和原深度图进行光场重建。</p>
-<p><img src="https://img-blog.csdnimg.cn/f7655d1624894b87a117e25801a7b14d.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" align="center" style="zoom: 80%;"></p>
-<span id="more"></span>
-<h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p> &emsp; &emsp; 所谓光场，即记录光线位置和方向的数据结构，这种数据表示方式经历了很大的变化历程，相关的介绍中<a href="https://www.leiphone.com/category/arvr/N14i2K6UmZzK5TcE.html">这个介绍</a>最为清晰和全面。<br>&emsp; &emsp;本文对于这种数据结构进行了自编码器的学习，综合考虑解码后与原图的结构差异，编码的中间层中央视觉图部分的RGB相似度，编辑后的中央视觉图的重建程度，完成了一种支持编辑的光场重建。这项工作的压缩部分解决了光场数据结构较大的问题，可编辑重建部分解决了二维图像处理到三维图像处理的迁移问题，总体来说意义重大。目前本文发布于<a href="https://arxiv.org/abs/2103.11314"> arxiv</a>，也许在不久之后会登上SIGGRAPH。</p>
-<h3 id="相关工作"><a href="#相关工作" class="headerlink" title="相关工作"></a>相关工作</h3><ul>
-<li><p>光场重建相关<br>&emsp; &emsp; 以往的光场重建工作主要集中于：①<a href="https://dl.acm.org/doi/10.1145/2682631#d32752538e1">从稀疏样本合成密集光场。</a>②<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6574844">通过光场估计视差。</a>③<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7406366">对光场合成的深度学习方法——该方法可以估计扭曲的视差，并更细致地描绘颜色。</a>④<a href="https://arxiv.org/pdf/1708.03292.pdf">通过单张照片合成光场。</a>⑤<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8953925">多平面图像表示光场。</a><br>&emsp; &emsp;这些工作尽管能够解决部分问题，但仍有局限，如前几个工作会出现某些伪影、重影。最后一类工作引出一个新的问题——如何通过编辑这种多平面图象进行光场编辑。<br>&emsp; &emsp;我认为本文的工作在某种程度上重复了④的工作内容，类似于AE和GAN之间的联系。在完成④的基础上，本文解决了⑤引出的可编辑性问题——通过分离特征和视图的方法。</p>
-</li>
-<li><p>光场编辑相关<br>&emsp; &emsp;以往的这些工作集中于：①目标重定位。②目标变形。③目标补充。④<a href="http://citeseerx.ist.psu.edu/viewdoc/download;jsessionid=36554C114E54C1449058A76D6684D6AB?doi=10.1.1.644.3384&rep=rep1&type=pdf">将稀疏编辑传播至全光场。</a>⑤<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7414488">将中心视图分解为不同深度的图层，通过图层进行光场编辑。</a><br>&emsp; &emsp;上述工作中④，⑤两个工作相比而言较为接近本文工作，因此没有给出①②③的原文链接，尤其是④，④最关键的难度在于进行光场编辑的一致性传播，与本文想法接近。有较强的借鉴意义。</p>
-<p>&emsp; </p>
-<h3 id="本文的工作"><a href="#本文的工作" class="headerlink" title="本文的工作"></a>本文的工作</h3><p>&emsp; &emsp;总体来说，本文能够对一个给定的4D光场，将其表示为一个元通道<code>在没有限制元通道的视觉形态的情况下，为什么它长得这么像一个灰度图？</code>和一个RGB图（视觉通道），这实现了4D光场数据的压缩，另一方面，针对视觉通道的编辑可以通过和元通道的结合重建光场，并一致性地传播到新的光场之中。<br>本文设计的网络结构：<img src="https://img-blog.csdnimg.cn/a35c15d6728748e487dc22097d88cf4c.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" width="50%" align="center"></p>
-</li>
-</ul>
-<ol>
-<li><h4 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h4><p>&emsp; &emsp;输入的4D光场视图即为$M\times N$张RGB图像，我们描述为$L = \{I_i\}_{i=1}^{M\times N}$，对于这个光场$L$,$L(u,v)$也就表示了某一个像素，其中$u$表示图片，$v$表示像素，也就是说$I_i$即为$L(u_i)$。</p>
-<p>&emsp; &emsp;在整个自编码器的设计过程之中，我们记编码器为$E$，解码器为$D$。</p>
-<p>&emsp; &emsp;一方面，对于输入的光场$L$，我们通过编码器生成一个元通道$Z$，即$Z = E(L)$，有$sizeof(Z) = sizeof(I_i)$。另一方面，对于传入的光场数据，我们获取中央视图$I_c$ <code>Ic具体是如何得到的呢？是L(x,0)么？</code>。对$I_c$进行编辑之后我们获得$\widetilde{I}_c$，接着我们把两者结合，通过解码网络获得编辑后光场$\widetilde L$，即 $\widetilde L = D(Z, \widetilde I _c)$。</p>
-</li>
-<li><h4 id="表示方式的选取"><a href="#表示方式的选取" class="headerlink" title="表示方式的选取"></a>表示方式的选取</h4><p>&emsp; &emsp;本节实际上主要阐述了为什么要选取元通道和视觉通道。</p>
-<p>&emsp; &emsp;中心视图 $I_c$ 捕获了光场的参考视觉内容，因此自编码器只需要学习表示元通道即可。元通道作为视觉通道互补的部分，意味着包括深度、视差、纹理、遮挡等等信息被隐式地编码到元通道之中。事实上本文做了<a href="https://blog.csdn.net/flyfish1986/article/details/104812229#:~:text=%E6%B6%88%E8%9E%8D%E5%AE%9E%E9%AA%8C%20%EF%BC%88%20ablation%20experiment%EF%BC%89,%E5%9C%A8%E6%9C%BA%E5%99%A8%20%E5%AD%A6%E4%B9%A0%20%EF%BC%8C%E7%89%B9%E5%88%AB%E6%98%AF%E5%A4%8D%E6%9D%82%E7%9A%84%E6%B7%B1%E5%BA%A6%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E7%9A%84%E8%83%8C%E6%99%AF%E4%B8%8B%EF%BC%8C%E5%B7%B2%E7%BB%8F%E9%87%87%E7%94%A8%E2%80%9C%20%E6%B6%88%E8%9E%8D%E7%A0%94%E7%A9%B6%20%E2%80%9D%E6%9D%A5%E6%8F%8F%E8%BF%B0%E5%8E%BB%E9%99%A4%E7%BD%91%E7%BB%9C%E7%9A%84%E6%9F%90%E4%BA%9B%E9%83%A8%E5%88%86%E7%9A%84%E8%BF%87%E7%A8%8B%EF%BC%8C%E4%BB%A5%E4%BE%BF%E6%9B%B4%E5%A5%BD%E5%9C%B0%E7%90%86%E8%A7%A3%E7%BD%91%E7%BB%9C%E7%9A%84%E8%A1%8C%E4%B8%BA%E3%80%82">消融实验</a>，使用深度图代替了元通道，取得了较差的结果。</p>
-<p>中央视觉图、元通道、深度图：<img src="https://img-blog.csdnimg.cn/ae4a919d4c164d27b71ae77dd83e9f50.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" width="50%" align="center"></p>
-<p>&emsp; &emsp;关于元通道的个数和是否必须存在的问题，本文解释道，当图片数目（角度分辨率）和图片大小（空间分辨率）增加的时候，单个元通道可能无法编码全部信息，这时候我们可以增加元通道的数目。至于和视觉图分离的原因，主要是考虑到光场的重建过程中对于编辑的视觉通道，我们需要原光场的结构，如果将元通道编码到视觉通道之中形成 $I^z$，那么编辑的过程就会破坏结构，光场不再能够重建。</p>
-<p>&emsp; &emsp;事实上，如果我们不考虑光场的重建问题，我们是可以将视觉通道和元通道合二为一的，此时我们只考虑数据压缩和光场生成的任务，该方法仍旧是一个很好的想法。这也将作为我的毕业设计的主要思想。</p>
-</li>
-<li><h4 id="编辑敏感的光场重建（解码器网络实现）"><a href="#编辑敏感的光场重建（解码器网络实现）" class="headerlink" title="编辑敏感的光场重建（解码器网络实现）"></a>编辑敏感的光场重建（解码器网络实现）</h4><p>&emsp; &emsp;本文将解码器的解释信息的方式分为两类：视图间视差图，以及其他信息（遮挡图和<a href="https://www.cnblogs.com/qingsunny/archive/2013/03/07/2947572.html#:~:text=%E5%AF%B9%E9%9D%9E%E6%9C%97%E4%BC%AF%E4%BD%93%E8%80%8C%E8%A8%80%EF%BC%8C%E5%AE%83%E5%AF%B9%E5%A4%AA%E9%98%B3%E7%9F%AD%E6%B3%A2%E8%BE%90%E5%B0%84%E7%9A%84%E5%8F%8D%E5%B0%84%E3%80%81%E6%95%A3%E5%B0%84%E8%83%BD%E5%8A%9B%E4%B8%8D%E4%BB%85%E9%9A%8F%E6%B3%A2%E9%95%BF%E8%80%8C%E5%8F%98%EF%BC%8C%E5%90%8C%E6%97%B6%E4%BA%A6%E9%9A%8F%E7%A9%BA%E9%97%B4%E6%96%B9%E5%90%91%E8%80%8C%E5%8F%98%E3%80%82%20%E6%89%80%E8%B0%93%E5%9C%B0%E7%89%A9%E7%9A%84%E6%B3%A2%E8%B0%B1%E7%89%B9%E5%BE%81%E6%98%AF%E6%8C%87%E8%AF%A5%E5%9C%B0%E7%89%A9%E5%AF%B9%E5%A4%AA%E9%98%B3%E8%BE%90%E5%B0%84%E7%9A%84%E5%8F%8D%E5%B0%84%E3%80%81%E6%95%A3%E5%B0%84%E8%83%BD%E5%8A%9B%E9%9A%8F%E6%B3%A2%E9%95%BF%E8%80%8C%E5%8F%98%E7%9A%84%E8%A7%84%E5%BE%8B%E3%80%82%20%E5%9C%B0%E7%89%A9%E6%B3%A2%E8%B0%B1%E7%89%B9%E5%BE%81%E4%B8%8E%E5%9C%B0%E7%89%A9%E7%9A%84%E7%BB%84%E6%88%90%E6%88%90%E4%BB%BD%EF%BC%8C%E7%89%A9%E4%BD%93%E5%86%85%E9%83%A8%E7%9A%84%E7%BB%93%E6%9E%84%E5%85%B3%E7%B3%BB%E5%AF%86%E5%88%87%EF%BC%8C%E9%80%9A%E4%BF%97%E8%AE%B2%E5%9C%B0%E7%89%A9%E6%B3%A2%E8%B0%B1%E7%89%B9%E5%BE%81%E4%B9%9F%E5%B0%B1%E6%98%AF%E5%9C%B0%E7%89%A9%E7%9A%84%E9%A2%9C%E8%89%B2%E7%89%B9%E5%BE%81%E3%80%82%20%E8%80%8C%E5%9C%B0%E7%89%A9%E7%9A%84%E6%96%B9%E5%90%91%E7%89%B9%E5%BE%81%E6%98%AF%E7%94%A8%E6%9D%A5%E6%8F%8F%E8%BF%B0%E5%9C%B0%E7%89%A9%E5%AF%B9%E5%A4%AA%E9%98%B3%E8%BE%90%E5%B0%84%E5%8F%8D%E5%B0%84%E3%80%81%E6%95%A3%E5%B0%84%E8%83%BD%E5%8A%9B%E5%9C%A8%E6%96%B9%E5%90%91%E7%A9%BA%E9%97%B4%E5%8F%98%E5%8C%96%E7%9A%84%EF%BC%8C%E8%BF%99%E7%A7%8D%E7%A9%BA%E9%97%B4%E5%8F%98%E5%8C%96%E7%89%B9%E5%BE%81%E4%B8%BB%E8%A6%81%E5%86%B3%E5%AE%9A%E4%BA%8E%E4%B8%A4%E7%A7%8D%E5%9B%A0%E7%B4%A0%EF%BC%8C%E5%85%B6%E4%B8%80%E6%98%AF%E7%89%A9%E4%BD%93%E7%9A%84%E8%A1%A8%E9%9D%A2%E7%B2%97%E7%B3%99%E5%BA%A6%EF%BC%8C%E5%AE%83%E4%B8%8D%E4%BB%85%E5%8F%96%E5%86%B3%E4%BA%8E%E8%A1%A8%E9%9D%A2%E5%B9%B3%E5%9D%87%E7%B2%97%E7%B3%99%E9%AB%98%E5%BA%A6%E5%80%BC%E4%B8%8E%E7%94%B5%E7%A3%81%E6%B3%A2%E6%B3%A2%E9%95%BF%E4%B9%8B%E9%97%B4%E7%9A%84%E6%AF%94%E4%BE%8B%E5%85%B3%E7%B3%BB%EF%BC%8C%E8%80%8C%E4%B8%94%E8%BF%98%E4%B8%8E%E8%A7%86%E8%A7%92%E5%85%B3%E7%B3%BB%E5%AF%86%E5%88%87%E3%80%82%20%E8%AE%BE%E6%B3%A2%E9%95%BF%E4%B8%BA%CE%BB%EF%BC%8C%E7%A9%BA%E9%97%B4%E5%85%B7%E6%9C%89%CE%B4%E5%88%86%E5%B8%83%E5%87%BD%E6%95%B0%E7%9A%84%E5%85%A5%E5%B0%84%E8%BE%90%E5%B0%84%EF%BC%8C%E4%BB%8E%20%28%CE%B80%EF%BC%8C%CF%860%29%20%E6%96%B9%E5%90%91%EF%BC%8C%E4%BB%A5%E8%BE%90%E5%B0%84%E4%BA%AE%E5%BA%A6L0,%28%CE%B80%EF%BC%8C%CF%860%EF%BC%8C%CE%BB%29%E6%8A%95%E5%B0%84%E5%90%91%E7%82%B9%E7%9B%AE%E6%A0%87%EF%BC%8C%E9%80%A0%E6%88%90%E8%AF%A5%E7%82%B9%E7%9B%AE%E6%A0%87%E7%9A%84%E8%BE%90%E7%85%A7%E5%BA%A6%E5%A2%9E%E9%87%8F%E4%B8%BAdE%20%28%CE%B80%EF%BC%8C%CF%860%EF%BC%8C%CE%BB%29%20%3D%20L0%20%28%CE%B80%EF%BC%8C%CF%860%EF%BC%8C%CE%BB%29%20cos%CE%B80%20d%CE%A9%E3%80%82">非朗博效应</a>）</p>
-<p> 本文设计的解码器网络：<img src="https://img-blog.csdnimg.cn/e0504d3786df4b37ad59995d8c678ae5.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" align="center" width="70%"></p>
-<p>&emsp; &emsp;在图中我们可以看到，解码器由三个不同的网络共同构成。$SepNet, DispNet, FusionNet$ 三个网络各自有着对应的任务。同时也有着一些方法，如 $warping$，以及涉及到 $Occlusion _ map, Disparity _ map,Feature_map$<code>遮挡图是通过特征图得到的么？是的话为什么可以直接得到，是物理方法么？</code>等的获取，接下来我们将一一介绍。</p>
-</li>
-</ol>
-<ul>
-<li><p>$SepNet$：该网络的作用是特征分离，具体地说，这个模块将元通道 $Z$ 分解为一系列特征映射 $\{F_i\}$，其中每个 $F_i$ 包含视图 $i$ 的特征信息，和视觉通道独立，可以和视觉通道结合重建视图 $i$。</p>
-</li>
-<li><p>$DispNet$：该网络的作用是视差恢复。具体来说，从特征图 $F_i$ 中提取出 $I_i$ 视差图 $D(u_i)$。接着我们如果给出某一个光场视图$L(u_j)$，我们可以得到合成视图（即warped方法）$\bar{L}(u_i)$：</p>
-<script type="math/tex; mode=display">
-\bar{L}(u_i,x)=L(u_j, x+(u_j-u_i)\times D(u_i,x))</script><p>&emsp; &emsp;因此，我们可以明确认识到，对于任何一个视差图$D(u_i)$，我们将其与$I_c$进行合成得到 $\bar L(u_i)$。此时我们得到的图理论上和$\widehat L(u_i)$一致（其中$\widehat L=L$，作为重建光场的目标），但实际上由于遮挡和非朗博效应总会出现不同。为了解决这个问题，我们需要另一个网络修复他，但是网络的执行时间可以由 $D(u_i)$ 的遮挡情况自适应地确定，为了度量遮挡程度，我们记 </p>
-<script type="math/tex; mode=display">
-O(u_i, x) = ||D(u_i,x)-D(u_c,x+(u_c-u_i)\times D(u_i,x))||_1</script><p>&emsp;&emsp;其中$D(u_c)$ 表示 $I_c$ 的视差图。并且有 $O(u_i,x)$越大，接下来的网络需要的时间就越长。</p>
-</li>
-<li><p>$FusionNet$：该网络的目的是重建遮挡细节和非朗博效应，这个网络通过大规模的训练达到将视觉图和遮挡图变回光场图像的目的。大规模的训练遇到的关键问题是数据问题，为了解决这个问题，本文提出了一个算子 $G$，算子 $G$ 通过平均采样的方式更改光场，对于原本的IO组$\{\widetilde I_c,\widehat L\}$，我们更改为$\{G( I_c),G(L)\}$，从而得到大规模数据。</p>
-</li>
-</ul>
-<ol>
-<li><h4 id="损失函数"><a href="#损失函数" class="headerlink" title="损失函数"></a>损失函数</h4><p>&emsp; &emsp;网络通过最小化损失函数联合训练编码和解码子网络，本文的损失函数分为三个部分，扭曲一致性损失（也就是$warped$模块） $\zeta_W$，视差正则损失 $\zeta_D$ ，重建损失 $\zeta_R$。故而总损失为：</p>
-<script type="math/tex; mode=display">
-\zeta = \omega_1\zeta_W + \omega_2\zeta_D + \omega_3\zeta_R</script><p>&emsp; &emsp;在这里，我们设定$\omega_1 = 0.5,\omega_2 = 0.01, \omega_3 = 1.0$。接下来我们将逐一介绍三个损失。</p>
-<p>&emsp; &emsp;$\zeta_W$：扭曲一致性损失。该损失用来度量$warped$之后的光场$\bar L$ 和中央视觉通道 $I_c$之间的差别，使得视差能够更好地被还原。公式写作：</p>
-<script type="math/tex; mode=display">
-\zeta_W = E_{L_i \in S}\{||\bar L_i - L_i||_1\}</script><p>&emsp;&emsp;<code>warp是一个物理方法，这个方法由于不考虑遮挡理论上本身就和预期结果不同，如果使用这种损失有没有可能会让视差的生成网络过拟合呢？（也就是视差的生成网络不去生成视差，而是某种能和中央通道直接合成光场的图片【这并不是值得开心的，因为之后还要和遮挡图进行进一步的融合】）</code></p>
-<p>&emsp; &emsp;其中，$S$ 即为光场构成的数据集，这个损失即为所有光场的中央视觉通道与对应的$\bar L_i$的一阶范数。该损失限制了从$DispNet$中生成的视差图，使其更加接近于真实视差。</p>
-<p>&emsp; &emsp;但是仅仅由这个损失进行限制仍然是不够的，由于这个损失并不能度量到没有纹理的区域的扭曲视图是否相近，这种失误将会造成遮挡部分无法进行一致性地传播，将会加大 $FusionNet$ 的训练量。为了解决这个问题，我们引入正则损失 $\zeta_D$，加强相邻视图的视差一致性。</p>
-<script type="math/tex; mode=display">
-\zeta_D = E_{L_i \in S}\{||D(u_i,x)-D(u_i-1,x+D(u_i,x))||_1\}</script><p>&emsp;&emsp;这个损失函数实际上限制了在预测后的光场中，相邻视图需要尽可能地一致，保证相邻视图之间的视差一致性。每个视图在某种程度上都会受到其他视图的影响和制约。</p>
-<p>&emsp; &emsp;在最后，我们通过重建的光场和原本的光场相一致的限制构造重建损耗 $\zeta_R$：</p>
-<script type="math/tex; mode=display">
-\zeta_R = E_{L_i\in S}\{\alpha||\widetilde L_i-\widehat L_i||_1+\beta||SSIM(\widetilde L_i, \widehat L_i)||_1\}</script><p>&emsp;&emsp;实验中，$SSIM(L_1,L_2)$表示两个光场的所有视角的平均$SSIM$值，<a href="https://baike.baidu.com/item/SSIM/2091025">计算见此</a>。并且预设$\alpha=1.0,\beta=0.02$。选取$SSIM$度量将在模糊区域获得更精确的细节。</p>
-</li>
-</ol>
-<h3 id="实现的细节"><a href="#实现的细节" class="headerlink" title="实现的细节"></a>实现的细节</h3><ol>
-<li><p>数据集<br>&emsp; &emsp;本文的数据集来自两个公开数据集，斯坦福和MIT的相机光场数据，总共收集了406个光场，每个光场有14*14个角度和376*541个像素。在训练的过程中，随机选取326个作为训练集，剩余80个作为测试集，对每个光场裁取7*7个角度以及每个角度128*128个像素组成的照片。对训练集进行了数据增强，即水平翻转或者旋转。通过数据增强，最终得到14447个光场样本进行训练。</p>
-</li>
-<li><p>训练<br>&emsp; &emsp;训练时编码子网和解码子网是联合训练的，但是这种训练方式较慢，本文提出将这个训练分为两个部分。首先是进行除了 $FusionNet$ 之外的网络进行训练，这个阶段迭代10000次，这个训练的目的是加速以及预热$DispNet$ 。在第二阶段，包括 $FusionNet$ 在内 的所有网络进行 50000 次训练。训练中使用Adam优化器，第一阶段学习率为0.0002，第二阶段学习率下降为第一阶段学习率的1%。</p>
-<p>&emsp; &emsp;另外，本文采用pytorch实现了方法，这个实验在两台NVDIA GeForce GTX 1080 Ti 上运行了48个小时。完成的模型对于7*7的光场输入编码元通道约需要0.04秒，重建光场约需要2秒。</p>
-<p>&emsp; &emsp;源代码和数据尚未开源，等待本文正式发布将会开源代码和数据。</p>
-</li>
-</ol>
-<h3 id="实验的结果"><a href="#实验的结果" class="headerlink" title="实验的结果"></a>实验的结果</h3><p>&emsp; &emsp;我们可以看到，无论是颜色编辑、颜色转换、阴影去除、风格转换、对比增强等针对2D图片的编辑方法，在本模型的支持下均完成了对于重建光场的一致性传播。<br> <img src="https://img-blog.csdnimg.cn/f7655d1624894b87a117e25801a7b14d.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" width="110%" align="center"></p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-      </categories>
-  </entry>
-  <entry>
     <title>Anchor_based_colorization</title>
     <url>/Anchor_based_colorization/</url>
     <content><![CDATA[<h2><center> Disentangled Image Colorization via Global Anchors </center></h2>
@@ -170,6 +94,131 @@ O(u_i, x) = ||D(u_i,x)-D(u_c,x+(u_c-u_i)\times D(u_i,x))||_1</script><p>&emsp;&e
       <categories>
         <category>paper</category>
         <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>A Learned Compact and Editable Light Field Representation</title>
+    <url>/A%20Learned%20Compact%20and%20Editable%20Light%20Field%20Representation/</url>
+    <content><![CDATA[<h2 id="A-Learned-Compact-and-Editable-Light-Field-Representation【光场压缩、编辑传播】【arxiv】"><a href="#A-Learned-Compact-and-Editable-Light-Field-Representation【光场压缩、编辑传播】【arxiv】" class="headerlink" title="A Learned Compact and Editable Light Field Representation【光场压缩、编辑传播】【arxiv】"></a><a href="https://arxiv.org/abs/2103.11314">A Learned Compact and Editable Light Field Representation</a>【光场压缩、编辑传播】【arxiv】</h2><center>P.S. 本文为自己重述，不完全忠实于原paper，难免出现错误</center>
+
+<p>&emsp;&emsp;该论文完成了光场数据的压缩表示，使用自编码器的方法将光场数据压缩为一个深度图和一个中央视觉图，并且支持编辑之后的中央视觉图和原深度图进行光场重建。</p>
+<p><img src="https://img-blog.csdnimg.cn/f7655d1624894b87a117e25801a7b14d.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" align="center" style="zoom: 80%;"></p>
+<span id="more"></span>
+<h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p> &emsp; &emsp; 所谓光场，即记录光线位置和方向的数据结构，这种数据表示方式经历了很大的变化历程，相关的介绍中<a href="https://www.leiphone.com/category/arvr/N14i2K6UmZzK5TcE.html">这个介绍</a>最为清晰和全面。<br>&emsp; &emsp;本文对于这种数据结构进行了自编码器的学习，综合考虑解码后与原图的结构差异，编码的中间层中央视觉图部分的RGB相似度，编辑后的中央视觉图的重建程度，完成了一种支持编辑的光场重建。这项工作的压缩部分解决了光场数据结构较大的问题，可编辑重建部分解决了二维图像处理到三维图像处理的迁移问题，总体来说意义重大。目前本文发布于<a href="https://arxiv.org/abs/2103.11314"> arxiv</a>，也许在不久之后会登上SIGGRAPH。</p>
+<h3 id="相关工作"><a href="#相关工作" class="headerlink" title="相关工作"></a>相关工作</h3><ul>
+<li><p>光场重建相关<br>&emsp; &emsp; 以往的光场重建工作主要集中于：①<a href="https://dl.acm.org/doi/10.1145/2682631#d32752538e1">从稀疏样本合成密集光场。</a>②<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6574844">通过光场估计视差。</a>③<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7406366">对光场合成的深度学习方法——该方法可以估计扭曲的视差，并更细致地描绘颜色。</a>④<a href="https://arxiv.org/pdf/1708.03292.pdf">通过单张照片合成光场。</a>⑤<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8953925">多平面图像表示光场。</a><br>&emsp; &emsp;这些工作尽管能够解决部分问题，但仍有局限，如前几个工作会出现某些伪影、重影。最后一类工作引出一个新的问题——如何通过编辑这种多平面图象进行光场编辑。<br>&emsp; &emsp;我认为本文的工作在某种程度上重复了④的工作内容，类似于AE和GAN之间的联系。在完成④的基础上，本文解决了⑤引出的可编辑性问题——通过分离特征和视图的方法。</p>
+</li>
+<li><p>光场编辑相关<br>&emsp; &emsp;以往的这些工作集中于：①目标重定位。②目标变形。③目标补充。④<a href="http://citeseerx.ist.psu.edu/viewdoc/download;jsessionid=36554C114E54C1449058A76D6684D6AB?doi=10.1.1.644.3384&rep=rep1&type=pdf">将稀疏编辑传播至全光场。</a>⑤<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7414488">将中心视图分解为不同深度的图层，通过图层进行光场编辑。</a><br>&emsp; &emsp;上述工作中④，⑤两个工作相比而言较为接近本文工作，因此没有给出①②③的原文链接，尤其是④，④最关键的难度在于进行光场编辑的一致性传播，与本文想法接近。有较强的借鉴意义。</p>
+<p>&emsp; </p>
+<h3 id="本文的工作"><a href="#本文的工作" class="headerlink" title="本文的工作"></a>本文的工作</h3><p>&emsp; &emsp;总体来说，本文能够对一个给定的4D光场，将其表示为一个元通道<code>在没有限制元通道的视觉形态的情况下，为什么它长得这么像一个灰度图？</code>和一个RGB图（视觉通道），这实现了4D光场数据的压缩，另一方面，针对视觉通道的编辑可以通过和元通道的结合重建光场，并一致性地传播到新的光场之中。<br>本文设计的网络结构：<img src="https://img-blog.csdnimg.cn/a35c15d6728748e487dc22097d88cf4c.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" width="50%" align="center"></p>
+</li>
+</ul>
+<ol>
+<li><h4 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h4><p>&emsp; &emsp;输入的4D光场视图即为$M\times N$张RGB图像，我们描述为$L = \{I_i\}_{i=1}^{M\times N}$，对于这个光场$L$,$L(u,v)$也就表示了某一个像素，其中$u$表示图片，$v$表示像素，也就是说$I_i$即为$L(u_i)$。</p>
+<p>&emsp; &emsp;在整个自编码器的设计过程之中，我们记编码器为$E$，解码器为$D$。</p>
+<p>&emsp; &emsp;一方面，对于输入的光场$L$，我们通过编码器生成一个元通道$Z$，即$Z = E(L)$，有$sizeof(Z) = sizeof(I_i)$。另一方面，对于传入的光场数据，我们获取中央视图$I_c$ <code>Ic具体是如何得到的呢？是L(x,0)么？</code>。对$I_c$进行编辑之后我们获得$\widetilde{I}_c$，接着我们把两者结合，通过解码网络获得编辑后光场$\widetilde L$，即 $\widetilde L = D(Z, \widetilde I _c)$。</p>
+</li>
+<li><h4 id="表示方式的选取"><a href="#表示方式的选取" class="headerlink" title="表示方式的选取"></a>表示方式的选取</h4><p>&emsp; &emsp;本节实际上主要阐述了为什么要选取元通道和视觉通道。</p>
+<p>&emsp; &emsp;中心视图 $I_c$ 捕获了光场的参考视觉内容，因此自编码器只需要学习表示元通道即可。元通道作为视觉通道互补的部分，意味着包括深度、视差、纹理、遮挡等等信息被隐式地编码到元通道之中。事实上本文做了<a href="https://blog.csdn.net/flyfish1986/article/details/104812229#:~:text=%E6%B6%88%E8%9E%8D%E5%AE%9E%E9%AA%8C%20%EF%BC%88%20ablation%20experiment%EF%BC%89,%E5%9C%A8%E6%9C%BA%E5%99%A8%20%E5%AD%A6%E4%B9%A0%20%EF%BC%8C%E7%89%B9%E5%88%AB%E6%98%AF%E5%A4%8D%E6%9D%82%E7%9A%84%E6%B7%B1%E5%BA%A6%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E7%9A%84%E8%83%8C%E6%99%AF%E4%B8%8B%EF%BC%8C%E5%B7%B2%E7%BB%8F%E9%87%87%E7%94%A8%E2%80%9C%20%E6%B6%88%E8%9E%8D%E7%A0%94%E7%A9%B6%20%E2%80%9D%E6%9D%A5%E6%8F%8F%E8%BF%B0%E5%8E%BB%E9%99%A4%E7%BD%91%E7%BB%9C%E7%9A%84%E6%9F%90%E4%BA%9B%E9%83%A8%E5%88%86%E7%9A%84%E8%BF%87%E7%A8%8B%EF%BC%8C%E4%BB%A5%E4%BE%BF%E6%9B%B4%E5%A5%BD%E5%9C%B0%E7%90%86%E8%A7%A3%E7%BD%91%E7%BB%9C%E7%9A%84%E8%A1%8C%E4%B8%BA%E3%80%82">消融实验</a>，使用深度图代替了元通道，取得了较差的结果。</p>
+<p>中央视觉图、元通道、深度图：<img src="https://img-blog.csdnimg.cn/ae4a919d4c164d27b71ae77dd83e9f50.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" width="50%" align="center"></p>
+<p>&emsp; &emsp;关于元通道的个数和是否必须存在的问题，本文解释道，当图片数目（角度分辨率）和图片大小（空间分辨率）增加的时候，单个元通道可能无法编码全部信息，这时候我们可以增加元通道的数目。至于和视觉图分离的原因，主要是考虑到光场的重建过程中对于编辑的视觉通道，我们需要原光场的结构，如果将元通道编码到视觉通道之中形成 $I^z$，那么编辑的过程就会破坏结构，光场不再能够重建。</p>
+<p>&emsp; &emsp;事实上，如果我们不考虑光场的重建问题，我们是可以将视觉通道和元通道合二为一的，此时我们只考虑数据压缩和光场生成的任务，该方法仍旧是一个很好的想法。这也将作为我的毕业设计的主要思想。</p>
+</li>
+<li><h4 id="编辑敏感的光场重建（解码器网络实现）"><a href="#编辑敏感的光场重建（解码器网络实现）" class="headerlink" title="编辑敏感的光场重建（解码器网络实现）"></a>编辑敏感的光场重建（解码器网络实现）</h4><p>&emsp; &emsp;本文将解码器的解释信息的方式分为两类：视图间视差图，以及其他信息（遮挡图和<a href="https://www.cnblogs.com/qingsunny/archive/2013/03/07/2947572.html#:~:text=%E5%AF%B9%E9%9D%9E%E6%9C%97%E4%BC%AF%E4%BD%93%E8%80%8C%E8%A8%80%EF%BC%8C%E5%AE%83%E5%AF%B9%E5%A4%AA%E9%98%B3%E7%9F%AD%E6%B3%A2%E8%BE%90%E5%B0%84%E7%9A%84%E5%8F%8D%E5%B0%84%E3%80%81%E6%95%A3%E5%B0%84%E8%83%BD%E5%8A%9B%E4%B8%8D%E4%BB%85%E9%9A%8F%E6%B3%A2%E9%95%BF%E8%80%8C%E5%8F%98%EF%BC%8C%E5%90%8C%E6%97%B6%E4%BA%A6%E9%9A%8F%E7%A9%BA%E9%97%B4%E6%96%B9%E5%90%91%E8%80%8C%E5%8F%98%E3%80%82%20%E6%89%80%E8%B0%93%E5%9C%B0%E7%89%A9%E7%9A%84%E6%B3%A2%E8%B0%B1%E7%89%B9%E5%BE%81%E6%98%AF%E6%8C%87%E8%AF%A5%E5%9C%B0%E7%89%A9%E5%AF%B9%E5%A4%AA%E9%98%B3%E8%BE%90%E5%B0%84%E7%9A%84%E5%8F%8D%E5%B0%84%E3%80%81%E6%95%A3%E5%B0%84%E8%83%BD%E5%8A%9B%E9%9A%8F%E6%B3%A2%E9%95%BF%E8%80%8C%E5%8F%98%E7%9A%84%E8%A7%84%E5%BE%8B%E3%80%82%20%E5%9C%B0%E7%89%A9%E6%B3%A2%E8%B0%B1%E7%89%B9%E5%BE%81%E4%B8%8E%E5%9C%B0%E7%89%A9%E7%9A%84%E7%BB%84%E6%88%90%E6%88%90%E4%BB%BD%EF%BC%8C%E7%89%A9%E4%BD%93%E5%86%85%E9%83%A8%E7%9A%84%E7%BB%93%E6%9E%84%E5%85%B3%E7%B3%BB%E5%AF%86%E5%88%87%EF%BC%8C%E9%80%9A%E4%BF%97%E8%AE%B2%E5%9C%B0%E7%89%A9%E6%B3%A2%E8%B0%B1%E7%89%B9%E5%BE%81%E4%B9%9F%E5%B0%B1%E6%98%AF%E5%9C%B0%E7%89%A9%E7%9A%84%E9%A2%9C%E8%89%B2%E7%89%B9%E5%BE%81%E3%80%82%20%E8%80%8C%E5%9C%B0%E7%89%A9%E7%9A%84%E6%96%B9%E5%90%91%E7%89%B9%E5%BE%81%E6%98%AF%E7%94%A8%E6%9D%A5%E6%8F%8F%E8%BF%B0%E5%9C%B0%E7%89%A9%E5%AF%B9%E5%A4%AA%E9%98%B3%E8%BE%90%E5%B0%84%E5%8F%8D%E5%B0%84%E3%80%81%E6%95%A3%E5%B0%84%E8%83%BD%E5%8A%9B%E5%9C%A8%E6%96%B9%E5%90%91%E7%A9%BA%E9%97%B4%E5%8F%98%E5%8C%96%E7%9A%84%EF%BC%8C%E8%BF%99%E7%A7%8D%E7%A9%BA%E9%97%B4%E5%8F%98%E5%8C%96%E7%89%B9%E5%BE%81%E4%B8%BB%E8%A6%81%E5%86%B3%E5%AE%9A%E4%BA%8E%E4%B8%A4%E7%A7%8D%E5%9B%A0%E7%B4%A0%EF%BC%8C%E5%85%B6%E4%B8%80%E6%98%AF%E7%89%A9%E4%BD%93%E7%9A%84%E8%A1%A8%E9%9D%A2%E7%B2%97%E7%B3%99%E5%BA%A6%EF%BC%8C%E5%AE%83%E4%B8%8D%E4%BB%85%E5%8F%96%E5%86%B3%E4%BA%8E%E8%A1%A8%E9%9D%A2%E5%B9%B3%E5%9D%87%E7%B2%97%E7%B3%99%E9%AB%98%E5%BA%A6%E5%80%BC%E4%B8%8E%E7%94%B5%E7%A3%81%E6%B3%A2%E6%B3%A2%E9%95%BF%E4%B9%8B%E9%97%B4%E7%9A%84%E6%AF%94%E4%BE%8B%E5%85%B3%E7%B3%BB%EF%BC%8C%E8%80%8C%E4%B8%94%E8%BF%98%E4%B8%8E%E8%A7%86%E8%A7%92%E5%85%B3%E7%B3%BB%E5%AF%86%E5%88%87%E3%80%82%20%E8%AE%BE%E6%B3%A2%E9%95%BF%E4%B8%BA%CE%BB%EF%BC%8C%E7%A9%BA%E9%97%B4%E5%85%B7%E6%9C%89%CE%B4%E5%88%86%E5%B8%83%E5%87%BD%E6%95%B0%E7%9A%84%E5%85%A5%E5%B0%84%E8%BE%90%E5%B0%84%EF%BC%8C%E4%BB%8E%20%28%CE%B80%EF%BC%8C%CF%860%29%20%E6%96%B9%E5%90%91%EF%BC%8C%E4%BB%A5%E8%BE%90%E5%B0%84%E4%BA%AE%E5%BA%A6L0,%28%CE%B80%EF%BC%8C%CF%860%EF%BC%8C%CE%BB%29%E6%8A%95%E5%B0%84%E5%90%91%E7%82%B9%E7%9B%AE%E6%A0%87%EF%BC%8C%E9%80%A0%E6%88%90%E8%AF%A5%E7%82%B9%E7%9B%AE%E6%A0%87%E7%9A%84%E8%BE%90%E7%85%A7%E5%BA%A6%E5%A2%9E%E9%87%8F%E4%B8%BAdE%20%28%CE%B80%EF%BC%8C%CF%860%EF%BC%8C%CE%BB%29%20%3D%20L0%20%28%CE%B80%EF%BC%8C%CF%860%EF%BC%8C%CE%BB%29%20cos%CE%B80%20d%CE%A9%E3%80%82">非朗博效应</a>）</p>
+<p> 本文设计的解码器网络：<img src="https://img-blog.csdnimg.cn/e0504d3786df4b37ad59995d8c678ae5.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" align="center" width="70%"></p>
+<p>&emsp; &emsp;在图中我们可以看到，解码器由三个不同的网络共同构成。$SepNet, DispNet, FusionNet$ 三个网络各自有着对应的任务。同时也有着一些方法，如 $warping$，以及涉及到 $Occlusion _ map, Disparity _ map,Feature_map$<code>遮挡图是通过特征图得到的么？是的话为什么可以直接得到，是物理方法么？</code>等的获取，接下来我们将一一介绍。</p>
+</li>
+</ol>
+<ul>
+<li><p>$SepNet$：该网络的作用是特征分离，具体地说，这个模块将元通道 $Z$ 分解为一系列特征映射 $\{F_i\}$，其中每个 $F_i$ 包含视图 $i$ 的特征信息，和视觉通道独立，可以和视觉通道结合重建视图 $i$。</p>
+</li>
+<li><p>$DispNet$：该网络的作用是视差恢复。具体来说，从特征图 $F_i$ 中提取出 $I_i$ 视差图 $D(u_i)$。接着我们如果给出某一个光场视图$L(u_j)$，我们可以得到合成视图（即warped方法）$\bar{L}(u_i)$：</p>
+<script type="math/tex; mode=display">
+\bar{L}(u_i,x)=L(u_j, x+(u_j-u_i)\times D(u_i,x))</script><p>&emsp; &emsp;因此，我们可以明确认识到，对于任何一个视差图$D(u_i)$，我们将其与$I_c$进行合成得到 $\bar L(u_i)$。此时我们得到的图理论上和$\widehat L(u_i)$一致（其中$\widehat L=L$，作为重建光场的目标），但实际上由于遮挡和非朗博效应总会出现不同。为了解决这个问题，我们需要另一个网络修复他，但是网络的执行时间可以由 $D(u_i)$ 的遮挡情况自适应地确定，为了度量遮挡程度，我们记 </p>
+<script type="math/tex; mode=display">
+O(u_i, x) = ||D(u_i,x)-D(u_c,x+(u_c-u_i)\times D(u_i,x))||_1</script><p>&emsp;&emsp;其中$D(u_c)$ 表示 $I_c$ 的视差图。并且有 $O(u_i,x)$越大，接下来的网络需要的时间就越长。</p>
+</li>
+<li><p>$FusionNet$：该网络的目的是重建遮挡细节和非朗博效应，这个网络通过大规模的训练达到将视觉图和遮挡图变回光场图像的目的。大规模的训练遇到的关键问题是数据问题，为了解决这个问题，本文提出了一个算子 $G$，算子 $G$ 通过平均采样的方式更改光场，对于原本的IO组$\{\widetilde I_c,\widehat L\}$，我们更改为$\{G( I_c),G(L)\}$，从而得到大规模数据。</p>
+</li>
+</ul>
+<ol>
+<li><h4 id="损失函数"><a href="#损失函数" class="headerlink" title="损失函数"></a>损失函数</h4><p>&emsp; &emsp;网络通过最小化损失函数联合训练编码和解码子网络，本文的损失函数分为三个部分，扭曲一致性损失（也就是$warped$模块） $\zeta_W$，视差正则损失 $\zeta_D$ ，重建损失 $\zeta_R$。故而总损失为：</p>
+<script type="math/tex; mode=display">
+\zeta = \omega_1\zeta_W + \omega_2\zeta_D + \omega_3\zeta_R</script><p>&emsp; &emsp;在这里，我们设定$\omega_1 = 0.5,\omega_2 = 0.01, \omega_3 = 1.0$。接下来我们将逐一介绍三个损失。</p>
+<p>&emsp; &emsp;$\zeta_W$：扭曲一致性损失。该损失用来度量$warped$之后的光场$\bar L$ 和中央视觉通道 $I_c$之间的差别，使得视差能够更好地被还原。公式写作：</p>
+<script type="math/tex; mode=display">
+\zeta_W = E_{L_i \in S}\{||\bar L_i - L_i||_1\}</script><p>&emsp;&emsp;<code>warp是一个物理方法，这个方法由于不考虑遮挡理论上本身就和预期结果不同，如果使用这种损失有没有可能会让视差的生成网络过拟合呢？（也就是视差的生成网络不去生成视差，而是某种能和中央通道直接合成光场的图片【这并不是值得开心的，因为之后还要和遮挡图进行进一步的融合】）</code></p>
+<p>&emsp; &emsp;其中，$S$ 即为光场构成的数据集，这个损失即为所有光场的中央视觉通道与对应的$\bar L_i$的一阶范数。该损失限制了从$DispNet$中生成的视差图，使其更加接近于真实视差。</p>
+<p>&emsp; &emsp;但是仅仅由这个损失进行限制仍然是不够的，由于这个损失并不能度量到没有纹理的区域的扭曲视图是否相近，这种失误将会造成遮挡部分无法进行一致性地传播，将会加大 $FusionNet$ 的训练量。为了解决这个问题，我们引入正则损失 $\zeta_D$，加强相邻视图的视差一致性。</p>
+<script type="math/tex; mode=display">
+\zeta_D = E_{L_i \in S}\{||D(u_i,x)-D(u_i-1,x+D(u_i,x))||_1\}</script><p>&emsp;&emsp;这个损失函数实际上限制了在预测后的光场中，相邻视图需要尽可能地一致，保证相邻视图之间的视差一致性。每个视图在某种程度上都会受到其他视图的影响和制约。</p>
+<p>&emsp; &emsp;在最后，我们通过重建的光场和原本的光场相一致的限制构造重建损耗 $\zeta_R$：</p>
+<script type="math/tex; mode=display">
+\zeta_R = E_{L_i\in S}\{\alpha||\widetilde L_i-\widehat L_i||_1+\beta||SSIM(\widetilde L_i, \widehat L_i)||_1\}</script><p>&emsp;&emsp;实验中，$SSIM(L_1,L_2)$表示两个光场的所有视角的平均$SSIM$值，<a href="https://baike.baidu.com/item/SSIM/2091025">计算见此</a>。并且预设$\alpha=1.0,\beta=0.02$。选取$SSIM$度量将在模糊区域获得更精确的细节。</p>
+</li>
+</ol>
+<h3 id="实现的细节"><a href="#实现的细节" class="headerlink" title="实现的细节"></a>实现的细节</h3><ol>
+<li><p>数据集<br>&emsp; &emsp;本文的数据集来自两个公开数据集，斯坦福和MIT的相机光场数据，总共收集了406个光场，每个光场有14*14个角度和376*541个像素。在训练的过程中，随机选取326个作为训练集，剩余80个作为测试集，对每个光场裁取7*7个角度以及每个角度128*128个像素组成的照片。对训练集进行了数据增强，即水平翻转或者旋转。通过数据增强，最终得到14447个光场样本进行训练。</p>
+</li>
+<li><p>训练<br>&emsp; &emsp;训练时编码子网和解码子网是联合训练的，但是这种训练方式较慢，本文提出将这个训练分为两个部分。首先是进行除了 $FusionNet$ 之外的网络进行训练，这个阶段迭代10000次，这个训练的目的是加速以及预热$DispNet$ 。在第二阶段，包括 $FusionNet$ 在内 的所有网络进行 50000 次训练。训练中使用Adam优化器，第一阶段学习率为0.0002，第二阶段学习率下降为第一阶段学习率的1%。</p>
+<p>&emsp; &emsp;另外，本文采用pytorch实现了方法，这个实验在两台NVDIA GeForce GTX 1080 Ti 上运行了48个小时。完成的模型对于7*7的光场输入编码元通道约需要0.04秒，重建光场约需要2秒。</p>
+<p>&emsp; &emsp;源代码和数据尚未开源，等待本文正式发布将会开源代码和数据。</p>
+</li>
+</ol>
+<h3 id="实验的结果"><a href="#实验的结果" class="headerlink" title="实验的结果"></a>实验的结果</h3><p>&emsp; &emsp;我们可以看到，无论是颜色编辑、颜色转换、阴影去除、风格转换、对比增强等针对2D图片的编辑方法，在本模型的支持下均完成了对于重建光场的一致性传播。<br> <img src="https://img-blog.csdnimg.cn/f7655d1624894b87a117e25801a7b14d.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" width="110%" align="center"></p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>原始transformer</title>
+    <url>/Attention%20is%20all%20you%20need/</url>
+    <content><![CDATA[<h2 id="attention-is-all-you-need【机器翻译】【NIPS】"><a href="#attention-is-all-you-need【机器翻译】【NIPS】" class="headerlink" title="attention is all you need【机器翻译】【NIPS】"></a><a href="https://papers.nips.cc/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf">attention is all you need</a>【机器翻译】【NIPS】</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;原始transformer，RNN（解决 序列建模/位置敏感）$\to$ LSTM（解决 参数依赖/难以训练）$\to$transformer（解决 并行运算）。此篇笔记简要介绍网络、详细分析过程</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Attention%20is%20all%20you%20need/image-20220504100751796.png" alt="image-20220504100751796"></p>
+<span id="more"></span>
+<hr>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/Attention%20is%20all%20you%20need/image-20220504100937194.png" alt="image-20220504100937194" style="zoom: 67%;"></p>
+<p>&emsp;&emsp;上图是网络概览图，简单概括：transformer由编码器和解码器两部分组成，对于编码器和解码器，在输入之前都有embedding部分和位置编码部分。</p>
+<h3 id="理论"><a href="#理论" class="headerlink" title="理论"></a>理论</h3><h4 id="embedding-and-positionEncoding"><a href="#embedding-and-positionEncoding" class="headerlink" title="embedding and positionEncoding"></a>embedding and positionEncoding</h4><p>&emsp;&emsp;embedding部分主要目的是将输入的词进行向量化表示。对输入的句子$X$，应当有$X=\{x_i\}_n \to (l,n)$，其中 $l$ 为句子个数，即batchsize，$n$为句子中单词的个数的最大值，$x_i \to (1,x_d)$，具体维度并不确定。对每一个单词进行embedding操作【可以使用的方法包括glove, word2Vec等】，将会得到$X’=\{w_i\}_n\to (n,d)$，其中$w_i\to (1,d)$，$d$代表转化之后每个单词的维度。在标准transformer中为512。</p>
+<p>&emsp;&emsp;此时得到的向量$X’$中不包含位置信息，为了包含位置信息，加入位置编码矩阵$P \to (n,d)$。具体来说，对于位置为 $pos$ 的词向量，对该向量第 $i$ 个位置（$2k$ 或 $2k+1$）的值，有：</p>
+<script type="math/tex; mode=display">
+P(pos,2k)=\sin(\frac{pos}{10000^{2k/d}}),k\in Z</script><script type="math/tex; mode=display">
+P(pos,2k+1) = \cos(\frac{pos}{10000^{2k/d}}),k\in Z</script><p>&emsp;&emsp;在得到位置编码之后，需要进行相加操作得到最终的编码结果，即 $A = P+X’\to(n,d)$。</p>
+<p>&emsp;&emsp;虽然位置编码到这里就结束了，但是在实际操作中有些具体细节，包括 ①decoder网络的输入不允许网络看到当前位置之后的数据，因此需要有一个mask上三角矩阵，②对于长度不足 $n$ 的句子的padding。</p>
+<h4 id="encoder"><a href="#encoder" class="headerlink" title="encoder"></a>encoder</h4><p>&emsp;&emsp;encoder层如网络结构图所示，其本身是一个循环结构，因此要求输入输出维度一致，标准transformer循环层数为6。具体到每一个encoder层，其包含一个MHA（多头自注意力层）和一个FFN（前馈网络）。更具体地，每一个encoder层对embedding得到的矩阵 $A$，有 $A^{(i)} \to MHA(A) \to Z\to FFN(Z)\to A^{(i+1)}$。</p>
+<p>&emsp;&emsp;对于MHA，其全称为MultiHeadAttention，其由多个Self-Attention并行组成，对于每一个Self-Attention，有如下的计算过程：</p>
+<hr>
+<p>&emsp;&emsp;记 $A =\{a_i\}_n\to (n,d)$，$a_i\to (1,d)$，对每一个 $a_i$ 计算 $Q_i,K_i,V_i\to(1,k)$，其中 $k$ 可以表示对每个单词提取的特征维度，在标准transformer上是64，维度的进一步变小是为了方便计算。$Q,K,V$ 的计算公式为：</p>
+<script type="math/tex; mode=display">
+Q_i=a_i\times W_Q</script><script type="math/tex; mode=display">
+K_i= a_i\times W_k</script><script type="math/tex; mode=display">
+V_i=a_i\times W_V</script><p>&emsp;&emsp;其中，$W_Q,W_K,W_V \to (d,k)$ 是随机初始化得到的，属于网络中的参数，随梯度进行更新。将上述计算过程写成矩阵的格式，即为 $Q=A\times W_Q\to (n,k)$，$K,V$ 同 $Q$。此时对于如 $Q=\{Q_i\},Q_i\to (1,k)$ 表示第 $i$ 个单词的 $k$ 个特征。$Q,K,V$ 分别表示 Query, Key, Value。</p>
+<p>&emsp;&emsp;形象化地理解 $Q,K,V$ 可以以浏览器查询为例子， 其中 $Q$ 表示需要查询的字段，$K$ 表示知识库包含的字段，$V$ 表示知识库中该字段的返回结果。使用 $Q_i\times K_i$ 即可得到对于某个查询在某字段的“得分”。将得分变化至0-1之间，再与 $V_i$ 相乘即可得到在某个字段的解，所有的 $V_i$ 求和即可得到最终 $Q_i$ 的查询结果。</p>
+<p>&emsp;&emsp;按照以上思路，对于 $a_i$ 可以得到 $Z_i= \sum\limits_{j\in[1,k]} \rm softmax (\frac{ Q_i\times K_i^T}{\sqrt d_k})\times V_i \to(1,k)$，其中 $d_k$ 表示 $Q,K,V$ 的第二维度，即 $k$。重写成矩阵的形式，即可得到：</p>
+<script type="math/tex; mode=display">
+Z=\rm softmax (\frac{Q\times K^T}{\sqrt {d_k}})\times V \to(n,k)</script><p>&emsp;&emsp;这个式子虽然很好地表示了 $Z$ 的求法，但是在实际计算的过程之中，对于得到 $Q\times K^T$ 需要进行mask，即和mask矩阵按位相乘，目的是使被padding部分的注意力清零。</p>
+<hr>
+<p>&emsp;&emsp;上述过程讲述了如何通过输入 $A\to(n,d)$ 求得对应的Self-Attention输出 $Z\to(n,k)$，但是在实际操作过程中往往使用MHA，即不共享参数同时并行计算 $p$ 个 $Z$，标准transformer计算8个。</p>
+<p>&emsp;&emsp;对得到的 $Z_0\to Z_7$，将其横向拼接得到 $Z_{mix}\to(n,p\times k)$，然后对 $Z_{mix}$ 进行线性变换，经过一个Linear层将 $Z_{mix}$ 映射到 $Z’\to(n,d)$，此时的 $Z’$ 将会经过 $A\&amp;N$ 后送至FFN 。</p>
+<h4 id="Add-and-Norm"><a href="#Add-and-Norm" class="headerlink" title="Add and Norm"></a>Add and Norm</h4><p>&emsp;&emsp;对于 $A\&amp;N$，大致上 $Add$ 对应残差连接，$Norm$ 对应 LayerNorm。具体来说，对于MHA，$A\&amp;N$ 输出的结果是 $\rm LayerNorm(A + MHA(A))$。对于FFN，输出为 $\rm LayerNorm(Z’+FFN(Z’))$ 。</p>
+<h4 id="FFN"><a href="#FFN" class="headerlink" title="FFN"></a>FFN</h4><p>&emsp;&emsp;FFN网络结构简单，由两个线性层组成，在第一个线性层之后经过RELU，再经过第二个线性层，具体来说两个线性层维度为 $d\to 2048\to d$。</p>
+<p>&emsp;&emsp;FFN包括上述的 A&amp;N 部分看起来很容易，但是原论文中进行了消融实验，这两个部分非常重要，尤其对于FFN部分。FFN部分是positionWise的，即这个网络实际上是对每一个维度进行的，类似于kernel=1的Conv2d。</p>
+<h4 id="decoder"><a href="#decoder" class="headerlink" title="decoder"></a>decoder</h4><p>&emsp;&emsp;decoder部分整体和encoder部分没有太大的差别，区别在于decoder具备两个MHA，两个MHA在实现上和encoder的均略有不同。</p>
+<p>&emsp;&emsp;对于第一个Masked MHA，首先是起始与终止符，对于输入的序列，起始符号为\<begin\>，终止符号是\<end\>，分别代表句首和句尾。其次是mask，在计算输入的时候就需要进行mask，对每个输入句子，输入的第 $i$ 个句子仅能看到前 $i$ 个词语。除此之外，在计算出 $Q\times K^T$ 之后也需要进行mask。这两个mask操作都是直接按位乘mask矩阵。mask矩阵为上三角矩阵，举例来说，对 4 个单词。</end\></begin\></p>
+<script type="math/tex; mode=display">
+mask = \begin{pmatrix}
+1~1~1~1\\
+0~1~1~1\\
+0~0~1~1\\
+0~0~0~1
+\end{pmatrix}</script><p>&emsp;&emsp;对于第二个MHA，其 $Q,K,V$ 不单独计算，其中 $K,V$ 直接使用encoder输出的结果，$Q$ 使用第一个masked MHA输出的 $A$ 单独进行 $Q$ 的计算。之后的 $A\&amp;N$ 部分也使用第一个masked MHA的输出作为输入。</p>
+<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;标准transformer的损失采用交叉熵损失，但是在实际的操作过程中需要忽略padding的输出和ground truth。除此之外，学习率 $l$ 优化器使用Adam优化器，随着训练轮数 $s$ 先变大后变小。</p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>nlp</category>
       </categories>
   </entry>
   <entry>
@@ -267,55 +316,6 @@ x_{mo}=F(Concat(h_i^b,\ h_i^f))</script><h3 id="结果"><a href="#结果" class=
         <category>paper</category>
         <category>cv</category>
         <category>hr</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>原始transformer</title>
-    <url>/Attention%20is%20all%20you%20need/</url>
-    <content><![CDATA[<h2 id="attention-is-all-you-need【机器翻译】【NIPS】"><a href="#attention-is-all-you-need【机器翻译】【NIPS】" class="headerlink" title="attention is all you need【机器翻译】【NIPS】"></a><a href="https://papers.nips.cc/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf">attention is all you need</a>【机器翻译】【NIPS】</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;原始transformer，RNN（解决 序列建模/位置敏感）$\to$ LSTM（解决 参数依赖/难以训练）$\to$transformer（解决 并行运算）。此篇笔记简要介绍网络、详细分析过程</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Attention%20is%20all%20you%20need/image-20220504100751796.png" alt="image-20220504100751796"></p>
-<span id="more"></span>
-<hr>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/Attention%20is%20all%20you%20need/image-20220504100937194.png" alt="image-20220504100937194" style="zoom: 67%;"></p>
-<p>&emsp;&emsp;上图是网络概览图，简单概括：transformer由编码器和解码器两部分组成，对于编码器和解码器，在输入之前都有embedding部分和位置编码部分。</p>
-<h3 id="理论"><a href="#理论" class="headerlink" title="理论"></a>理论</h3><h4 id="embedding-and-positionEncoding"><a href="#embedding-and-positionEncoding" class="headerlink" title="embedding and positionEncoding"></a>embedding and positionEncoding</h4><p>&emsp;&emsp;embedding部分主要目的是将输入的词进行向量化表示。对输入的句子$X$，应当有$X=\{x_i\}_n \to (l,n)$，其中 $l$ 为句子个数，即batchsize，$n$为句子中单词的个数的最大值，$x_i \to (1,x_d)$，具体维度并不确定。对每一个单词进行embedding操作【可以使用的方法包括glove, word2Vec等】，将会得到$X’=\{w_i\}_n\to (n,d)$，其中$w_i\to (1,d)$，$d$代表转化之后每个单词的维度。在标准transformer中为512。</p>
-<p>&emsp;&emsp;此时得到的向量$X’$中不包含位置信息，为了包含位置信息，加入位置编码矩阵$P \to (n,d)$。具体来说，对于位置为 $pos$ 的词向量，对该向量第 $i$ 个位置（$2k$ 或 $2k+1$）的值，有：</p>
-<script type="math/tex; mode=display">
-P(pos,2k)=\sin(\frac{pos}{10000^{2k/d}}),k\in Z</script><script type="math/tex; mode=display">
-P(pos,2k+1) = \cos(\frac{pos}{10000^{2k/d}}),k\in Z</script><p>&emsp;&emsp;在得到位置编码之后，需要进行相加操作得到最终的编码结果，即 $A = P+X’\to(n,d)$。</p>
-<p>&emsp;&emsp;虽然位置编码到这里就结束了，但是在实际操作中有些具体细节，包括 ①decoder网络的输入不允许网络看到当前位置之后的数据，因此需要有一个mask上三角矩阵，②对于长度不足 $n$ 的句子的padding。</p>
-<h4 id="encoder"><a href="#encoder" class="headerlink" title="encoder"></a>encoder</h4><p>&emsp;&emsp;encoder层如网络结构图所示，其本身是一个循环结构，因此要求输入输出维度一致，标准transformer循环层数为6。具体到每一个encoder层，其包含一个MHA（多头自注意力层）和一个FFN（前馈网络）。更具体地，每一个encoder层对embedding得到的矩阵 $A$，有 $A^{(i)} \to MHA(A) \to Z\to FFN(Z)\to A^{(i+1)}$。</p>
-<p>&emsp;&emsp;对于MHA，其全称为MultiHeadAttention，其由多个Self-Attention并行组成，对于每一个Self-Attention，有如下的计算过程：</p>
-<hr>
-<p>&emsp;&emsp;记 $A =\{a_i\}_n\to (n,d)$，$a_i\to (1,d)$，对每一个 $a_i$ 计算 $Q_i,K_i,V_i\to(1,k)$，其中 $k$ 可以表示对每个单词提取的特征维度，在标准transformer上是64，维度的进一步变小是为了方便计算。$Q,K,V$ 的计算公式为：</p>
-<script type="math/tex; mode=display">
-Q_i=a_i\times W_Q</script><script type="math/tex; mode=display">
-K_i= a_i\times W_k</script><script type="math/tex; mode=display">
-V_i=a_i\times W_V</script><p>&emsp;&emsp;其中，$W_Q,W_K,W_V \to (d,k)$ 是随机初始化得到的，属于网络中的参数，随梯度进行更新。将上述计算过程写成矩阵的格式，即为 $Q=A\times W_Q\to (n,k)$，$K,V$ 同 $Q$。此时对于如 $Q=\{Q_i\},Q_i\to (1,k)$ 表示第 $i$ 个单词的 $k$ 个特征。$Q,K,V$ 分别表示 Query, Key, Value。</p>
-<p>&emsp;&emsp;形象化地理解 $Q,K,V$ 可以以浏览器查询为例子， 其中 $Q$ 表示需要查询的字段，$K$ 表示知识库包含的字段，$V$ 表示知识库中该字段的返回结果。使用 $Q_i\times K_i$ 即可得到对于某个查询在某字段的“得分”。将得分变化至0-1之间，再与 $V_i$ 相乘即可得到在某个字段的解，所有的 $V_i$ 求和即可得到最终 $Q_i$ 的查询结果。</p>
-<p>&emsp;&emsp;按照以上思路，对于 $a_i$ 可以得到 $Z_i= \sum\limits_{j\in[1,k]} \rm softmax (\frac{ Q_i\times K_i^T}{\sqrt d_k})\times V_i \to(1,k)$，其中 $d_k$ 表示 $Q,K,V$ 的第二维度，即 $k$。重写成矩阵的形式，即可得到：</p>
-<script type="math/tex; mode=display">
-Z=\rm softmax (\frac{Q\times K^T}{\sqrt {d_k}})\times V \to(n,k)</script><p>&emsp;&emsp;这个式子虽然很好地表示了 $Z$ 的求法，但是在实际计算的过程之中，对于得到 $Q\times K^T$ 需要进行mask，即和mask矩阵按位相乘，目的是使被padding部分的注意力清零。</p>
-<hr>
-<p>&emsp;&emsp;上述过程讲述了如何通过输入 $A\to(n,d)$ 求得对应的Self-Attention输出 $Z\to(n,k)$，但是在实际操作过程中往往使用MHA，即不共享参数同时并行计算 $p$ 个 $Z$，标准transformer计算8个。</p>
-<p>&emsp;&emsp;对得到的 $Z_0\to Z_7$，将其横向拼接得到 $Z_{mix}\to(n,p\times k)$，然后对 $Z_{mix}$ 进行线性变换，经过一个Linear层将 $Z_{mix}$ 映射到 $Z’\to(n,d)$，此时的 $Z’$ 将会经过 $A\&amp;N$ 后送至FFN 。</p>
-<h4 id="Add-and-Norm"><a href="#Add-and-Norm" class="headerlink" title="Add and Norm"></a>Add and Norm</h4><p>&emsp;&emsp;对于 $A\&amp;N$，大致上 $Add$ 对应残差连接，$Norm$ 对应 LayerNorm。具体来说，对于MHA，$A\&amp;N$ 输出的结果是 $\rm LayerNorm(A + MHA(A))$。对于FFN，输出为 $\rm LayerNorm(Z’+FFN(Z’))$ 。</p>
-<h4 id="FFN"><a href="#FFN" class="headerlink" title="FFN"></a>FFN</h4><p>&emsp;&emsp;FFN网络结构简单，由两个线性层组成，在第一个线性层之后经过RELU，再经过第二个线性层，具体来说两个线性层维度为 $d\to 2048\to d$。</p>
-<p>&emsp;&emsp;FFN包括上述的 A&amp;N 部分看起来很容易，但是原论文中进行了消融实验，这两个部分非常重要，尤其对于FFN部分。FFN部分是positionWise的，即这个网络实际上是对每一个维度进行的，类似于kernel=1的Conv2d。</p>
-<h4 id="decoder"><a href="#decoder" class="headerlink" title="decoder"></a>decoder</h4><p>&emsp;&emsp;decoder部分整体和encoder部分没有太大的差别，区别在于decoder具备两个MHA，两个MHA在实现上和encoder的均略有不同。</p>
-<p>&emsp;&emsp;对于第一个Masked MHA，首先是起始与终止符，对于输入的序列，起始符号为\<begin\>，终止符号是\<end\>，分别代表句首和句尾。其次是mask，在计算输入的时候就需要进行mask，对每个输入句子，输入的第 $i$ 个句子仅能看到前 $i$ 个词语。除此之外，在计算出 $Q\times K^T$ 之后也需要进行mask。这两个mask操作都是直接按位乘mask矩阵。mask矩阵为上三角矩阵，举例来说，对 4 个单词。</end\></begin\></p>
-<script type="math/tex; mode=display">
-mask = \begin{pmatrix}
-1~1~1~1\\
-0~1~1~1\\
-0~0~1~1\\
-0~0~0~1
-\end{pmatrix}</script><p>&emsp;&emsp;对于第二个MHA，其 $Q,K,V$ 不单独计算，其中 $K,V$ 直接使用encoder输出的结果，$Q$ 使用第一个masked MHA输出的 $A$ 单独进行 $Q$ 的计算。之后的 $A\&amp;N$ 部分也使用第一个masked MHA的输出作为输入。</p>
-<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;标准transformer的损失采用交叉熵损失，但是在实际的操作过程中需要忽略padding的输出和ground truth。除此之外，学习率 $l$ 优化器使用Adam优化器，随着训练轮数 $s$ 先变大后变小。</p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>nlp</category>
       </categories>
   </entry>
   <entry>
@@ -643,85 +643,6 @@ L_{tf}=\lambda_{s}\cdot L_{s}+L_{code'}</script><p>&emsp;&emsp;其中，$L_s$ �
       </categories>
   </entry>
   <entry>
-    <title>Contrast-Phys</title>
-    <url>/Contrast-Phys/</url>
-    <content><![CDATA[<h2><center> Contrast-Phys: Unsupervised Video-based Remote Physiological Measurement via Spatiotemporal Contrast </center></h2>
-
-<p>【心率监测】【ECCV2022】【<a href="http://arxiv.org/abs/2208.04378">paper</a>】【<a href="https://github.com/zhaodongsun/contrast-phys">code</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文实现了一种新的对比学习框架，提出了一种新的数据增强策略，这个策略基于对同一人脸不同位置的 ppg 信号 PSD 基本一致的观察，以及对不同人脸的 ppg 信号 PSD 基本不一致的观察，并且使用一个 3DCNN 块对 ppg 信号进行提取，得到 channel-wise 的 ppg 信号，这种方式极大地扩展了正负样本的数量，时间上这篇文章早于 video-base SSL，但是效果实际上不相上下。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Contrast-Phys/image-20221205100842471.png" alt="image-20221205100842471" style="zoom:60%;"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>观察到了 rppg 信号的时空相似性和跨视频不相似性等，基于这些观察提出了新的样本提取方法</li>
-<li>改编 physnet 得到了一个新的 3DCNN 网络，能够以 channel-wise 的方式对 rppg 信号建模，每个 channel 具备较大的感受野</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><h4 id="前置观察"><a href="#前置观察" class="headerlink" title="前置观察"></a>前置观察</h4><ul>
-<li><strong>rppg 信号具备空间相似性</strong>，也就是说将每个视频划分为多个子块，每个子块估计出的 rppg 信号在相位和振幅上或许会有差别，但在频率域上（PSD 信号）应当基本一致</li>
-</ul>
-<p><img src="/Contrast-Phys/image-20221205110212520.png" alt="image-20221205110212520"></p>
-<ul>
-<li><strong>rppg 信号具备时间相似性</strong>，也就是说将 T 帧的数据估计出的长度为 T 的 rppg 信号一分为二，则这两个子信号在相位和振幅上或许会有差别，但在频率域上（PSD 信号）应当基本一致<ul>
-<li>需要注意的是，这里显然在 T 过大时不成立，在较大的 T 下，近似于每个人时刻都保持 HR 一致，这显然不对；同时多次分割也会降低这个假设的准确性，文章在最后探索了 T 的大小对该假设成立的影响</li>
-</ul>
-</li>
-</ul>
-<p><img src="/Contrast-Phys/image-20221205105522714.png" alt="image-20221205105522714"></p>
-<ul>
-<li><strong>rppg 信号具备跨视频不一致性</strong>，也就是说在不同的视频中不仅振幅、相位、周期可能不同，尤其在于 PSD 应当不同，即使两个视频具备相同的心率（PSD 最大值点横坐标），也不太可能具备基本一致的 PSD 图像<ul>
-<li>下图是在 OBF 数据集中 PSD 之间 MSE 最小的两个视频（左）和最大的两个视频（右）的 PSD 曲线对比</li>
-<li>这个图确实可以看出不同人之间的 PSD 信号不同，但是我觉得应该再放一个最大值横坐标（HR）一致但曲线明显不同的例子更具备说服力，不过我想到的 oulu 肯定也想得到，没放只能说 DDDD</li>
-</ul>
-</li>
-</ul>
-<p><img src="/Contrast-Phys/image-20221205110035408.png" alt="image-20221205110035408" style="zoom:50%;"></p>
-<ul>
-<li><strong>rppg 信号的频率应具备一定的区间</strong>，这个结论算是前置知识了，不过每个文章对这个区间的限定很主观随心，比如这篇文章就是 40-250 bpm，因此 PSD 只选取 0.66-4.16 Hz，而 physnet 则是 40-180 bpm，不太统一</li>
-</ul>
-<h4 id="前向过程"><a href="#前向过程" class="headerlink" title="前向过程"></a>前向过程</h4><p><img src="/Contrast-Phys/image-20221205100842471.png" alt="image-20221205100842471" style="zoom:60%;"></p>
-<p>&emsp;&emsp;前向过程中同时输入两个 video，首先使用 openface 进行人脸关键点标定和裁剪，裁剪时有几个 trick：1. 对所有的 video，仅处理第一帧的关键点标定，随后固定裁剪大小，2. 裁剪的 crop 大小由最高和最低的 landmark 坐标确定，具体来说是最高和最低相对于中心位置扩大 1.2 倍，然后按照这个长度进行正方形的 crop，3. 裁剪之后的图像全部被缩放到 128x128 用于后续处理。</p>
-<p>&emsp;&emsp;处理之后的 video 分别进入同一个 3DCNN 网络，接着输出的并非 Bx1xT，而是 BxNxT（B=2），也就是说总共输出的块中包括了 N 个 rppg 信号（N = SxS），我们描述该块的 shape 为 TxSxS。这 N 个通道每个通道都意味着从某个感受野获得的 rppg 信号估计，而当 N 足够小或网络足够大时，可以近似认为每个通道都包含了足够识别出准确 rppg 信号的感受野，这些感受野之间按照 <strong>rppg 信号具备空间相似性</strong> 的观察，应当具备同样的 PSD。</p>
-<p>&emsp;&emsp;接着对 N 个通道分别做随机选取等长的 rppg 信号段，选择示意图如下，具体方法为：</p>
-<ul>
-<li>首选对 N 个通道分别取出 N 个长度为 T 的 rppg 信号，然后对每个信号：<ul>
-<li>将其从任意的 $t$ 帧开始选出长度为 $\Delta t$ 的信号，整个过程重复 K 次，按照 <strong>rppg 信号具备时间相似性</strong> 的观察，这些信号也应具备基本一致的 PSD</li>
-</ul>
-</li>
-</ul>
-<p><img src="/Contrast-Phys/image-20221205122158452.png" alt="image-20221205122158452" style="zoom:67%;"></p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ST_sampling</span>(nn.Module):</span><br><span class="line">    <span class="comment"># spatiotemporal sampling on ST-rPPG block.</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, delta_t, K, Fs, high_pass, low_pass</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        self.delta_t = delta_t <span class="comment"># time length of each rPPG sample</span></span><br><span class="line">        self.K = K <span class="comment"># the number of rPPG samples at each spatial position</span></span><br><span class="line">        self.norm_psd = CalculateNormPSD(Fs, high_pass, low_pass)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, <span class="built_in">input</span></span>): <span class="comment"># input: (2, N, T)</span></span><br><span class="line">        samples = []</span><br><span class="line">        <span class="keyword">for</span> b <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">input</span>.shape[<span class="number">0</span>]): <span class="comment"># loop over videos (totally 2 videos)</span></span><br><span class="line">            samples_per_video = []</span><br><span class="line">            <span class="keyword">for</span> c <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">input</span>.shape[<span class="number">1</span>]): <span class="comment"># loop for sampling over spatial dimension</span></span><br><span class="line">                <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(self.K): <span class="comment"># loop for sampling K samples with time length delta_t along temporal dimension</span></span><br><span class="line">                    offset = torch.randint(<span class="number">0</span>, <span class="built_in">input</span>.shape[-<span class="number">1</span>] - self.delta_t + <span class="number">1</span>, (<span class="number">1</span>,), device=<span class="built_in">input</span>.device) <span class="comment"># randomly sample along temporal dimension</span></span><br><span class="line">                    x = self.norm_psd(<span class="built_in">input</span>[b, c, offset:offset + self.delta_t])</span><br><span class="line">                    <span class="comment"># print(f&#x27;x.shape = &#123;x.shape&#125;&#x27;)</span></span><br><span class="line">                    samples_per_video.append(x)</span><br><span class="line">                <span class="comment"># print(f&#x27;samples_per_video.len = &#123;len(samples_per_video)&#125;&#x27;)</span></span><br><span class="line">            samples.append(samples_per_video)</span><br><span class="line">        <span class="comment"># print(f&#x27;samples.len = &#123;len(samples)&#125;&#x27;)</span></span><br><span class="line">        <span class="keyword">return</span> samples <span class="comment"># (2, NxK, t) 其中 t 是 PSD 信号过滤后的长度，和具体计算过程有关</span></span><br></pre></td></tr></table></figure>
-<p>&emsp;&emsp;因此共选出 2xKxN 个 rppg 信号，这些信号分别求 PSD，得到的就是 2xKxN 个 正/负 样本。对同一个 video 选出来的样本之间进行拉进，对不同的则拉远。</p>
-<p>&emsp;&emsp;需要特别注意的是，这里虽然是 2xKxN 个长度为 $\Delta t$ 的信号，但是无论网络 backbone 图还是接下来对 loss 的描述，统统只描述了 N，那么<strong>接下来的 N 就是 NxK</strong>，这一点从上述代码的返回值也可以大致看出，不知道为啥不统一标准。但总之提取出了 2N 个 rppg 信号 $p_i\ /p_i’\ ,\ i\in1\to N$，这些信号计算 PSD 之后又变成了 2N 个 PSD 信号 $f_i\ /f_i’\ ,\ i\in1\to N$ 。</p>
-<p>&emsp;&emsp;而模型在推理过程中的最终输出就是将一个 video 得到的 N 个 rppg 信号直接进行取平均值即可。</p>
-<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;经过前向，总共得到了从两个 video 中采样出的 2xN（再次提醒，这里的以及之后的 N 统统表示上面的 NxK）个 PSD 信号样本 $f_i\ /f_i’\ ,\ i\in1\to N$，从同一个 video 中采样的 N 个样本互为正样本，而来自不同 video 的样本则互为负样本，本文对任意两个正样本和任意两个负样本都计算 loss，具体的计算方法为：</p>
-<ul>
-<li>正样本损失：对两组正样本，每组 N 个样本之中进行 $\mathbb C_N^2$ 操作，选出来的正样本计算 MSE，然后取平均，总共计算了 $\rm 2N(N-1)$ 次</li>
-</ul>
-<script type="math/tex; mode=display">
-L_p=\sum_{i=1}^N\sum_{j=1,j\neq i}^N \frac{||f_i-f_j||^2+||f_i'-f_j'||^2}{2N(N-1)}</script><ul>
-<li>负样本损失：对正样本和负样本，任意两个之间计算 -MSE，然后取平均，总共计算了 $\rm N^2$ 次</li>
-</ul>
-<script type="math/tex; mode=display">
-L_n=-\sum_{i=1}^N\sum_{j=1}^N\frac{||f_i-f_j'||^2}{N^2}</script><p>&emsp;&emsp;整体损失为：$L=L_p+L_n$，没有平衡项。</p>
-<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文做了详实的实验，包含数据集内测试、跨数据集测试、心率测试、其他生理指标测试、显著图测试、训练时间-IPR 实验、抗噪音实验。</p>
-<p>&emsp;&emsp;首先是数据集内的测试，本文总共测了 UBFC，PURE，OBF，MR-NIRP 四个数据集，前两个数据集相对简单，对于无监督任务基本都会在这两个数据集上做测试，毕竟 SSL 在简单的任务上更能取得好的效果，而 OBF 是包含心房颤动病人的数据集，更偏临床，MR-NIRP 则包含了额外的红外信息，在一定程度上可以说明模型的泛化能力。这个测试时主要指标，可以对比 video based XXX 那篇看。</p>
-<p><img src="/Contrast-Phys/image-20221205133230644.png" alt="image-20221205133230644" style="zoom:50%;"></p>
-<p>&emsp;&emsp;在其他生理指标测试中，生理指标主要对比 the way to my heart，具体如下</p>
-<p><img src="/Contrast-Phys/image-20221205142321191.png" alt="image-20221205142321191" style="zoom: 50%;"></p>
-<p>&emsp;&emsp;同时包括了训练时间的测试，纵坐标为 irrelevant power ratio（无关功率比），其值越小说明信号质量越高（偏小众的指标），在跨数据集测试中，跨数据集测试为 UBFC $\to$ MMSE-HR，区别于常见的 UBFC 和 PURE 的互相转化，大概能猜到在 UBFC 和 PURE 上的迁移性差一些吧</p>
-<p><img src="/Contrast-Phys/image-20221205142537429.png" alt="image-20221205142537429" style="zoom:50%;"></p>
-<p>&emsp;&emsp;所谓显著性测试，指的是使用一种基于梯度的方法获得显著性图 <a href="https://arxiv.org/pdf/1312.6034.pdf">ref</a>，该图度量了模型更加关注的区域，因此在一定程度上可以看出模型是否学到了关键信息，并且对于噪音是否具备鲁棒性。左图在 UBFC 数据集上加入了一个随机闪烁区域，然后可以发现 the way to my heart 直接 G 了，说明对噪音太不鲁棒，右图在 PURE 中选择了旋转的 clip，可以发现本文的模型旋转的时候也能很好地捕捉头部运动（相比于 the way to my heart），总之就是噪声鲁棒，原因很简单，毕竟本文最终的结果是多感受野平均得到的，自然对单区域的噪音鲁棒，如果在 clip 中加入 N 个随机闪烁的区域估计这个模型也危险了。</p>
-<p><img src="/Contrast-Phys/image-20221205142732306.png" alt="image-20221205142732306" style="zoom:50%;"></p>
-<p>&emsp;&emsp;最后是消融实验，这里的消融实验主要测试的是针对两个假设的设定：1. 不同的 ST block 的空间分辨率，2. 不同的 $\Delta t$ 大小。用以证明模型对该设置灵敏性较高，该设置较为有效。</p>
-<p><img src="/Contrast-Phys/image-20221205143618001.png" alt="image-20221205143618001" style="zoom:50%;"></p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-        <category>hr</category>
-      </categories>
-  </entry>
-  <entry>
     <title>DRNet</title>
     <url>/DRNet/</url>
     <content><![CDATA[<h2><center> DRNet: Decomposition and Reconstruction Network for Remote Physiological Measurement </center></h2>
@@ -798,6 +719,85 @@ L_n=-\sum_{i=1}^N\sum_{j=1}^N\frac{||f_i-f_j'||^2}{N^2}</script><p>&emsp;&emsp;�
 <h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3><p>&emsp;&emsp;本文算是典范的缝合 SOTA 论文了，网络的整体结构和训练目标来源于 CVD，backbone 的提出和即插即用块的提出来源于 Dual-GAN，损失函数来源于 AutoHR，稍微改了改就成了自己的。文章之中原话说他们提出了一种新的损失 $\cal L_{cyc}$，但是这表达式和 PhysNet、AutoHR 的 $\cal L_{fre}$ 完全一样，这不扯吗，非要说改动就是他随机取值然后算 loss。</p>
 <p>&emsp;&emsp;但是这是模板，是榜样，是干活的方向和学习的目标，虽然整个文章的图像风格都和 Dual-GAN 一模一样，损失函数也照抄的 AutoHR，但是确实是 SOTA，不知道能不能中 CVPR。</p>
 <p>&emsp;&emsp;特别是他的消融研究指出的，他的 baseline 其实效果相当一般，根本发不出来，正是通过一些模块的调优才达到的 SOTA，这大概也是一个思路，提出一个普通的 baseline 或者直接找一个 backbone，在不影响性能的情况下进行简单的改动以便于讲出不一样的故事，然后加入一些调优模块达到 SOTA 发出文章。</p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+        <category>hr</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Contrast-Phys</title>
+    <url>/Contrast-Phys/</url>
+    <content><![CDATA[<h2><center> Contrast-Phys: Unsupervised Video-based Remote Physiological Measurement via Spatiotemporal Contrast </center></h2>
+
+<p>【心率监测】【ECCV2022】【<a href="http://arxiv.org/abs/2208.04378">paper</a>】【<a href="https://github.com/zhaodongsun/contrast-phys">code</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文实现了一种新的对比学习框架，提出了一种新的数据增强策略，这个策略基于对同一人脸不同位置的 ppg 信号 PSD 基本一致的观察，以及对不同人脸的 ppg 信号 PSD 基本不一致的观察，并且使用一个 3DCNN 块对 ppg 信号进行提取，得到 channel-wise 的 ppg 信号，这种方式极大地扩展了正负样本的数量，时间上这篇文章早于 video-base SSL，但是效果实际上不相上下。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Contrast-Phys/image-20221205100842471.png" alt="image-20221205100842471" style="zoom:60%;"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>观察到了 rppg 信号的时空相似性和跨视频不相似性等，基于这些观察提出了新的样本提取方法</li>
+<li>改编 physnet 得到了一个新的 3DCNN 网络，能够以 channel-wise 的方式对 rppg 信号建模，每个 channel 具备较大的感受野</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><h4 id="前置观察"><a href="#前置观察" class="headerlink" title="前置观察"></a>前置观察</h4><ul>
+<li><strong>rppg 信号具备空间相似性</strong>，也就是说将每个视频划分为多个子块，每个子块估计出的 rppg 信号在相位和振幅上或许会有差别，但在频率域上（PSD 信号）应当基本一致</li>
+</ul>
+<p><img src="/Contrast-Phys/image-20221205110212520.png" alt="image-20221205110212520"></p>
+<ul>
+<li><strong>rppg 信号具备时间相似性</strong>，也就是说将 T 帧的数据估计出的长度为 T 的 rppg 信号一分为二，则这两个子信号在相位和振幅上或许会有差别，但在频率域上（PSD 信号）应当基本一致<ul>
+<li>需要注意的是，这里显然在 T 过大时不成立，在较大的 T 下，近似于每个人时刻都保持 HR 一致，这显然不对；同时多次分割也会降低这个假设的准确性，文章在最后探索了 T 的大小对该假设成立的影响</li>
+</ul>
+</li>
+</ul>
+<p><img src="/Contrast-Phys/image-20221205105522714.png" alt="image-20221205105522714"></p>
+<ul>
+<li><strong>rppg 信号具备跨视频不一致性</strong>，也就是说在不同的视频中不仅振幅、相位、周期可能不同，尤其在于 PSD 应当不同，即使两个视频具备相同的心率（PSD 最大值点横坐标），也不太可能具备基本一致的 PSD 图像<ul>
+<li>下图是在 OBF 数据集中 PSD 之间 MSE 最小的两个视频（左）和最大的两个视频（右）的 PSD 曲线对比</li>
+<li>这个图确实可以看出不同人之间的 PSD 信号不同，但是我觉得应该再放一个最大值横坐标（HR）一致但曲线明显不同的例子更具备说服力，不过我想到的 oulu 肯定也想得到，没放只能说 DDDD</li>
+</ul>
+</li>
+</ul>
+<p><img src="/Contrast-Phys/image-20221205110035408.png" alt="image-20221205110035408" style="zoom:50%;"></p>
+<ul>
+<li><strong>rppg 信号的频率应具备一定的区间</strong>，这个结论算是前置知识了，不过每个文章对这个区间的限定很主观随心，比如这篇文章就是 40-250 bpm，因此 PSD 只选取 0.66-4.16 Hz，而 physnet 则是 40-180 bpm，不太统一</li>
+</ul>
+<h4 id="前向过程"><a href="#前向过程" class="headerlink" title="前向过程"></a>前向过程</h4><p><img src="/Contrast-Phys/image-20221205100842471.png" alt="image-20221205100842471" style="zoom:60%;"></p>
+<p>&emsp;&emsp;前向过程中同时输入两个 video，首先使用 openface 进行人脸关键点标定和裁剪，裁剪时有几个 trick：1. 对所有的 video，仅处理第一帧的关键点标定，随后固定裁剪大小，2. 裁剪的 crop 大小由最高和最低的 landmark 坐标确定，具体来说是最高和最低相对于中心位置扩大 1.2 倍，然后按照这个长度进行正方形的 crop，3. 裁剪之后的图像全部被缩放到 128x128 用于后续处理。</p>
+<p>&emsp;&emsp;处理之后的 video 分别进入同一个 3DCNN 网络，接着输出的并非 Bx1xT，而是 BxNxT（B=2），也就是说总共输出的块中包括了 N 个 rppg 信号（N = SxS），我们描述该块的 shape 为 TxSxS。这 N 个通道每个通道都意味着从某个感受野获得的 rppg 信号估计，而当 N 足够小或网络足够大时，可以近似认为每个通道都包含了足够识别出准确 rppg 信号的感受野，这些感受野之间按照 <strong>rppg 信号具备空间相似性</strong> 的观察，应当具备同样的 PSD。</p>
+<p>&emsp;&emsp;接着对 N 个通道分别做随机选取等长的 rppg 信号段，选择示意图如下，具体方法为：</p>
+<ul>
+<li>首选对 N 个通道分别取出 N 个长度为 T 的 rppg 信号，然后对每个信号：<ul>
+<li>将其从任意的 $t$ 帧开始选出长度为 $\Delta t$ 的信号，整个过程重复 K 次，按照 <strong>rppg 信号具备时间相似性</strong> 的观察，这些信号也应具备基本一致的 PSD</li>
+</ul>
+</li>
+</ul>
+<p><img src="/Contrast-Phys/image-20221205122158452.png" alt="image-20221205122158452" style="zoom:67%;"></p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ST_sampling</span>(nn.Module):</span><br><span class="line">    <span class="comment"># spatiotemporal sampling on ST-rPPG block.</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, delta_t, K, Fs, high_pass, low_pass</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        self.delta_t = delta_t <span class="comment"># time length of each rPPG sample</span></span><br><span class="line">        self.K = K <span class="comment"># the number of rPPG samples at each spatial position</span></span><br><span class="line">        self.norm_psd = CalculateNormPSD(Fs, high_pass, low_pass)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, <span class="built_in">input</span></span>): <span class="comment"># input: (2, N, T)</span></span><br><span class="line">        samples = []</span><br><span class="line">        <span class="keyword">for</span> b <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">input</span>.shape[<span class="number">0</span>]): <span class="comment"># loop over videos (totally 2 videos)</span></span><br><span class="line">            samples_per_video = []</span><br><span class="line">            <span class="keyword">for</span> c <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">input</span>.shape[<span class="number">1</span>]): <span class="comment"># loop for sampling over spatial dimension</span></span><br><span class="line">                <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(self.K): <span class="comment"># loop for sampling K samples with time length delta_t along temporal dimension</span></span><br><span class="line">                    offset = torch.randint(<span class="number">0</span>, <span class="built_in">input</span>.shape[-<span class="number">1</span>] - self.delta_t + <span class="number">1</span>, (<span class="number">1</span>,), device=<span class="built_in">input</span>.device) <span class="comment"># randomly sample along temporal dimension</span></span><br><span class="line">                    x = self.norm_psd(<span class="built_in">input</span>[b, c, offset:offset + self.delta_t])</span><br><span class="line">                    <span class="comment"># print(f&#x27;x.shape = &#123;x.shape&#125;&#x27;)</span></span><br><span class="line">                    samples_per_video.append(x)</span><br><span class="line">                <span class="comment"># print(f&#x27;samples_per_video.len = &#123;len(samples_per_video)&#125;&#x27;)</span></span><br><span class="line">            samples.append(samples_per_video)</span><br><span class="line">        <span class="comment"># print(f&#x27;samples.len = &#123;len(samples)&#125;&#x27;)</span></span><br><span class="line">        <span class="keyword">return</span> samples <span class="comment"># (2, NxK, t) 其中 t 是 PSD 信号过滤后的长度，和具体计算过程有关</span></span><br></pre></td></tr></table></figure>
+<p>&emsp;&emsp;因此共选出 2xKxN 个 rppg 信号，这些信号分别求 PSD，得到的就是 2xKxN 个 正/负 样本。对同一个 video 选出来的样本之间进行拉进，对不同的则拉远。</p>
+<p>&emsp;&emsp;需要特别注意的是，这里虽然是 2xKxN 个长度为 $\Delta t$ 的信号，但是无论网络 backbone 图还是接下来对 loss 的描述，统统只描述了 N，那么<strong>接下来的 N 就是 NxK</strong>，这一点从上述代码的返回值也可以大致看出，不知道为啥不统一标准。但总之提取出了 2N 个 rppg 信号 $p_i\ /p_i’\ ,\ i\in1\to N$，这些信号计算 PSD 之后又变成了 2N 个 PSD 信号 $f_i\ /f_i’\ ,\ i\in1\to N$ 。</p>
+<p>&emsp;&emsp;而模型在推理过程中的最终输出就是将一个 video 得到的 N 个 rppg 信号直接进行取平均值即可。</p>
+<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;经过前向，总共得到了从两个 video 中采样出的 2xN（再次提醒，这里的以及之后的 N 统统表示上面的 NxK）个 PSD 信号样本 $f_i\ /f_i’\ ,\ i\in1\to N$，从同一个 video 中采样的 N 个样本互为正样本，而来自不同 video 的样本则互为负样本，本文对任意两个正样本和任意两个负样本都计算 loss，具体的计算方法为：</p>
+<ul>
+<li>正样本损失：对两组正样本，每组 N 个样本之中进行 $\mathbb C_N^2$ 操作，选出来的正样本计算 MSE，然后取平均，总共计算了 $\rm 2N(N-1)$ 次</li>
+</ul>
+<script type="math/tex; mode=display">
+L_p=\sum_{i=1}^N\sum_{j=1,j\neq i}^N \frac{||f_i-f_j||^2+||f_i'-f_j'||^2}{2N(N-1)}</script><ul>
+<li>负样本损失：对正样本和负样本，任意两个之间计算 -MSE，然后取平均，总共计算了 $\rm N^2$ 次</li>
+</ul>
+<script type="math/tex; mode=display">
+L_n=-\sum_{i=1}^N\sum_{j=1}^N\frac{||f_i-f_j'||^2}{N^2}</script><p>&emsp;&emsp;整体损失为：$L=L_p+L_n$，没有平衡项。</p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文做了详实的实验，包含数据集内测试、跨数据集测试、心率测试、其他生理指标测试、显著图测试、训练时间-IPR 实验、抗噪音实验。</p>
+<p>&emsp;&emsp;首先是数据集内的测试，本文总共测了 UBFC，PURE，OBF，MR-NIRP 四个数据集，前两个数据集相对简单，对于无监督任务基本都会在这两个数据集上做测试，毕竟 SSL 在简单的任务上更能取得好的效果，而 OBF 是包含心房颤动病人的数据集，更偏临床，MR-NIRP 则包含了额外的红外信息，在一定程度上可以说明模型的泛化能力。这个测试时主要指标，可以对比 video based XXX 那篇看。</p>
+<p><img src="/Contrast-Phys/image-20221205133230644.png" alt="image-20221205133230644" style="zoom:50%;"></p>
+<p>&emsp;&emsp;在其他生理指标测试中，生理指标主要对比 the way to my heart，具体如下</p>
+<p><img src="/Contrast-Phys/image-20221205142321191.png" alt="image-20221205142321191" style="zoom: 50%;"></p>
+<p>&emsp;&emsp;同时包括了训练时间的测试，纵坐标为 irrelevant power ratio（无关功率比），其值越小说明信号质量越高（偏小众的指标），在跨数据集测试中，跨数据集测试为 UBFC $\to$ MMSE-HR，区别于常见的 UBFC 和 PURE 的互相转化，大概能猜到在 UBFC 和 PURE 上的迁移性差一些吧</p>
+<p><img src="/Contrast-Phys/image-20221205142537429.png" alt="image-20221205142537429" style="zoom:50%;"></p>
+<p>&emsp;&emsp;所谓显著性测试，指的是使用一种基于梯度的方法获得显著性图 <a href="https://arxiv.org/pdf/1312.6034.pdf">ref</a>，该图度量了模型更加关注的区域，因此在一定程度上可以看出模型是否学到了关键信息，并且对于噪音是否具备鲁棒性。左图在 UBFC 数据集上加入了一个随机闪烁区域，然后可以发现 the way to my heart 直接 G 了，说明对噪音太不鲁棒，右图在 PURE 中选择了旋转的 clip，可以发现本文的模型旋转的时候也能很好地捕捉头部运动（相比于 the way to my heart），总之就是噪声鲁棒，原因很简单，毕竟本文最终的结果是多感受野平均得到的，自然对单区域的噪音鲁棒，如果在 clip 中加入 N 个随机闪烁的区域估计这个模型也危险了。</p>
+<p><img src="/Contrast-Phys/image-20221205142732306.png" alt="image-20221205142732306" style="zoom:50%;"></p>
+<p>&emsp;&emsp;最后是消融实验，这里的消融实验主要测试的是针对两个假设的设定：1. 不同的 ST block 的空间分辨率，2. 不同的 $\Delta t$ 大小。用以证明模型对该设置灵敏性较高，该设置较为有效。</p>
+<p><img src="/Contrast-Phys/image-20221205143618001.png" alt="image-20221205143618001" style="zoom:50%;"></p>
 ]]></content>
       <categories>
         <category>paper</category>
@@ -1207,49 +1207,6 @@ dx=[f(x,t)-g^2(t)\nabla_x\log p(x_t)]dt+g(t)dw\tag {13}</script></li>
 <h4 id="VP-SDE-和-VE-SDE"><a href="#VP-SDE-和-VE-SDE" class="headerlink" title="VP-SDE 和 VE-SDE"></a>VP-SDE 和 VE-SDE</h4><p>&emsp;&emsp;对于原始式子式 $1$，当我们令 $f(x,t)=0,\ g(t)=\frac{d}{dt}\sigma_t^2$ 时，SDE 被称为 VE（方差爆炸）SDE，也就对应着 SMLD 分数扩散模型，由此可以推出 VE-SDE 的更新公式为：$x_{t+\Delta t}=x_t+\sqrt{\sigma_{t+\Delta t}^2-\sigma_t^2}\epsilon$。</p>
 <p>&emsp;&emsp;对于原始式子式 $1$，当我们令 $\{\bar\beta_i\}_1^T=\{T\beta_i\}_1^T$，$\beta(\frac iT)=\bar\beta_i$，$f(x,t)=-\frac12\beta(t)x_t,\ g(t)=\sqrt{\beta(t)}$ 时，SDE 被称为 VP（方差收缩）SDE，也就对应着 DDPM 去噪扩散模型，由此可以推出 VP-SDE 的更新公式为：$x_{t+\Delta t}=\sqrt{1-\beta_{t+\Delta t}}x_t+\sqrt{\beta_{t+\Delta t}}\epsilon$。</p>
 ]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>pSp</title>
-    <url>/Encoding%20in%20Style/</url>
-    <content><![CDATA[<h2><center> Encoding in Style: a StyleGAN Encoder for Image-to-Image Translation </center></h2>
-
-<p>【图像生成】【CVPR2021】【<a href="https://ieeexplore.ieee.org/document/9578137/">paper</a>】【<a href="https://github.com/eladrich/pixel2style2pixel">code</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>ds；本文就是大名鼎鼎的 pSp，相比于 image2styleGAN 的逆映射后优化的方式，本文直接提出了一种以 ResNet 为 backbone，以 FPN 为架构的编码器，可以将任意图像通过训练好的编码器映射到隐空间。实现了人脸转向、特征融合、使用素描或分割图生成不同的人脸、人脸补全、人脸条件生成、人脸超分等任务。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Encoding%20in%20Style/image-20230116090923513.png" alt="image-20230116090923513"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>使用基于学习的编码器而不是基于优化的方式进行图像编码</li>
-<li>一个通用的解决 image2image 的端到端框架</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/Encoding%20in%20Style/image-20230120114938291.png" alt="image-20230120114938291"></p>
-<p>ds；pSp 框架基于 StyleGAN 的生成器和其提出的 $\cal W+$ 空间，这个 $\cal W+$ 空间是 styleGAN2 中的一个小改进，相当于把随机生成的 $z$ 向量通过几个随即层映射到了一个可控的 $\cal W+$空间。</p>
-<p>ds；但是这里做的不是 GAN，而是图像风格迁移之类的任务，所以需要先将图片映射到 latent space 里，这个 latent space 是一个解耦合的空间，也就是将原本可能特征之间有相关性的矩阵映射为矩阵之间的特征无相关性。最简单的方法就是将图片通过一个 encoder (ResNet,VGG等等) 直接 embedding 到 $\cal W+$空间维度，但是这种方法效果并不够好，无法很好 encoding 原图像的细节。</p>
-<p>ds；在 StyleGAN 里，其使用了一个金字塔型的 encoding，从粗到细粒度，框架图如图。按照这种思想，pSp同样提出了一个三层的金字塔特征框架，先通过 ResNet 提取三层 vector，每一层层过一个 map2style 的全连接层之后再过一个全连接层 A 输入到 styleGAN 生成器的各个 style 中去，每一个 style 都有一个 $w$ 。所以最后 pSp 生成的图像是由 styleGAN 预训练好的生成器得到的图片。模型的输出为：</p>
-<script type="math/tex; mode=display">
-pSp(x):=G(E(x)+\bar w)</script><p>ds；其中，$E$ 为 pSp 训练的 encoder，$\bar w$ 则是所有向量的平均，最后过一遍 styleGAN 的生成器 $G$ 。</p>
-<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>ds；接下来介绍 pSp 的损失函数，这里需要训练的只有 pSp Encoder，其损失函数则为：</p>
-<script type="math/tex; mode=display">
-\mathcal L(x)=\lambda_1\mathcal L_{construct}(x)+\lambda_2\mathcal L_{LPIPS}(x)+\lambda_3\mathcal L_{ID}(x)+\lambda_4\mathcal L_{reg}(x)</script><p>其中</p>
-<p>第一个是一个像素级别的L2损失，即目标像素点和训练像素点的均方差。</p>
-<p><img src="https://pic4.zhimg.com/80/v2-7ee43749261fdda21324d5a1154f29ab_720w.webp" alt="img"></p>
-<p>像素点损失</p>
-<p>感知损失，这是CVPR 2018 的一篇 poster提出的一种新的损失函数，这个是F是训出来的，没有直接的定义，整体就是传统的用cosine计算图片之间的相似度在人类眼中结果并不好，例如高斯模糊之后的图像在和原图计算L2损失的时候并没有很相近，但是却丢失了很多的特征信息，所以使用一个训练好的模型来计算两张图片之间的相似度比单纯用cosine等低层次的计算效果好。</p>
-<p><img src="https://pic2.zhimg.com/80/v2-8757390f90c350a0994b6b2a308631d1_720w.webp" alt="img"></p>
-<p>感知损失</p>
-<p>因为上面用到了，所以计算以下生成的encoding的与w平均的均方差。</p>
-<p><img src="https://pic1.zhimg.com/80/v2-c25c4d9eeb51e67579fdb8fe23070d80_720w.webp" alt="img"></p>
-<p>计算生成损失</p>
-<p>最后就是一个人脸损失，也是在styleGAN上的一个创新点，用预训练好的人脸识别模型计算输入和生成图片的cosine相似度</p>
-<p><img src="https://pic1.zhimg.com/80/v2-ec7cc46e6568f0a1cc2aafdf5cd43434_720w.webp" alt="img"></p>
-<p>最后把所有的Loss加在一起就是整个encoder的损失函数了。</p>
-<script type="math/tex; mode=display">
-math\_express</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><hr>
-<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3>]]></content>
       <categories>
         <category>paper</category>
         <category>cv</category>
@@ -1887,6 +1844,49 @@ z^{proto}=\gamma z^{proto}+(1-\gamma) \mathbb E_{x^{(i)}\sim p(\mathcal T)}\frac
         <category>paper</category>
         <category>cv</category>
         <category>hr</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>pSp</title>
+    <url>/Encoding%20in%20Style/</url>
+    <content><![CDATA[<h2><center> Encoding in Style: a StyleGAN Encoder for Image-to-Image Translation </center></h2>
+
+<p>【图像生成】【CVPR2021】【<a href="https://ieeexplore.ieee.org/document/9578137/">paper</a>】【<a href="https://github.com/eladrich/pixel2style2pixel">code</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>ds；本文就是大名鼎鼎的 pSp，相比于 image2styleGAN 的逆映射后优化的方式，本文直接提出了一种以 ResNet 为 backbone，以 FPN 为架构的编码器，可以将任意图像通过训练好的编码器映射到隐空间。实现了人脸转向、特征融合、使用素描或分割图生成不同的人脸、人脸补全、人脸条件生成、人脸超分等任务。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Encoding%20in%20Style/image-20230116090923513.png" alt="image-20230116090923513"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>使用基于学习的编码器而不是基于优化的方式进行图像编码</li>
+<li>一个通用的解决 image2image 的端到端框架</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/Encoding%20in%20Style/image-20230120114938291.png" alt="image-20230120114938291"></p>
+<p>ds；pSp 框架基于 StyleGAN 的生成器和其提出的 $\cal W+$ 空间，这个 $\cal W+$ 空间是 styleGAN2 中的一个小改进，相当于把随机生成的 $z$ 向量通过几个随即层映射到了一个可控的 $\cal W+$空间。</p>
+<p>ds；但是这里做的不是 GAN，而是图像风格迁移之类的任务，所以需要先将图片映射到 latent space 里，这个 latent space 是一个解耦合的空间，也就是将原本可能特征之间有相关性的矩阵映射为矩阵之间的特征无相关性。最简单的方法就是将图片通过一个 encoder (ResNet,VGG等等) 直接 embedding 到 $\cal W+$空间维度，但是这种方法效果并不够好，无法很好 encoding 原图像的细节。</p>
+<p>ds；在 StyleGAN 里，其使用了一个金字塔型的 encoding，从粗到细粒度，框架图如图。按照这种思想，pSp同样提出了一个三层的金字塔特征框架，先通过 ResNet 提取三层 vector，每一层层过一个 map2style 的全连接层之后再过一个全连接层 A 输入到 styleGAN 生成器的各个 style 中去，每一个 style 都有一个 $w$ 。所以最后 pSp 生成的图像是由 styleGAN 预训练好的生成器得到的图片。模型的输出为：</p>
+<script type="math/tex; mode=display">
+pSp(x):=G(E(x)+\bar w)</script><p>ds；其中，$E$ 为 pSp 训练的 encoder，$\bar w$ 则是所有向量的平均，最后过一遍 styleGAN 的生成器 $G$ 。</p>
+<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>ds；接下来介绍 pSp 的损失函数，这里需要训练的只有 pSp Encoder，其损失函数则为：</p>
+<script type="math/tex; mode=display">
+\mathcal L(x)=\lambda_1\mathcal L_{construct}(x)+\lambda_2\mathcal L_{LPIPS}(x)+\lambda_3\mathcal L_{ID}(x)+\lambda_4\mathcal L_{reg}(x)</script><p>其中</p>
+<p>第一个是一个像素级别的L2损失，即目标像素点和训练像素点的均方差。</p>
+<p><img src="https://pic4.zhimg.com/80/v2-7ee43749261fdda21324d5a1154f29ab_720w.webp" alt="img"></p>
+<p>像素点损失</p>
+<p>感知损失，这是CVPR 2018 的一篇 poster提出的一种新的损失函数，这个是F是训出来的，没有直接的定义，整体就是传统的用cosine计算图片之间的相似度在人类眼中结果并不好，例如高斯模糊之后的图像在和原图计算L2损失的时候并没有很相近，但是却丢失了很多的特征信息，所以使用一个训练好的模型来计算两张图片之间的相似度比单纯用cosine等低层次的计算效果好。</p>
+<p><img src="https://pic2.zhimg.com/80/v2-8757390f90c350a0994b6b2a308631d1_720w.webp" alt="img"></p>
+<p>感知损失</p>
+<p>因为上面用到了，所以计算以下生成的encoding的与w平均的均方差。</p>
+<p><img src="https://pic1.zhimg.com/80/v2-c25c4d9eeb51e67579fdb8fe23070d80_720w.webp" alt="img"></p>
+<p>计算生成损失</p>
+<p>最后就是一个人脸损失，也是在styleGAN上的一个创新点，用预训练好的人脸识别模型计算输入和生成图片的cosine相似度</p>
+<p><img src="https://pic1.zhimg.com/80/v2-ec7cc46e6568f0a1cc2aafdf5cd43434_720w.webp" alt="img"></p>
+<p>最后把所有的Loss加在一起就是整个encoder的损失函数了。</p>
+<script type="math/tex; mode=display">
+math\_express</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><hr>
+<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3>]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
       </categories>
   </entry>
   <entry>
@@ -2608,98 +2608,33 @@ L_v=\frac1d\sum\limits_{i=1}^{d}(\mathrm{CDF}_i(Q)-\mathrm{CDF}_i(P))^2</script>
       </categories>
   </entry>
   <entry>
-    <title>Video-based_rppg_SSL</title>
-    <url>/Video-based_rppg_SSL/</url>
-    <content><![CDATA[<h2><center> Video-based Remote Physiological Measurement via Self-supervised Learning </center></h2>
-
-<p>【心率监测】【arxiv2022】【<a href="http://arxiv.org/abs/2210.15401">paper</a>】【<a href="https://github.com/yuezijie/Video-based-Remote-Physiological-Measurement-via-Self-supervised-Learning">code</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文是基于对比学习进行 rppg 信号估计的又一 SOTA，在 UBFC、PURE、DEAP、MMVS 上展示了最好的性能。鉴于目前的 rppg 对比学习网络结构基本都基于孪生网络，在数据增强和代理任务上进行创新，本文主要采样的方法有：正样本：来自空间增强的 anchor $p_1$ 和 anchor 在同一个 video 的邻居 $p_2$，负样本：来自 LFA 模块 $n$，该模块可以在视觉不变的基础上进行频率重采样，代理任务：对比 $p_1$ 和 $p_2$ 拉进距离，对比 $p_1$ 和 $n$ 拉远距离，backbone：基于混合专家模型的 ResNet3D。并且对于多样的样本提出了多样的损失。</p>
-<p>&emsp;&emsp;整体来说起作用的我认为最可能是 LFA，该模块可以生成大量的负样本，或许负样本的数量是 CL 的关键。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Video-based_rppg_SSL/image-20221202123712050.png" alt="image-20221202123712050" style="zoom:80%;"></p>
+    <title>docx and help</title>
+    <url>/docxs/</url>
+    <content><![CDATA[<h2 id="文档教程收集"><a href="#文档教程收集" class="headerlink" title="文档教程收集"></a>文档教程收集</h2><p>&emsp;速查包括【markdown、 cuda编程、系统指令、Python三方库】 等文档或教程</p>
 <span id="more"></span>
+<h3 id="markdown"><a href="#markdown" class="headerlink" title="markdown"></a>markdown</h3><ul>
+<li><a href="https://markdown.com.cn/basic-syntax/">markdown基本语法</a></li>
+<li><a href="https://www.cnblogs.com/jockming/p/14120987.html">markdown数学表达式</a></li>
+<li><a href="https://emojipedia.org/">markdown_emoji</a></li>
+</ul>
 <hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>一种新的正样本获取策略：时间上的邻居</li>
-<li>一种新的负样本获取策略：基于学习的 LFA 模块，用于生成不同频率但人物一致的视频</li>
-<li>一种基于混合专家模型的 backbone</li>
-<li>对正样本间、正负样本间的不同损失函数 CFAL、FCL、FRCL</li>
+<h3 id="cuda编程"><a href="#cuda编程" class="headerlink" title="cuda编程"></a>cuda编程</h3><ul>
+<li><a href="https://face2ai.com/program-blog/#GPU%E7%BC%96%E7%A8%8B%EF%BC%88CUDA%EF%BC%89">谭升CUDA编程</a></li>
 </ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/Video-based_rppg_SSL/image-20221202123712050.png" alt="image-20221202123712050" style="zoom:80%;"></p>
-<h4 id="前向过程"><a href="#前向过程" class="headerlink" title="前向过程"></a>前向过程</h4><ul>
-<li>对于输入的视频 $X$，首先将其裁剪为多个 clip，每个 $T$ 帧，然后随机选择其中一个 clip 作为主 clip $X^a$，而其他的 clip 作为邻居 $X^b$，此时的 $X^b$ 也是正样本的一员<ul>
-<li>在实现的过程中，每个输入产生三个邻居，这些正样本之间互相不重合帧，记为 $X^b_1,\ X^b_2,\ X^b_3$</li>
+<hr>
+<h3 id="系统指令"><a href="#系统指令" class="headerlink" title="系统指令"></a>系统指令</h3><ul>
+<li><a href="https://www.linuxcool.com/">linux</a></li>
+<li><a href="https://gitee.com/all-about-git">git</a></li>
 </ul>
-</li>
+<hr>
+<h3 id="python-三方库"><a href="#python-三方库" class="headerlink" title="python 三方库"></a>python 三方库</h3><ul>
+<li><a href="https://pytorch.org/docs/stable/index.html">pytorch-en</a></li>
+<li><a href="https://pytorch-cn.readthedocs.io/zh/latest/">pytorch-zh</a></li>
+<li><a href="https://www.kancloud.cn/aollo/aolloopencv/269602">opencv-python-zh</a></li>
 </ul>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">load_img</span>(<span class="params">filepath, scale, video_length</span>):</span><br><span class="line">    <span class="built_in">list</span> = os.listdir(filepath)</span><br><span class="line">    imglen = <span class="built_in">len</span>(<span class="built_in">list</span>)</span><br><span class="line">    begin = random.randrange(<span class="number">0</span>, <span class="built_in">int</span>(imglen-(video_length*<span class="number">4</span>)))</span><br><span class="line">    whole_video = []</span><br><span class="line">    count = [<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(begin, begin + (video_length*<span class="number">4</span>)):</span><br><span class="line"></span><br><span class="line">        img = cv2.imread(os.path.join(filepath, <span class="string">&#x27;face_&#123;0&#125;.png&#x27;</span>.<span class="built_in">format</span>(i)))</span><br><span class="line">        img = cv2.resize(img, (scale, scale))</span><br><span class="line"></span><br><span class="line">        whole_video.append(img)</span><br><span class="line">    whole_video = np.array(whole_video)</span><br><span class="line"></span><br><span class="line">    whole_video = whole_video.reshape(</span><br><span class="line">        (<span class="number">4</span>, video_length, whole_video.shape[<span class="number">1</span>], whole_video.shape[<span class="number">2</span>], whole_video.shape[<span class="number">3</span>]))</span><br><span class="line">    a = random.choice(count)</span><br><span class="line">    <span class="built_in">input</span> = whole_video[a]</span><br><span class="line">    count.remove(a)</span><br><span class="line">    neighbor1 = whole_video[count[<span class="number">0</span>]]</span><br><span class="line">    neighbor2 = whole_video[count[<span class="number">1</span>]]</span><br><span class="line">    neighbor3 = whole_video[count[<span class="number">2</span>]]</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">input</span>, neighbor1, neighbor2, neighbor3</span><br></pre></td></tr></table></figure>
-<ul>
-<li>同时输入的还有一系列的频率 $R$，这个频率数组控制了期望 LFA 模块后的 video 与原 clip 的频率比，$R$ 中的值随机在 $(0.3,0.8)\cup(1.2,1.7)$ 之中产生</li>
-</ul>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">frequency_ratio</span>():</span><br><span class="line">  ratio_interval1 = np.random.uniform(<span class="number">0.3</span>, <span class="number">0.8</span>)</span><br><span class="line">  ratio_interval2 = np.random.uniform(<span class="number">1.2</span>, <span class="number">1.7</span>)</span><br><span class="line">  full_interval = np.stack((ratio_interval1, ratio_interval2))</span><br><span class="line">  random_ratio = np.random.choice(full_interval)</span><br><span class="line">  <span class="keyword">return</span> random_ratio</span><br></pre></td></tr></table></figure>
-<ul>
-<li>对于 $X^a$，执行以下两种增强策略：<ul>
-<li>将 $X^a$ 和 $R$ 输入 LFA 模块，得到负样本 $X^n$，这应当是本文的关键，即大量的有效负样本<ul>
-<li>重建之后为了保证视觉一致性，需要通过重建损失 $L_{rec}=\mathrm {MSE}(X^a,X^n)$</li>
-</ul>
-</li>
-<li>将 $X^a$ 进行空间上的数据增强，具体来说就只包括旋转和反转，得到正样本 $X^p$<ul>
-<li>在实现的过程中，每个 $X^a$ 生成两个正样本，记为 $X^p_1,\ X^p_2$</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>对于之前得到的所有正负样本：$X^b,\ X^p,\ X^n$，将他们全部通过 rppg 估计网络 REA 模块，分别得到输出 $Y^b,\ Y^p,\ Y^n$</li>
-<li>为了拉进正样本之间的距离以及拉远正负样本之间的距离，同时限制 LFA 的学习，需要过以下 3 个损失<ul>
-<li>用于拉进同视频增强后的正样本距离，同时与负样本拉远距离，需要通过 $L_{FCL}=f_1(Y^p_1,\ Y^p_2,\ Y^n)$<ul>
-<li>有一说一，其他的两个 loss 算是新的，这个 loss 最多算是重写了一下 InfoNCE</li>
-</ul>
-</li>
-<li>用于拉进增强后正样本与邻域正样本的距离，需要通过 $L_{CFAL}=f_2(Y^p_1,\ Y^p_2,\ Y^b_1,\ Y^b_2,\ Y^b_3)$</li>
-<li>用于限制正负样本对之间的信号比与 $R$ 一致，也就是为了 LFA 的学习，需要通过 $L_{FRCL}=f_3(R,\ Y^p_1,\ Y^p_2,\ Y^n)$</li>
-</ul>
-</li>
-<li>将所有 loss 求和之后进行梯度回传，loss 之间不设权重调整项</li>
-</ul>
-<h4 id="LFA-模块"><a href="#LFA-模块" class="headerlink" title="LFA 模块"></a>LFA 模块</h4><p><img src="/Video-based_rppg_SSL/image-20221202124426153.png" alt="image-20221202124426153" style="zoom:50%;"></p>
-<p>&emsp;&emsp;LFA 模块是生成负样本的关键，其正向过程如下：</p>
-<ul>
-<li>对于输入的 $X^a$，首先经过 3D 卷积和 Res3D，得到 $s^a_1$</li>
-<li>再将 $s^a_1$ 进行降采样两次分别得到 $s^a_2,\ s^a_3$，所有的 $s_i^a$ 和从 $R$ 中 sample 出的 $r_i$ 共同输入 FMB 模块<ul>
-<li>对于每个 FMB 模块，首先将 $s^a$ 进行全局池化和卷积得到 $z$，然后将 $r_i$ 填充至和 $z$ 等长（其实输入的时候就是等长）</li>
-<li>然后 cat $r_i$ 和 $z$，并经过一个 Res 块和 LSTM，输出之后和之前的输入 $s^a$ 做按位乘法后输出</li>
-<li>FMB 的伪代码如下：</li>
-</ul>
-</li>
-</ul>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">FMB</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, s_a, ratio, video_length</span>):</span><br><span class="line">        <span class="built_in">super</span>(FMB, self).__init__()</span><br><span class="line">        self.mod_gap = nn.AdaptiveAvgPool3d((video_length, <span class="number">1</span>, <span class="number">1</span>))</span><br><span class="line">        self.mod_conv1d = nn.Conv1d(</span><br><span class="line">            in_channels=base_filter, out_channels=<span class="number">1</span>, kernel_size=<span class="number">3</span>, stride=<span class="number">1</span>, padding=<span class="number">1</span>)</span><br><span class="line">        self.mod_res1d = ResnetBlock1D(</span><br><span class="line">            <span class="number">2</span>, kernel_size=<span class="number">3</span>, stride=<span class="number">1</span>, padding=<span class="number">1</span>, bias=<span class="literal">True</span>, activation=<span class="string">&#x27;relu&#x27;</span>, norm=<span class="literal">None</span>)</span><br><span class="line">        self.mod_lstm = nn.LSTM(<span class="number">2</span>, <span class="number">1</span>, num_layers=<span class="number">1</span>, batch_first=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, <span class="built_in">input</span>, ratio</span>):</span><br><span class="line">        s_a = self.mod_gap(s_a)</span><br><span class="line">        s_a = s_a.squeeze(<span class="number">3</span>)</span><br><span class="line">        s_a = s_a.squeeze(<span class="number">3</span>)</span><br><span class="line">        z = self.mod_conv1d(s_a)</span><br><span class="line">        r_i = ratio.unsqueeze(<span class="number">1</span>)</span><br><span class="line">        fuse = torch.cat((z, r_i), <span class="number">1</span>)</span><br><span class="line">        m_i = self.mod_res1d(fuse)</span><br><span class="line">        m_i = m_i.transpose(<span class="number">1</span>, <span class="number">2</span>)</span><br><span class="line">        m_i = self.mod_lstm(m_i)[<span class="number">0</span>]</span><br><span class="line">        m_i = m_i.view(B, <span class="number">1</span>, T, <span class="number">1</span>, <span class="number">1</span>)</span><br><span class="line">        s_n = torch.mul(s_a, m_i)</span><br><span class="line">        <span class="keyword">return</span> s_n</span><br></pre></td></tr></table></figure>
-<ul>
-<li>对于三个 FMB 模块的输出分别按照降采样的程度进行上采样，整体上算是个类 U-net 的结构</li>
-</ul>
-<h4 id="REA-模块"><a href="#REA-模块" class="headerlink" title="REA 模块"></a>REA 模块</h4><p><img src="/Video-based_rppg_SSL/image-20221202124505577.png" alt="image-20221202124505577" style="zoom:80%;"></p>
-<p>&emsp;&emsp;REA 模块是一个基于混合专家模型的 rppg 估计网络，所谓混合专家模型（MOE），本质上像是集成学习一样的策略，即对不同的子问题有不同的网络（专家模型）进行拟合，最终给各个网络（专家模型）赋值权重得到输出。</p>
-<p>&emsp;&emsp;对于 REA 模块，其将输入的视频经过一个 resnet 之后进行分割，将一个 clip 按照空间区域划分为 L 个子空间（L=4），每个空间经过同样结构但不共享参数的局部专家模型得到对应空间的输出，并且给每个专家模型赋值不同的权重，这些权重来自于另一个模型 $\cal G$，整个模型的前向过程由上图给出，蛮清晰的，实现也比较简单。</p>
-<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;上述前向过程之中总共出现了四个损失函数 $\cal L_{vr},\ L_{fc},\ L_{fr},\ L_{fa}$，分别对应：Video reconstruction loss，Frequency contrastive loss，Frequency ratio consistency loss，Cross-video frequency agreement loss，他们的表达式分别如下：</p>
-<script type="math/tex; mode=display">
-\begin{align}
-&\rm \mathcal L_{vr}=MSE(X^n, X^a)\tag 1\\
-&\rm \mathcal L_{fc}=\log (1+\frac{\exp(d(y_1^p,y_2^p)/\tau)}{\sum_{i=1}^k(\exp(d(y_1^p,y_i^n)/\tau)+\exp(d(y_2^p,y_i^n)/\tau))})\tag 2\\
-&\rm \mathcal L_{fr}=\frac1{2k}\sum_{i=1}^k\left|\frac{P(y_i^n)}{P(y_1^p)}-r_i \right|+\left|\frac{P(y_i^n)}{P(y_2^p)}-r_i \right|\tag 3\\
-&\rm\mathcal L_{fa} =\frac 1 {2J} ∑^J_{j=1} d(y^p_1 , y^b_ j ) + d(y^p_ 2 , y^b_ j )\tag 4
-\end{align}</script><p>&emsp;&emsp;其中，$(2)$ 是对 InfoNCE 损失的重写，基本的表示方式也参考了 InfoNCE（$-\log\frac{\exp(q·k_+/\tau)}{\sum_{i=0}^{K}\exp(q·k_i/\tau)}$），$(3)$ 是度量两个正样本和负样本的频率比是否和预设的 $R$ 一致，用来限制 LFA 的学习，$(4)$ 是用来拉进正样本之间距离的。</p>
-<p>&emsp;&emsp;总体来说 $\mathcal L=\mathcal L_{vr} +\mathcal L_{fc}+\mathcal L_{fr}+\mathcal L_{fa}$，需要注意的是，这里的正样本包括增强样本和邻居样本，但是和负样本拉远距离的只包括增强样本，邻居样本不和负样本拉远距离，作者在文中提到如果都拉远的话效果会变差，结果上来说这有点反直觉，也难以解释。</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">FRCL</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, Fs, min_hr, max_hr</span>):</span><br><span class="line">        <span class="built_in">super</span>(FRCL, self).__init__()</span><br><span class="line">        self.Fs = Fs</span><br><span class="line">        self.min_hr = min_hr</span><br><span class="line">        self.max_hr = max_hr</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, neg_rppgarr, pos_rppg1, pos_rppg2, ratio_array</span>):</span><br><span class="line">        loss = <span class="number">0</span></span><br><span class="line">        count = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">        poshr1 = predict_heart_rate(pos_rppg1[<span class="number">0</span>].detach(</span><br><span class="line">        ).cpu().numpy(), self.Fs, self.min_hr, self.max_hr)</span><br><span class="line"></span><br><span class="line">        poshr2 = predict_heart_rate(pos_rppg2[<span class="number">0</span>].detach(</span><br><span class="line">        ).cpu().numpy(), self.Fs, self.min_hr, self.max_hr)</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(neg_rppgarr)):</span><br><span class="line">            neghr = predict_heart_rate(neg_rppgarr[i][<span class="number">0</span>].detach().cpu().numpy(), self.Fs, self.min_hr, self.max_hr)</span><br><span class="line"></span><br><span class="line">            loss += np.<span class="built_in">abs</span>(neghr/poshr1-ratio_array[<span class="number">0</span>][i][<span class="number">0</span>].detach().cpu().numpy()) +\</span><br><span class="line">                np.<span class="built_in">abs</span>(neghr/poshr2-ratio_array[<span class="number">0</span>][i][<span class="number">0</span>].detach().cpu().numpy())</span><br><span class="line">            count += <span class="number">2</span></span><br><span class="line">        loss = loss/count</span><br><span class="line">        <span class="keyword">return</span> loss</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">CFAL</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, Fs, high_pass=<span class="number">2.5</span>, low_pass=<span class="number">0.4</span></span>):</span><br><span class="line">        <span class="built_in">super</span>(CFAL, self).__init__()</span><br><span class="line">        <span class="comment"># PSD_MSE</span></span><br><span class="line">        self.norm_psd = CalculateNormPSD(Fs, high_pass, low_pass)</span><br><span class="line">        self.distance_func = nn.MSELoss()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, pos_rppg1, pos_rppg2, neighbor_rppg1, neighbor_rppg2, neighbor_rppg3</span>):</span><br><span class="line">        posfre1 = self.norm_psd(pos_rppg1)</span><br><span class="line">        posfre2 = self.norm_psd(pos_rppg2)</span><br><span class="line">        neifre1 = self.norm_psd(neighbor_rppg1)</span><br><span class="line">        neifre2 = self.norm_psd(neighbor_rppg2)</span><br><span class="line">        neifre3 = self.norm_psd(neighbor_rppg3)</span><br><span class="line"></span><br><span class="line">        loss = self.distance_func(posfre1, neifre1)+self.distance_func(posfre1, neifre2)+self.distance_func(posfre1, neifre3)\</span><br><span class="line">            + self.distance_func(posfre2, neifre1)+self.distance_func(posfre2, neifre2)+self.distance_func(posfre2, neifre3)</span><br><span class="line">        loss = loss/<span class="number">6</span></span><br><span class="line">        <span class="keyword">return</span> loss</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">FCL</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, Fs, high_pass=<span class="number">2.5</span>, low_pass=<span class="number">0.4</span>, tau=<span class="number">0.08</span></span>):</span><br><span class="line">        <span class="built_in">super</span>(FCL, self).__init__()</span><br><span class="line">        <span class="comment"># PSD_MSE</span></span><br><span class="line">        self.norm_psd = CalculateNormPSD(Fs, high_pass, low_pass)</span><br><span class="line">        self.distance_func = nn.MSELoss()</span><br><span class="line">        self.tau = tau</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, neg_rppgarr, pos_rppg1, pos_rppg2</span>):</span><br><span class="line"></span><br><span class="line">        posfre1 = self.norm_psd(pos_rppg1)</span><br><span class="line">        posfre2 = self.norm_psd(pos_rppg2)</span><br><span class="line">        pos_dis = torch.exp(self.distance_func(posfre1, posfre2)/self.tau)</span><br><span class="line">        neg_dis_total = <span class="number">0</span></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(neg_rppgarr)):</span><br><span class="line">            negfre = self.norm_psd(neg_rppgarr[i])</span><br><span class="line">            neg_dis = torch.exp(self.distance_func(posfre1, negfre) / self.tau)+torch.exp(self.distance_func(posfre2, negfre) / self.tau)</span><br><span class="line">            neg_dis_total += neg_dis</span><br><span class="line"></span><br><span class="line">        loss = torch.log10(pos_dis/neg_dis_total+<span class="number">1</span>)</span><br><span class="line">        <span class="keyword">return</span> loss</span><br></pre></td></tr></table></figure>
-<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文总共在 UBFC，PURE，DEAP，MMVS 上测试了效果，结果如下图所示，可以看出相比于 the way to my heart 好了不少，现在比较有竞争力的 SSL 方法也就是这一篇以及 oulu 的一篇 contrast phys，可以看出慢慢地在追赶上有监督的方法了。</p>
-<p><img src="/Video-based_rppg_SSL/image-20221203155035139.png" alt="image-20221203155035139"></p>
-<p>&emsp;&emsp;除了心率实验之外，本文也延续在 UBFC 上测试了基于 rppg 信号的各个指标的估计值</p>
-<p><img src="/Video-based_rppg_SSL/image-20221203155556125.png" alt="image-20221203155556125"></p>
-<p>&emsp;&emsp;以及跨数据集测试</p>
-<p><img src="/Video-based_rppg_SSL/image-20221203155536102.png" alt="image-20221203155536102"></p>
-<p>&emsp;&emsp;总体来说，本文的效果非常地好，虽然还没发，不过应该很快就能见会，问题在于：不论是这一篇还是之前的对比学习任务，以及简单化处理的 Siamese rppg，似乎都偏爱于 UBFC、PURE 这一类简单的数据集，而这篇文章做出来的时候已经有更难的 VIPL 数据集了，但是却完全没有在 VIPL 上做测试，让人不得不怀疑 SSL 方法是否仅能适用于简单的数据集。</p>
 ]]></content>
       <categories>
-        <category>paper</category>
-        <category>cv</category>
-        <category>hr</category>
+        <category>docx</category>
       </categories>
   </entry>
   <entry>
@@ -2764,36 +2699,6 @@ L_v=\frac1d\sum\limits_{i=1}^{d}(\mathrm{CDF}_i(Q)-\mathrm{CDF}_i(P))^2</script>
       <categories>
         <category>paper</category>
         <category>cv</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>docx and help</title>
-    <url>/docxs/</url>
-    <content><![CDATA[<h2 id="文档教程收集"><a href="#文档教程收集" class="headerlink" title="文档教程收集"></a>文档教程收集</h2><p>&emsp;速查包括【markdown、 cuda编程、系统指令、Python三方库】 等文档或教程</p>
-<span id="more"></span>
-<h3 id="markdown"><a href="#markdown" class="headerlink" title="markdown"></a>markdown</h3><ul>
-<li><a href="https://markdown.com.cn/basic-syntax/">markdown基本语法</a></li>
-<li><a href="https://www.cnblogs.com/jockming/p/14120987.html">markdown数学表达式</a></li>
-<li><a href="https://emojipedia.org/">markdown_emoji</a></li>
-</ul>
-<hr>
-<h3 id="cuda编程"><a href="#cuda编程" class="headerlink" title="cuda编程"></a>cuda编程</h3><ul>
-<li><a href="https://face2ai.com/program-blog/#GPU%E7%BC%96%E7%A8%8B%EF%BC%88CUDA%EF%BC%89">谭升CUDA编程</a></li>
-</ul>
-<hr>
-<h3 id="系统指令"><a href="#系统指令" class="headerlink" title="系统指令"></a>系统指令</h3><ul>
-<li><a href="https://www.linuxcool.com/">linux</a></li>
-<li><a href="https://gitee.com/all-about-git">git</a></li>
-</ul>
-<hr>
-<h3 id="python-三方库"><a href="#python-三方库" class="headerlink" title="python 三方库"></a>python 三方库</h3><ul>
-<li><a href="https://pytorch.org/docs/stable/index.html">pytorch-en</a></li>
-<li><a href="https://pytorch-cn.readthedocs.io/zh/latest/">pytorch-zh</a></li>
-<li><a href="https://www.kancloud.cn/aollo/aolloopencv/269602">opencv-python-zh</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>docx</category>
       </categories>
   </entry>
   <entry>
@@ -3101,6 +3006,101 @@ math\_express</script><h3 id="experiment"><a href="#experiment" class="headerlin
       </categories>
   </entry>
   <entry>
+    <title>Video-based_rppg_SSL</title>
+    <url>/Video-based_rppg_SSL/</url>
+    <content><![CDATA[<h2><center> Video-based Remote Physiological Measurement via Self-supervised Learning </center></h2>
+
+<p>【心率监测】【arxiv2022】【<a href="http://arxiv.org/abs/2210.15401">paper</a>】【<a href="https://github.com/yuezijie/Video-based-Remote-Physiological-Measurement-via-Self-supervised-Learning">code</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文是基于对比学习进行 rppg 信号估计的又一 SOTA，在 UBFC、PURE、DEAP、MMVS 上展示了最好的性能。鉴于目前的 rppg 对比学习网络结构基本都基于孪生网络，在数据增强和代理任务上进行创新，本文主要采样的方法有：正样本：来自空间增强的 anchor $p_1$ 和 anchor 在同一个 video 的邻居 $p_2$，负样本：来自 LFA 模块 $n$，该模块可以在视觉不变的基础上进行频率重采样，代理任务：对比 $p_1$ 和 $p_2$ 拉进距离，对比 $p_1$ 和 $n$ 拉远距离，backbone：基于混合专家模型的 ResNet3D。并且对于多样的样本提出了多样的损失。</p>
+<p>&emsp;&emsp;整体来说起作用的我认为最可能是 LFA，该模块可以生成大量的负样本，或许负样本的数量是 CL 的关键。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Video-based_rppg_SSL/image-20221202123712050.png" alt="image-20221202123712050" style="zoom:80%;"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>一种新的正样本获取策略：时间上的邻居</li>
+<li>一种新的负样本获取策略：基于学习的 LFA 模块，用于生成不同频率但人物一致的视频</li>
+<li>一种基于混合专家模型的 backbone</li>
+<li>对正样本间、正负样本间的不同损失函数 CFAL、FCL、FRCL</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/Video-based_rppg_SSL/image-20221202123712050.png" alt="image-20221202123712050" style="zoom:80%;"></p>
+<h4 id="前向过程"><a href="#前向过程" class="headerlink" title="前向过程"></a>前向过程</h4><ul>
+<li>对于输入的视频 $X$，首先将其裁剪为多个 clip，每个 $T$ 帧，然后随机选择其中一个 clip 作为主 clip $X^a$，而其他的 clip 作为邻居 $X^b$，此时的 $X^b$ 也是正样本的一员<ul>
+<li>在实现的过程中，每个输入产生三个邻居，这些正样本之间互相不重合帧，记为 $X^b_1,\ X^b_2,\ X^b_3$</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">load_img</span>(<span class="params">filepath, scale, video_length</span>):</span><br><span class="line">    <span class="built_in">list</span> = os.listdir(filepath)</span><br><span class="line">    imglen = <span class="built_in">len</span>(<span class="built_in">list</span>)</span><br><span class="line">    begin = random.randrange(<span class="number">0</span>, <span class="built_in">int</span>(imglen-(video_length*<span class="number">4</span>)))</span><br><span class="line">    whole_video = []</span><br><span class="line">    count = [<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(begin, begin + (video_length*<span class="number">4</span>)):</span><br><span class="line"></span><br><span class="line">        img = cv2.imread(os.path.join(filepath, <span class="string">&#x27;face_&#123;0&#125;.png&#x27;</span>.<span class="built_in">format</span>(i)))</span><br><span class="line">        img = cv2.resize(img, (scale, scale))</span><br><span class="line"></span><br><span class="line">        whole_video.append(img)</span><br><span class="line">    whole_video = np.array(whole_video)</span><br><span class="line"></span><br><span class="line">    whole_video = whole_video.reshape(</span><br><span class="line">        (<span class="number">4</span>, video_length, whole_video.shape[<span class="number">1</span>], whole_video.shape[<span class="number">2</span>], whole_video.shape[<span class="number">3</span>]))</span><br><span class="line">    a = random.choice(count)</span><br><span class="line">    <span class="built_in">input</span> = whole_video[a]</span><br><span class="line">    count.remove(a)</span><br><span class="line">    neighbor1 = whole_video[count[<span class="number">0</span>]]</span><br><span class="line">    neighbor2 = whole_video[count[<span class="number">1</span>]]</span><br><span class="line">    neighbor3 = whole_video[count[<span class="number">2</span>]]</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">input</span>, neighbor1, neighbor2, neighbor3</span><br></pre></td></tr></table></figure>
+<ul>
+<li>同时输入的还有一系列的频率 $R$，这个频率数组控制了期望 LFA 模块后的 video 与原 clip 的频率比，$R$ 中的值随机在 $(0.3,0.8)\cup(1.2,1.7)$ 之中产生</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">frequency_ratio</span>():</span><br><span class="line">  ratio_interval1 = np.random.uniform(<span class="number">0.3</span>, <span class="number">0.8</span>)</span><br><span class="line">  ratio_interval2 = np.random.uniform(<span class="number">1.2</span>, <span class="number">1.7</span>)</span><br><span class="line">  full_interval = np.stack((ratio_interval1, ratio_interval2))</span><br><span class="line">  random_ratio = np.random.choice(full_interval)</span><br><span class="line">  <span class="keyword">return</span> random_ratio</span><br></pre></td></tr></table></figure>
+<ul>
+<li>对于 $X^a$，执行以下两种增强策略：<ul>
+<li>将 $X^a$ 和 $R$ 输入 LFA 模块，得到负样本 $X^n$，这应当是本文的关键，即大量的有效负样本<ul>
+<li>重建之后为了保证视觉一致性，需要通过重建损失 $L_{rec}=\mathrm {MSE}(X^a,X^n)$</li>
+</ul>
+</li>
+<li>将 $X^a$ 进行空间上的数据增强，具体来说就只包括旋转和反转，得到正样本 $X^p$<ul>
+<li>在实现的过程中，每个 $X^a$ 生成两个正样本，记为 $X^p_1,\ X^p_2$</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>对于之前得到的所有正负样本：$X^b,\ X^p,\ X^n$，将他们全部通过 rppg 估计网络 REA 模块，分别得到输出 $Y^b,\ Y^p,\ Y^n$</li>
+<li>为了拉进正样本之间的距离以及拉远正负样本之间的距离，同时限制 LFA 的学习，需要过以下 3 个损失<ul>
+<li>用于拉进同视频增强后的正样本距离，同时与负样本拉远距离，需要通过 $L_{FCL}=f_1(Y^p_1,\ Y^p_2,\ Y^n)$<ul>
+<li>有一说一，其他的两个 loss 算是新的，这个 loss 最多算是重写了一下 InfoNCE</li>
+</ul>
+</li>
+<li>用于拉进增强后正样本与邻域正样本的距离，需要通过 $L_{CFAL}=f_2(Y^p_1,\ Y^p_2,\ Y^b_1,\ Y^b_2,\ Y^b_3)$</li>
+<li>用于限制正负样本对之间的信号比与 $R$ 一致，也就是为了 LFA 的学习，需要通过 $L_{FRCL}=f_3(R,\ Y^p_1,\ Y^p_2,\ Y^n)$</li>
+</ul>
+</li>
+<li>将所有 loss 求和之后进行梯度回传，loss 之间不设权重调整项</li>
+</ul>
+<h4 id="LFA-模块"><a href="#LFA-模块" class="headerlink" title="LFA 模块"></a>LFA 模块</h4><p><img src="/Video-based_rppg_SSL/image-20221202124426153.png" alt="image-20221202124426153" style="zoom:50%;"></p>
+<p>&emsp;&emsp;LFA 模块是生成负样本的关键，其正向过程如下：</p>
+<ul>
+<li>对于输入的 $X^a$，首先经过 3D 卷积和 Res3D，得到 $s^a_1$</li>
+<li>再将 $s^a_1$ 进行降采样两次分别得到 $s^a_2,\ s^a_3$，所有的 $s_i^a$ 和从 $R$ 中 sample 出的 $r_i$ 共同输入 FMB 模块<ul>
+<li>对于每个 FMB 模块，首先将 $s^a$ 进行全局池化和卷积得到 $z$，然后将 $r_i$ 填充至和 $z$ 等长（其实输入的时候就是等长）</li>
+<li>然后 cat $r_i$ 和 $z$，并经过一个 Res 块和 LSTM，输出之后和之前的输入 $s^a$ 做按位乘法后输出</li>
+<li>FMB 的伪代码如下：</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">FMB</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, s_a, ratio, video_length</span>):</span><br><span class="line">        <span class="built_in">super</span>(FMB, self).__init__()</span><br><span class="line">        self.mod_gap = nn.AdaptiveAvgPool3d((video_length, <span class="number">1</span>, <span class="number">1</span>))</span><br><span class="line">        self.mod_conv1d = nn.Conv1d(</span><br><span class="line">            in_channels=base_filter, out_channels=<span class="number">1</span>, kernel_size=<span class="number">3</span>, stride=<span class="number">1</span>, padding=<span class="number">1</span>)</span><br><span class="line">        self.mod_res1d = ResnetBlock1D(</span><br><span class="line">            <span class="number">2</span>, kernel_size=<span class="number">3</span>, stride=<span class="number">1</span>, padding=<span class="number">1</span>, bias=<span class="literal">True</span>, activation=<span class="string">&#x27;relu&#x27;</span>, norm=<span class="literal">None</span>)</span><br><span class="line">        self.mod_lstm = nn.LSTM(<span class="number">2</span>, <span class="number">1</span>, num_layers=<span class="number">1</span>, batch_first=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, <span class="built_in">input</span>, ratio</span>):</span><br><span class="line">        s_a = self.mod_gap(s_a)</span><br><span class="line">        s_a = s_a.squeeze(<span class="number">3</span>)</span><br><span class="line">        s_a = s_a.squeeze(<span class="number">3</span>)</span><br><span class="line">        z = self.mod_conv1d(s_a)</span><br><span class="line">        r_i = ratio.unsqueeze(<span class="number">1</span>)</span><br><span class="line">        fuse = torch.cat((z, r_i), <span class="number">1</span>)</span><br><span class="line">        m_i = self.mod_res1d(fuse)</span><br><span class="line">        m_i = m_i.transpose(<span class="number">1</span>, <span class="number">2</span>)</span><br><span class="line">        m_i = self.mod_lstm(m_i)[<span class="number">0</span>]</span><br><span class="line">        m_i = m_i.view(B, <span class="number">1</span>, T, <span class="number">1</span>, <span class="number">1</span>)</span><br><span class="line">        s_n = torch.mul(s_a, m_i)</span><br><span class="line">        <span class="keyword">return</span> s_n</span><br></pre></td></tr></table></figure>
+<ul>
+<li>对于三个 FMB 模块的输出分别按照降采样的程度进行上采样，整体上算是个类 U-net 的结构</li>
+</ul>
+<h4 id="REA-模块"><a href="#REA-模块" class="headerlink" title="REA 模块"></a>REA 模块</h4><p><img src="/Video-based_rppg_SSL/image-20221202124505577.png" alt="image-20221202124505577" style="zoom:80%;"></p>
+<p>&emsp;&emsp;REA 模块是一个基于混合专家模型的 rppg 估计网络，所谓混合专家模型（MOE），本质上像是集成学习一样的策略，即对不同的子问题有不同的网络（专家模型）进行拟合，最终给各个网络（专家模型）赋值权重得到输出。</p>
+<p>&emsp;&emsp;对于 REA 模块，其将输入的视频经过一个 resnet 之后进行分割，将一个 clip 按照空间区域划分为 L 个子空间（L=4），每个空间经过同样结构但不共享参数的局部专家模型得到对应空间的输出，并且给每个专家模型赋值不同的权重，这些权重来自于另一个模型 $\cal G$，整个模型的前向过程由上图给出，蛮清晰的，实现也比较简单。</p>
+<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;上述前向过程之中总共出现了四个损失函数 $\cal L_{vr},\ L_{fc},\ L_{fr},\ L_{fa}$，分别对应：Video reconstruction loss，Frequency contrastive loss，Frequency ratio consistency loss，Cross-video frequency agreement loss，他们的表达式分别如下：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&\rm \mathcal L_{vr}=MSE(X^n, X^a)\tag 1\\
+&\rm \mathcal L_{fc}=\log (1+\frac{\exp(d(y_1^p,y_2^p)/\tau)}{\sum_{i=1}^k(\exp(d(y_1^p,y_i^n)/\tau)+\exp(d(y_2^p,y_i^n)/\tau))})\tag 2\\
+&\rm \mathcal L_{fr}=\frac1{2k}\sum_{i=1}^k\left|\frac{P(y_i^n)}{P(y_1^p)}-r_i \right|+\left|\frac{P(y_i^n)}{P(y_2^p)}-r_i \right|\tag 3\\
+&\rm\mathcal L_{fa} =\frac 1 {2J} ∑^J_{j=1} d(y^p_1 , y^b_ j ) + d(y^p_ 2 , y^b_ j )\tag 4
+\end{align}</script><p>&emsp;&emsp;其中，$(2)$ 是对 InfoNCE 损失的重写，基本的表示方式也参考了 InfoNCE（$-\log\frac{\exp(q·k_+/\tau)}{\sum_{i=0}^{K}\exp(q·k_i/\tau)}$），$(3)$ 是度量两个正样本和负样本的频率比是否和预设的 $R$ 一致，用来限制 LFA 的学习，$(4)$ 是用来拉进正样本之间距离的。</p>
+<p>&emsp;&emsp;总体来说 $\mathcal L=\mathcal L_{vr} +\mathcal L_{fc}+\mathcal L_{fr}+\mathcal L_{fa}$，需要注意的是，这里的正样本包括增强样本和邻居样本，但是和负样本拉远距离的只包括增强样本，邻居样本不和负样本拉远距离，作者在文中提到如果都拉远的话效果会变差，结果上来说这有点反直觉，也难以解释。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">FRCL</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, Fs, min_hr, max_hr</span>):</span><br><span class="line">        <span class="built_in">super</span>(FRCL, self).__init__()</span><br><span class="line">        self.Fs = Fs</span><br><span class="line">        self.min_hr = min_hr</span><br><span class="line">        self.max_hr = max_hr</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, neg_rppgarr, pos_rppg1, pos_rppg2, ratio_array</span>):</span><br><span class="line">        loss = <span class="number">0</span></span><br><span class="line">        count = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">        poshr1 = predict_heart_rate(pos_rppg1[<span class="number">0</span>].detach(</span><br><span class="line">        ).cpu().numpy(), self.Fs, self.min_hr, self.max_hr)</span><br><span class="line"></span><br><span class="line">        poshr2 = predict_heart_rate(pos_rppg2[<span class="number">0</span>].detach(</span><br><span class="line">        ).cpu().numpy(), self.Fs, self.min_hr, self.max_hr)</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(neg_rppgarr)):</span><br><span class="line">            neghr = predict_heart_rate(neg_rppgarr[i][<span class="number">0</span>].detach().cpu().numpy(), self.Fs, self.min_hr, self.max_hr)</span><br><span class="line"></span><br><span class="line">            loss += np.<span class="built_in">abs</span>(neghr/poshr1-ratio_array[<span class="number">0</span>][i][<span class="number">0</span>].detach().cpu().numpy()) +\</span><br><span class="line">                np.<span class="built_in">abs</span>(neghr/poshr2-ratio_array[<span class="number">0</span>][i][<span class="number">0</span>].detach().cpu().numpy())</span><br><span class="line">            count += <span class="number">2</span></span><br><span class="line">        loss = loss/count</span><br><span class="line">        <span class="keyword">return</span> loss</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">CFAL</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, Fs, high_pass=<span class="number">2.5</span>, low_pass=<span class="number">0.4</span></span>):</span><br><span class="line">        <span class="built_in">super</span>(CFAL, self).__init__()</span><br><span class="line">        <span class="comment"># PSD_MSE</span></span><br><span class="line">        self.norm_psd = CalculateNormPSD(Fs, high_pass, low_pass)</span><br><span class="line">        self.distance_func = nn.MSELoss()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, pos_rppg1, pos_rppg2, neighbor_rppg1, neighbor_rppg2, neighbor_rppg3</span>):</span><br><span class="line">        posfre1 = self.norm_psd(pos_rppg1)</span><br><span class="line">        posfre2 = self.norm_psd(pos_rppg2)</span><br><span class="line">        neifre1 = self.norm_psd(neighbor_rppg1)</span><br><span class="line">        neifre2 = self.norm_psd(neighbor_rppg2)</span><br><span class="line">        neifre3 = self.norm_psd(neighbor_rppg3)</span><br><span class="line"></span><br><span class="line">        loss = self.distance_func(posfre1, neifre1)+self.distance_func(posfre1, neifre2)+self.distance_func(posfre1, neifre3)\</span><br><span class="line">            + self.distance_func(posfre2, neifre1)+self.distance_func(posfre2, neifre2)+self.distance_func(posfre2, neifre3)</span><br><span class="line">        loss = loss/<span class="number">6</span></span><br><span class="line">        <span class="keyword">return</span> loss</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">FCL</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, Fs, high_pass=<span class="number">2.5</span>, low_pass=<span class="number">0.4</span>, tau=<span class="number">0.08</span></span>):</span><br><span class="line">        <span class="built_in">super</span>(FCL, self).__init__()</span><br><span class="line">        <span class="comment"># PSD_MSE</span></span><br><span class="line">        self.norm_psd = CalculateNormPSD(Fs, high_pass, low_pass)</span><br><span class="line">        self.distance_func = nn.MSELoss()</span><br><span class="line">        self.tau = tau</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, neg_rppgarr, pos_rppg1, pos_rppg2</span>):</span><br><span class="line"></span><br><span class="line">        posfre1 = self.norm_psd(pos_rppg1)</span><br><span class="line">        posfre2 = self.norm_psd(pos_rppg2)</span><br><span class="line">        pos_dis = torch.exp(self.distance_func(posfre1, posfre2)/self.tau)</span><br><span class="line">        neg_dis_total = <span class="number">0</span></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(neg_rppgarr)):</span><br><span class="line">            negfre = self.norm_psd(neg_rppgarr[i])</span><br><span class="line">            neg_dis = torch.exp(self.distance_func(posfre1, negfre) / self.tau)+torch.exp(self.distance_func(posfre2, negfre) / self.tau)</span><br><span class="line">            neg_dis_total += neg_dis</span><br><span class="line"></span><br><span class="line">        loss = torch.log10(pos_dis/neg_dis_total+<span class="number">1</span>)</span><br><span class="line">        <span class="keyword">return</span> loss</span><br></pre></td></tr></table></figure>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文总共在 UBFC，PURE，DEAP，MMVS 上测试了效果，结果如下图所示，可以看出相比于 the way to my heart 好了不少，现在比较有竞争力的 SSL 方法也就是这一篇以及 oulu 的一篇 contrast phys，可以看出慢慢地在追赶上有监督的方法了。</p>
+<p><img src="/Video-based_rppg_SSL/image-20221203155035139.png" alt="image-20221203155035139"></p>
+<p>&emsp;&emsp;除了心率实验之外，本文也延续在 UBFC 上测试了基于 rppg 信号的各个指标的估计值</p>
+<p><img src="/Video-based_rppg_SSL/image-20221203155556125.png" alt="image-20221203155556125"></p>
+<p>&emsp;&emsp;以及跨数据集测试</p>
+<p><img src="/Video-based_rppg_SSL/image-20221203155536102.png" alt="image-20221203155536102"></p>
+<p>&emsp;&emsp;总体来说，本文的效果非常地好，虽然还没发，不过应该很快就能见会，问题在于：不论是这一篇还是之前的对比学习任务，以及简单化处理的 Siamese rppg，似乎都偏爱于 UBFC、PURE 这一类简单的数据集，而这篇文章做出来的时候已经有更难的 VIPL 数据集了，但是却完全没有在 VIPL 上做测试，让人不得不怀疑 SSL 方法是否仅能适用于简单的数据集。</p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+        <category>hr</category>
+      </categories>
+  </entry>
+  <entry>
     <title>represent-light-field-with-a-single-image</title>
     <url>/represent-light-field-with-a-single-image/</url>
     <content><![CDATA[<h2 id="Represent-LightField-With-A-Single-Image【光场压缩】【not-published】"><a href="#Represent-LightField-With-A-Single-Image【光场压缩】【not-published】" class="headerlink" title="Represent LightField With A Single Image【光场压缩】【not published】"></a><a href="https://gitee.com/bnucsy/represent-light-field-with-a-single-rgb-image">Represent LightField With A Single Image</a>【光场压缩】【not published】</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><ul>
@@ -3235,6 +3235,59 @@ AdaIN(x_i,y)=y_{s,i}\frac{x_i-\mu(x_i)}{\sigma(x_i)}+y_{b,i}</script><p>&emsp;&e
       </categories>
   </entry>
   <entry>
+    <title>Swin_Transformer</title>
+    <url>/swin_transformer/</url>
+    <content><![CDATA[<h2 id="Swin-Transformer-Hierarchical-Vision-Transformer-Using-Shifted-Windows-【图像分类、目标检测、语义分割】-ICCV"><a href="#Swin-Transformer-Hierarchical-Vision-Transformer-Using-Shifted-Windows-【图像分类、目标检测、语义分割】-ICCV" class="headerlink" title="Swin_Transformer_Hierarchical_Vision_Transformer_Using_Shifted_Windows 【图像分类、目标检测、语义分割】 ICCV"></a><a href="https://arxiv.org/abs/2103.14030">Swin_Transformer_Hierarchical_Vision_Transformer_Using_Shifted_Windows</a> 【图像分类、目标检测、语义分割】 ICCV</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;SwinTransformer 同样是一篇尝试探索如何将 NLP 领域的 transformer 迁移到 CV 领域的工作，其指出，文字的密度和图像的像素密度差距较大，直接迁移如 VIT 将会产生大图像难以计算的问题，因此 swinTransformer 提出了一种层级式的计算方式，不仅将计算复杂度降低了很多，同时提取到了不同尺度的特征，解决了 VIT 的大尺寸图像处理困难、任务场景较为单一等问题。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/swin_transformer/image-20220925222255645.png" alt="image-20220925222255645"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>使用基于 Window 的 MSA 来进行大尺寸图像的分割处理，降低 transformer 的计算复杂度，使 transformer 可以计算大尺寸的图像</li>
+<li>使用 shift Window 来加强不同 window 之间的通信，使全局的信息更容易被学习</li>
+<li>通过 patch merging 获得多尺度的信息，以此产生不同的感受野，适应了多种任务场景构造特征图的需要</li>
+<li>构造了掩码，用以加速当 shift window 产生大小不同的 Windows 时的额外的 padding 计算</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/swin_transformer/image-20220926080127210.png" alt="image-20220926080127210"></p>
+<p>&emsp;&emsp;由于 swinTransformer 提出的是一种通用架构，所以这里的网络模型并没有给出具体到分类 / 分割 / 检测应该如何继续实现，事实上直接按照常见的实现方式，分类用 1x1 Conv，分割用 Unet，检测用 pyramid feature。这里的输入是每个 window 的输入，每个 Swin Transformer Block 都会产生一个输出，Patch Merging 是下采样操作，类似于 pixel shuffle，接下来按照前向过程逐步分析一下网络的实现。</p>
+<hr>
+<h4 id="patch-embedding"><a href="#patch-embedding" class="headerlink" title="patch embedding"></a>patch embedding</h4><p>&emsp;&emsp;这一部分主要是预处理，将图片打成不同的 patch，并且把 patch 拉平，作用和 VIT 的一样，但是由于 swinTransformer 将其进一步分成了不同的 window，因此略有细节上的不同。</p>
+<h5 id="patch-partition"><a href="#patch-partition" class="headerlink" title="patch partition"></a>patch partition</h5><p>&emsp;&emsp;对于输入的图像 image $H\times W$（Swin-T 中图像大小为 224x224），按照每个 patch 为  $P\times P$  切分为多个 patch，在标准 swinTransformer 中，$P=4$。此时每个 patch 中有 $P\times P\times 3$ 个值，Swin-T 中这里为 48,。因此共有 $\frac{H}{4}\times \frac{W}{4}$ 个 patch，每个 patch 48 个值。</p>
+<h5 id="linear-embedding"><a href="#linear-embedding" class="headerlink" title="linear embedding"></a>linear embedding</h5><p>&emsp;&emsp;接下来和 VIT 一致，通过一个 linear layer 将 48 映射到 transformer 接受的维度 $C$，在 Swin-T 中为 96，此时我们拿到了 56x56 个 patch，每个 patch 96 维，也即 $\frac{H}{4}\times \frac{W}{4}\times C$。  </p>
+<hr>
+<h4 id="Swin-Transformer-block"><a href="#Swin-Transformer-block" class="headerlink" title="Swin Transformer block"></a>Swin Transformer block</h4><p>&emsp;&emsp;这里的部分是整个工作最重要的部分，在这里讲述了窗口自注意力机制的计算方式，以及如何进行 shift window，包括之后的移位回位以及掩码设置。整体来说，对于上一个输入 $Z^{i-1}$，需要经过 $\rm LayerNorm, WMSA,Add,SWMSA,MLP$ 这些操作才能得到 $Z^{i+1}$。也就是每一个 swinTransformerBlock 需要做两次自注意力的计算。具体地，这个过程可以用如下公式表示，其中 $\hat Z$ 是中间变量：</p>
+<script type="math/tex; mode=display">
+\hat Z^{i}=W\_MSA(LN(Z^{i-1}))+Z^{i-1}</script><script type="math/tex; mode=display">
+Z^i=MLP(LN(\hat Z^i))+\hat Z^i</script><script type="math/tex; mode=display">
+\hat Z^{i+1}=SW\_MSA(LN(Z^i))+Z^i</script><script type="math/tex; mode=display">
+Z^{i+1}=MLP(LN(\hat Z^{i+1}))+\hat Z^{i+1}</script><h5 id="W-MSA"><a href="#W-MSA" class="headerlink" title="W-MSA"></a>W-MSA</h5><p>&emsp;&emsp;这是整个 swinTransformer 里面最核心的部分，后面的 shift window 只不过是多加了一个移位的操作后处理了一下额外计算量。回到之前我们得到的输入，这时候我们拿到的输入维度是 $\frac{H}{4}\times \frac{W}{4}\times C$，在 Swin-T 中，这里也达到了 3136x96 的级别，而 3136 的序列长度对于 transformer 来说，复杂度太高，因此将其切分成 window。</p>
+<p>&emsp;&emsp;在切分 window 的时候，每个 window 有固定 7x7=49 个 patch，这 49 个 patch 线性排列，形成 $\frac{H}{28}\times \frac{W}{28}$ 个 window，每个 window 序列维度为 $(49,C)$ ，接下来对每个 window 做 self-attention。这里的 SA 操作在一些实现细节上略有区别于 VIT 和 标准transformer，首先是 $Q,K,V$ 的维度，这里的 $W_{Q/K/V}$ 矩阵维度为 $(C,\frac C {heads})$，因此，得到的 $Z\to (49, \frac C {heads}),Z_{mix}\to (49,C)$。这样得到的 $Z_{mix}$ 再和 VIT 一样经过一个 linear，不过这里的 linear 是 $C\to C$ 的，其余操作和 VIT 无异。这样输出的结果维度仍然为 $\frac{H}{4}\times \frac{W}{4}\times C$。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">WindowAttention</span>(nn.Module):</span><br><span class="line">    <span class="string">r&quot;&quot;&quot; Window based multi-head self attention (W-MSA) module with relative position bias.</span></span><br><span class="line"><span class="string">    It supports both of shifted and non-shifted window.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        dim (int): Number of input channels.</span></span><br><span class="line"><span class="string">        window_size (tuple[int]): The height and width of the window.</span></span><br><span class="line"><span class="string">        num_heads (int): Number of attention heads.</span></span><br><span class="line"><span class="string">        qkv_bias (bool, optional):  If True, add a learnable bias to query, key, value. Default: True</span></span><br><span class="line"><span class="string">        qk_scale (float | None, optional): Override default qk scale of head_dim ** -0.5 if set</span></span><br><span class="line"><span class="string">        attn_drop (float, optional): Dropout ratio of attention weight. Default: 0.0</span></span><br><span class="line"><span class="string">        proj_drop (float, optional): Dropout ratio of output. Default: 0.0</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, dim, window_size, num_heads, qkv_bias=<span class="literal">True</span>, qk_scale=<span class="literal">None</span>, attn_drop=<span class="number">0.</span>, proj_drop=<span class="number">0.</span></span>):</span><br><span class="line"></span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        self.dim = dim</span><br><span class="line">        self.window_size = window_size  <span class="comment"># Wh, Ww</span></span><br><span class="line">        self.num_heads = num_heads</span><br><span class="line">        head_dim = dim // num_heads</span><br><span class="line">        self.scale = qk_scale <span class="keyword">or</span> head_dim ** -<span class="number">0.5</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># define a parameter table of relative position bias</span></span><br><span class="line">        self.relative_position_bias_table = nn.Parameter(</span><br><span class="line">            torch.zeros((<span class="number">2</span> * window_size[<span class="number">0</span>] - <span class="number">1</span>) * (<span class="number">2</span> * window_size[<span class="number">1</span>] - <span class="number">1</span>), num_heads))  <span class="comment"># 2*Wh-1 * 2*Ww-1, nH</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># get pair-wise relative position index for each token inside the window</span></span><br><span class="line">        coords_h = torch.arange(self.window_size[<span class="number">0</span>])</span><br><span class="line">        coords_w = torch.arange(self.window_size[<span class="number">1</span>])</span><br><span class="line">        coords = torch.stack(torch.meshgrid([coords_h, coords_w]))  <span class="comment"># 2, Wh, Ww</span></span><br><span class="line">        coords_flatten = torch.flatten(coords, <span class="number">1</span>)  <span class="comment"># 2, Wh*Ww</span></span><br><span class="line">        relative_coords = coords_flatten[:, :, <span class="literal">None</span>] - coords_flatten[:, <span class="literal">None</span>, :]  <span class="comment"># 2, Wh*Ww, Wh*Ww</span></span><br><span class="line">        relative_coords = relative_coords.permute(<span class="number">1</span>, <span class="number">2</span>, <span class="number">0</span>).contiguous()  <span class="comment"># Wh*Ww, Wh*Ww, 2</span></span><br><span class="line">        relative_coords[:, :, <span class="number">0</span>] += self.window_size[<span class="number">0</span>] - <span class="number">1</span>  <span class="comment"># shift to start from 0</span></span><br><span class="line">        relative_coords[:, :, <span class="number">1</span>] += self.window_size[<span class="number">1</span>] - <span class="number">1</span></span><br><span class="line">        relative_coords[:, :, <span class="number">0</span>] *= <span class="number">2</span> * self.window_size[<span class="number">1</span>] - <span class="number">1</span></span><br><span class="line">        relative_position_index = relative_coords.<span class="built_in">sum</span>(-<span class="number">1</span>)  <span class="comment"># Wh*Ww, Wh*Ww</span></span><br><span class="line">        self.register_buffer(<span class="string">&quot;relative_position_index&quot;</span>, relative_position_index)</span><br><span class="line"></span><br><span class="line">        self.qkv = nn.Linear(dim, dim * <span class="number">3</span>, bias=qkv_bias)</span><br><span class="line">        self.attn_drop = nn.Dropout(attn_drop)</span><br><span class="line">        self.proj = nn.Linear(dim, dim)</span><br><span class="line">        self.proj_drop = nn.Dropout(proj_drop)</span><br><span class="line"></span><br><span class="line">        trunc_normal_(self.relative_position_bias_table, std=<span class="number">.02</span>)</span><br><span class="line">        self.softmax = nn.Softmax(dim=-<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x, mask=<span class="literal">None</span></span>):</span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        Args:</span></span><br><span class="line"><span class="string">            x: input features with shape of (num_windows*B, N, C)</span></span><br><span class="line"><span class="string">            mask: (0/-inf) mask with shape of (num_windows, Wh*Ww, Wh*Ww) or None</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        B_, N, C = x.shape</span><br><span class="line">        qkv = self.qkv(x).reshape(B_, N, <span class="number">3</span>, self.num_heads, C // self.num_heads).permute(<span class="number">2</span>, <span class="number">0</span>, <span class="number">3</span>, <span class="number">1</span>, <span class="number">4</span>)</span><br><span class="line">        q, k, v = qkv[<span class="number">0</span>], qkv[<span class="number">1</span>], qkv[<span class="number">2</span>]  <span class="comment"># make torchscript happy (cannot use tensor as tuple)</span></span><br><span class="line"></span><br><span class="line">        q = q * self.scale</span><br><span class="line">        attn = (q @ k.transpose(-<span class="number">2</span>, -<span class="number">1</span>))</span><br><span class="line"></span><br><span class="line">        relative_position_bias = self.relative_position_bias_table[self.relative_position_index.view(-<span class="number">1</span>)].view(</span><br><span class="line">            self.window_size[<span class="number">0</span>] * self.window_size[<span class="number">1</span>], self.window_size[<span class="number">0</span>] * self.window_size[<span class="number">1</span>], -<span class="number">1</span>)  <span class="comment"># Wh*Ww,Wh*Ww,nH</span></span><br><span class="line">        relative_position_bias = relative_position_bias.permute(<span class="number">2</span>, <span class="number">0</span>, <span class="number">1</span>).contiguous()  <span class="comment"># nH, Wh*Ww, Wh*Ww</span></span><br><span class="line">        attn = attn + relative_position_bias.unsqueeze(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> mask <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">            nW = mask.shape[<span class="number">0</span>]</span><br><span class="line">            attn = attn.view(B_ // nW, nW, self.num_heads, N, N) + mask.unsqueeze(<span class="number">1</span>).unsqueeze(<span class="number">0</span>)</span><br><span class="line">            attn = attn.view(-<span class="number">1</span>, self.num_heads, N, N)</span><br><span class="line">            attn = self.softmax(attn)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            attn = self.softmax(attn)</span><br><span class="line"></span><br><span class="line">        attn = self.attn_drop(attn)</span><br><span class="line"></span><br><span class="line">        x = (attn @ v).transpose(<span class="number">1</span>, <span class="number">2</span>).reshape(B_, N, C)</span><br><span class="line">        x = self.proj(x)</span><br><span class="line">        x = self.proj_drop(x)</span><br><span class="line">        <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
+<h5 id="SW-MSA"><a href="#SW-MSA" class="headerlink" title="SW-MSA"></a>SW-MSA</h5><p>&emsp;&emsp;shift window multi-head self attention 是这项工作最创新的地方，事实上，如果删除了 shift window，这项工作在发表之前很短时间恰好有一篇 PVT 的工作通过堆叠不重合窗口实现大图像 transformer。当然，swinTransformer 具备更全的应用范围，更优的实验设计，仍然会成为一项颠覆性的工作。</p>
+<p>&emsp;&emsp;整体来说，SW-MSA 首先进行窗口的移动，准确来说是分割线移动 1/2 个 window_size（Swin-T 中是7/2=3），这样会产生与之前不同的窗口，并且新窗口的范围和旧窗口范围有部分重叠，然后在新窗口上做 W-MSA即可，但是这样的话会产生更多的窗口，并且会产生非 7x7 的窗口，一种产生这种 “不规整情况” 的示意图如下：</p>
+<p><img src="/swin_transformer/image-20220926130957112.png" alt="image-20220926130957112" style="zoom:50%;"></p>
+<p>&emsp;&emsp;这种不规则将会给批处理图像带来极大的困难，一种普通的想法是采用 padding 策略，对不同的 window 都补 0 成 7x7，但这样增加了很多计算量。swinTransformer 没有选择采用 padding 策略修补这些窗口，而是采用了一种巧妙的移位。一个完整的 SW-MSA 工作流程如下：</p>
+<p><img src="/swin_transformer/image-20220926131342976.png" alt="image-20220926131342976"></p>
+<p>&emsp;&emsp;在这个过程中，cyclic shift 和 reverse cyclic shift 操作直接采用数组切片即可完成，这里主要难以理解的是 masked MSA，即为什么要用掩码，以及怎么赋值掩码矩阵？</p>
+<p>&emsp;&emsp;至于为什么要用到掩码，这是因为在 cyclic shift 形成的新四个窗口中，对于左下、右上、右下的窗口，他们都含有图像不相邻位置的像素，这些像素可能实际上没有任何关联，如左下角的上半部分可能是草原，而其下半部分可能是上面移过来的天空。这种情况下他们是不应该互相进行计算注意力的 ，然而我们只要用 W-MSA 就一定会计算他们之间的注意力，所以我们需要给一个 mask，让我们不需要计算的部分消失掉。</p>
+<p>&emsp;&emsp;对于这四种情况，在进行 SA 之后会得到四种不同的值分布，如下图所示：</p>
+<p><img src="/swin_transformer/image-20220926132139506.png" alt="image-20220926132139506" style="zoom:50%;"></p>
+<p>&emsp;&emsp;在右边这几幅小图中，赋 0 的位置表示我们希望保留的计算，赋 -100 的位置表示我们希望忽略的计算，这些 mask 将会作用于 $\rm softmax(\frac{QK^T}{\sqrt d_k} + mask)$，此时 -100 将会经过 $\rm softmax$ 变成 0，从而消除其掩码所在位置的影响。</p>
+<h5 id="Add-amp-LayerNorm-amp-MLP"><a href="#Add-amp-LayerNorm-amp-MLP" class="headerlink" title="Add &amp; LayerNorm &amp; MLP"></a>Add &amp; LayerNorm &amp; MLP</h5><p>&emsp;&emsp;这些无论和 VIT 还是和 transformer 都没有任何区别，不再赘述。</p>
+<hr>
+<h4 id="patch-merging"><a href="#patch-merging" class="headerlink" title="patch merging"></a>patch merging</h4><p>&emsp;&emsp;这里的 patch merging 就是一个单纯的降采样的过程，其操作和 pixel shuffle 基本一致，其具体的方法和操作流程如下图：</p>
+<p><img src="/swin_transformer/image-20220926132919270.png" alt="image-20220926132919270" style="zoom:67%;"></p>
+<p>&emsp;&emsp;我们可以看到，patch merging 将原本 4x4x1 的 tensor 变成了 2x2x2 的 tensor，具体来说使长宽小一半，通道加一倍，从而达到降采样的目的，swinTransformer 中总共进行了 3 次 patch merging，将 $\frac{H}{4}\times \frac{W}{4}\times C$ 最终变成了 $\frac{H}{32}\times \frac{W}{32}\times 8C$。这样的操作使感受野逐渐增大，从而感知不同尺寸的图片信息，更广泛地应用于更多任务。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">PatchMerging</span>(nn.Module):</span><br><span class="line">    <span class="string">r&quot;&quot;&quot; Patch Merging Layer.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        input_resolution (tuple[int]): Resolution of input feature.</span></span><br><span class="line"><span class="string">        dim (int): Number of input channels.</span></span><br><span class="line"><span class="string">        norm_layer (nn.Module, optional): Normalization layer.  Default: nn.LayerNorm</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, input_resolution, dim, norm_layer=nn.LayerNorm</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        self.input_resolution = input_resolution</span><br><span class="line">        self.dim = dim</span><br><span class="line">        self.reduction = nn.Linear(<span class="number">4</span> * dim, <span class="number">2</span> * dim, bias=<span class="literal">False</span>)</span><br><span class="line">        self.norm = norm_layer(<span class="number">4</span> * dim)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        x: B, H*W, C</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        H, W = self.input_resolution</span><br><span class="line">        B, L, C = x.shape</span><br><span class="line">        <span class="keyword">assert</span> L == H * W, <span class="string">&quot;input feature has wrong size&quot;</span></span><br><span class="line">        <span class="keyword">assert</span> H % <span class="number">2</span> == <span class="number">0</span> <span class="keyword">and</span> W % <span class="number">2</span> == <span class="number">0</span>, <span class="string">f&quot;x size (<span class="subst">&#123;H&#125;</span>*<span class="subst">&#123;W&#125;</span>) are not even.&quot;</span></span><br><span class="line"></span><br><span class="line">        x = x.view(B, H, W, C)</span><br><span class="line"></span><br><span class="line">        x0 = x[:, <span class="number">0</span>::<span class="number">2</span>, <span class="number">0</span>::<span class="number">2</span>, :]  <span class="comment"># B H/2 W/2 C</span></span><br><span class="line">        x1 = x[:, <span class="number">1</span>::<span class="number">2</span>, <span class="number">0</span>::<span class="number">2</span>, :]  <span class="comment"># B H/2 W/2 C</span></span><br><span class="line">        x2 = x[:, <span class="number">0</span>::<span class="number">2</span>, <span class="number">1</span>::<span class="number">2</span>, :]  <span class="comment"># B H/2 W/2 C</span></span><br><span class="line">        x3 = x[:, <span class="number">1</span>::<span class="number">2</span>, <span class="number">1</span>::<span class="number">2</span>, :]  <span class="comment"># B H/2 W/2 C</span></span><br><span class="line">        x = torch.cat([x0, x1, x2, x3], -<span class="number">1</span>)  <span class="comment"># B H/2 W/2 4*C</span></span><br><span class="line">        x = x.view(B, -<span class="number">1</span>, <span class="number">4</span> * C)  <span class="comment"># B H/2*W/2 4*C</span></span><br><span class="line"></span><br><span class="line">        x = self.norm(x)</span><br><span class="line">        x = self.reduction(x)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
+<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;swinTransformer 在多个应用领域均取得了超越 SOTA 的指标，由于其在多个领域都做了应用，因此根据不同的实现目标选择了不同的损失函数。</p>
+<hr>
+<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3><p>&emsp;&emsp;总而言之，swinTransformer 相对于 VIT 来说，进一步激发了 VIT 在视觉领域的潜力，将其扩展到了更多的任务，并在各种任务上面都成为了 SOTA，对 VIT 的改编无疑是巨大的成功，目前基于 CNN 的 SOTA 已经很难找到了。但这项工作同时有着一定的局限性，由于其是 VIT 在视觉领域的改编，其借鉴了很多 CV 的先验知识，尤其是很多之前 CNN 架构的处理方法，这意味着 transformer 在 NLP 到 CV 领域的迁移还没有完全性地实现，如何像 VIT 一样，在几乎不对网络结构做 CV/NLP 方向的特殊适应的情况下，直接修改数据结构就可以一个网络做多个任务，这是 swinTransformer 的团队挖出的一个大坑，也许会有下一个颠覆性的工作完成这项预期。</p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
     <title>styleVideoGAN</title>
     <url>/styleVideoGAN/</url>
     <content><![CDATA[<h2><center> StyleVideoGAN: A Temporal Generative Model using a Pretrained StyleGAN </center></h2>
@@ -3285,59 +3338,6 @@ AdaIN(x_i,y)=y_{s,i}\frac{x_i-\mu(x_i)}{\sigma(x_i)}+y_{b,i}</script><p>&emsp;&e
 <p><img src="/styleVideoGAN/image-20230410214149442.png" alt="image-20230410214149442"></p>
 <p>&emsp;&emsp;本文还专门强调自己虽然是专注于人脸视频生成，但是所设计的方法之中没有针对人脸设计的模块，因此也放了一些其他 domain 的结果，可以看出确实多了些多样性出来</p>
 <p><img src="/styleVideoGAN/image-20230410213805162.png" alt="image-20230410213805162"></p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>Swin_Transformer</title>
-    <url>/swin_transformer/</url>
-    <content><![CDATA[<h2 id="Swin-Transformer-Hierarchical-Vision-Transformer-Using-Shifted-Windows-【图像分类、目标检测、语义分割】-ICCV"><a href="#Swin-Transformer-Hierarchical-Vision-Transformer-Using-Shifted-Windows-【图像分类、目标检测、语义分割】-ICCV" class="headerlink" title="Swin_Transformer_Hierarchical_Vision_Transformer_Using_Shifted_Windows 【图像分类、目标检测、语义分割】 ICCV"></a><a href="https://arxiv.org/abs/2103.14030">Swin_Transformer_Hierarchical_Vision_Transformer_Using_Shifted_Windows</a> 【图像分类、目标检测、语义分割】 ICCV</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;SwinTransformer 同样是一篇尝试探索如何将 NLP 领域的 transformer 迁移到 CV 领域的工作，其指出，文字的密度和图像的像素密度差距较大，直接迁移如 VIT 将会产生大图像难以计算的问题，因此 swinTransformer 提出了一种层级式的计算方式，不仅将计算复杂度降低了很多，同时提取到了不同尺度的特征，解决了 VIT 的大尺寸图像处理困难、任务场景较为单一等问题。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/swin_transformer/image-20220925222255645.png" alt="image-20220925222255645"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>使用基于 Window 的 MSA 来进行大尺寸图像的分割处理，降低 transformer 的计算复杂度，使 transformer 可以计算大尺寸的图像</li>
-<li>使用 shift Window 来加强不同 window 之间的通信，使全局的信息更容易被学习</li>
-<li>通过 patch merging 获得多尺度的信息，以此产生不同的感受野，适应了多种任务场景构造特征图的需要</li>
-<li>构造了掩码，用以加速当 shift window 产生大小不同的 Windows 时的额外的 padding 计算</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/swin_transformer/image-20220926080127210.png" alt="image-20220926080127210"></p>
-<p>&emsp;&emsp;由于 swinTransformer 提出的是一种通用架构，所以这里的网络模型并没有给出具体到分类 / 分割 / 检测应该如何继续实现，事实上直接按照常见的实现方式，分类用 1x1 Conv，分割用 Unet，检测用 pyramid feature。这里的输入是每个 window 的输入，每个 Swin Transformer Block 都会产生一个输出，Patch Merging 是下采样操作，类似于 pixel shuffle，接下来按照前向过程逐步分析一下网络的实现。</p>
-<hr>
-<h4 id="patch-embedding"><a href="#patch-embedding" class="headerlink" title="patch embedding"></a>patch embedding</h4><p>&emsp;&emsp;这一部分主要是预处理，将图片打成不同的 patch，并且把 patch 拉平，作用和 VIT 的一样，但是由于 swinTransformer 将其进一步分成了不同的 window，因此略有细节上的不同。</p>
-<h5 id="patch-partition"><a href="#patch-partition" class="headerlink" title="patch partition"></a>patch partition</h5><p>&emsp;&emsp;对于输入的图像 image $H\times W$（Swin-T 中图像大小为 224x224），按照每个 patch 为  $P\times P$  切分为多个 patch，在标准 swinTransformer 中，$P=4$。此时每个 patch 中有 $P\times P\times 3$ 个值，Swin-T 中这里为 48,。因此共有 $\frac{H}{4}\times \frac{W}{4}$ 个 patch，每个 patch 48 个值。</p>
-<h5 id="linear-embedding"><a href="#linear-embedding" class="headerlink" title="linear embedding"></a>linear embedding</h5><p>&emsp;&emsp;接下来和 VIT 一致，通过一个 linear layer 将 48 映射到 transformer 接受的维度 $C$，在 Swin-T 中为 96，此时我们拿到了 56x56 个 patch，每个 patch 96 维，也即 $\frac{H}{4}\times \frac{W}{4}\times C$。  </p>
-<hr>
-<h4 id="Swin-Transformer-block"><a href="#Swin-Transformer-block" class="headerlink" title="Swin Transformer block"></a>Swin Transformer block</h4><p>&emsp;&emsp;这里的部分是整个工作最重要的部分，在这里讲述了窗口自注意力机制的计算方式，以及如何进行 shift window，包括之后的移位回位以及掩码设置。整体来说，对于上一个输入 $Z^{i-1}$，需要经过 $\rm LayerNorm, WMSA,Add,SWMSA,MLP$ 这些操作才能得到 $Z^{i+1}$。也就是每一个 swinTransformerBlock 需要做两次自注意力的计算。具体地，这个过程可以用如下公式表示，其中 $\hat Z$ 是中间变量：</p>
-<script type="math/tex; mode=display">
-\hat Z^{i}=W\_MSA(LN(Z^{i-1}))+Z^{i-1}</script><script type="math/tex; mode=display">
-Z^i=MLP(LN(\hat Z^i))+\hat Z^i</script><script type="math/tex; mode=display">
-\hat Z^{i+1}=SW\_MSA(LN(Z^i))+Z^i</script><script type="math/tex; mode=display">
-Z^{i+1}=MLP(LN(\hat Z^{i+1}))+\hat Z^{i+1}</script><h5 id="W-MSA"><a href="#W-MSA" class="headerlink" title="W-MSA"></a>W-MSA</h5><p>&emsp;&emsp;这是整个 swinTransformer 里面最核心的部分，后面的 shift window 只不过是多加了一个移位的操作后处理了一下额外计算量。回到之前我们得到的输入，这时候我们拿到的输入维度是 $\frac{H}{4}\times \frac{W}{4}\times C$，在 Swin-T 中，这里也达到了 3136x96 的级别，而 3136 的序列长度对于 transformer 来说，复杂度太高，因此将其切分成 window。</p>
-<p>&emsp;&emsp;在切分 window 的时候，每个 window 有固定 7x7=49 个 patch，这 49 个 patch 线性排列，形成 $\frac{H}{28}\times \frac{W}{28}$ 个 window，每个 window 序列维度为 $(49,C)$ ，接下来对每个 window 做 self-attention。这里的 SA 操作在一些实现细节上略有区别于 VIT 和 标准transformer，首先是 $Q,K,V$ 的维度，这里的 $W_{Q/K/V}$ 矩阵维度为 $(C,\frac C {heads})$，因此，得到的 $Z\to (49, \frac C {heads}),Z_{mix}\to (49,C)$。这样得到的 $Z_{mix}$ 再和 VIT 一样经过一个 linear，不过这里的 linear 是 $C\to C$ 的，其余操作和 VIT 无异。这样输出的结果维度仍然为 $\frac{H}{4}\times \frac{W}{4}\times C$。</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">WindowAttention</span>(nn.Module):</span><br><span class="line">    <span class="string">r&quot;&quot;&quot; Window based multi-head self attention (W-MSA) module with relative position bias.</span></span><br><span class="line"><span class="string">    It supports both of shifted and non-shifted window.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        dim (int): Number of input channels.</span></span><br><span class="line"><span class="string">        window_size (tuple[int]): The height and width of the window.</span></span><br><span class="line"><span class="string">        num_heads (int): Number of attention heads.</span></span><br><span class="line"><span class="string">        qkv_bias (bool, optional):  If True, add a learnable bias to query, key, value. Default: True</span></span><br><span class="line"><span class="string">        qk_scale (float | None, optional): Override default qk scale of head_dim ** -0.5 if set</span></span><br><span class="line"><span class="string">        attn_drop (float, optional): Dropout ratio of attention weight. Default: 0.0</span></span><br><span class="line"><span class="string">        proj_drop (float, optional): Dropout ratio of output. Default: 0.0</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, dim, window_size, num_heads, qkv_bias=<span class="literal">True</span>, qk_scale=<span class="literal">None</span>, attn_drop=<span class="number">0.</span>, proj_drop=<span class="number">0.</span></span>):</span><br><span class="line"></span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        self.dim = dim</span><br><span class="line">        self.window_size = window_size  <span class="comment"># Wh, Ww</span></span><br><span class="line">        self.num_heads = num_heads</span><br><span class="line">        head_dim = dim // num_heads</span><br><span class="line">        self.scale = qk_scale <span class="keyword">or</span> head_dim ** -<span class="number">0.5</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># define a parameter table of relative position bias</span></span><br><span class="line">        self.relative_position_bias_table = nn.Parameter(</span><br><span class="line">            torch.zeros((<span class="number">2</span> * window_size[<span class="number">0</span>] - <span class="number">1</span>) * (<span class="number">2</span> * window_size[<span class="number">1</span>] - <span class="number">1</span>), num_heads))  <span class="comment"># 2*Wh-1 * 2*Ww-1, nH</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># get pair-wise relative position index for each token inside the window</span></span><br><span class="line">        coords_h = torch.arange(self.window_size[<span class="number">0</span>])</span><br><span class="line">        coords_w = torch.arange(self.window_size[<span class="number">1</span>])</span><br><span class="line">        coords = torch.stack(torch.meshgrid([coords_h, coords_w]))  <span class="comment"># 2, Wh, Ww</span></span><br><span class="line">        coords_flatten = torch.flatten(coords, <span class="number">1</span>)  <span class="comment"># 2, Wh*Ww</span></span><br><span class="line">        relative_coords = coords_flatten[:, :, <span class="literal">None</span>] - coords_flatten[:, <span class="literal">None</span>, :]  <span class="comment"># 2, Wh*Ww, Wh*Ww</span></span><br><span class="line">        relative_coords = relative_coords.permute(<span class="number">1</span>, <span class="number">2</span>, <span class="number">0</span>).contiguous()  <span class="comment"># Wh*Ww, Wh*Ww, 2</span></span><br><span class="line">        relative_coords[:, :, <span class="number">0</span>] += self.window_size[<span class="number">0</span>] - <span class="number">1</span>  <span class="comment"># shift to start from 0</span></span><br><span class="line">        relative_coords[:, :, <span class="number">1</span>] += self.window_size[<span class="number">1</span>] - <span class="number">1</span></span><br><span class="line">        relative_coords[:, :, <span class="number">0</span>] *= <span class="number">2</span> * self.window_size[<span class="number">1</span>] - <span class="number">1</span></span><br><span class="line">        relative_position_index = relative_coords.<span class="built_in">sum</span>(-<span class="number">1</span>)  <span class="comment"># Wh*Ww, Wh*Ww</span></span><br><span class="line">        self.register_buffer(<span class="string">&quot;relative_position_index&quot;</span>, relative_position_index)</span><br><span class="line"></span><br><span class="line">        self.qkv = nn.Linear(dim, dim * <span class="number">3</span>, bias=qkv_bias)</span><br><span class="line">        self.attn_drop = nn.Dropout(attn_drop)</span><br><span class="line">        self.proj = nn.Linear(dim, dim)</span><br><span class="line">        self.proj_drop = nn.Dropout(proj_drop)</span><br><span class="line"></span><br><span class="line">        trunc_normal_(self.relative_position_bias_table, std=<span class="number">.02</span>)</span><br><span class="line">        self.softmax = nn.Softmax(dim=-<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x, mask=<span class="literal">None</span></span>):</span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        Args:</span></span><br><span class="line"><span class="string">            x: input features with shape of (num_windows*B, N, C)</span></span><br><span class="line"><span class="string">            mask: (0/-inf) mask with shape of (num_windows, Wh*Ww, Wh*Ww) or None</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        B_, N, C = x.shape</span><br><span class="line">        qkv = self.qkv(x).reshape(B_, N, <span class="number">3</span>, self.num_heads, C // self.num_heads).permute(<span class="number">2</span>, <span class="number">0</span>, <span class="number">3</span>, <span class="number">1</span>, <span class="number">4</span>)</span><br><span class="line">        q, k, v = qkv[<span class="number">0</span>], qkv[<span class="number">1</span>], qkv[<span class="number">2</span>]  <span class="comment"># make torchscript happy (cannot use tensor as tuple)</span></span><br><span class="line"></span><br><span class="line">        q = q * self.scale</span><br><span class="line">        attn = (q @ k.transpose(-<span class="number">2</span>, -<span class="number">1</span>))</span><br><span class="line"></span><br><span class="line">        relative_position_bias = self.relative_position_bias_table[self.relative_position_index.view(-<span class="number">1</span>)].view(</span><br><span class="line">            self.window_size[<span class="number">0</span>] * self.window_size[<span class="number">1</span>], self.window_size[<span class="number">0</span>] * self.window_size[<span class="number">1</span>], -<span class="number">1</span>)  <span class="comment"># Wh*Ww,Wh*Ww,nH</span></span><br><span class="line">        relative_position_bias = relative_position_bias.permute(<span class="number">2</span>, <span class="number">0</span>, <span class="number">1</span>).contiguous()  <span class="comment"># nH, Wh*Ww, Wh*Ww</span></span><br><span class="line">        attn = attn + relative_position_bias.unsqueeze(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> mask <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">            nW = mask.shape[<span class="number">0</span>]</span><br><span class="line">            attn = attn.view(B_ // nW, nW, self.num_heads, N, N) + mask.unsqueeze(<span class="number">1</span>).unsqueeze(<span class="number">0</span>)</span><br><span class="line">            attn = attn.view(-<span class="number">1</span>, self.num_heads, N, N)</span><br><span class="line">            attn = self.softmax(attn)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            attn = self.softmax(attn)</span><br><span class="line"></span><br><span class="line">        attn = self.attn_drop(attn)</span><br><span class="line"></span><br><span class="line">        x = (attn @ v).transpose(<span class="number">1</span>, <span class="number">2</span>).reshape(B_, N, C)</span><br><span class="line">        x = self.proj(x)</span><br><span class="line">        x = self.proj_drop(x)</span><br><span class="line">        <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
-<h5 id="SW-MSA"><a href="#SW-MSA" class="headerlink" title="SW-MSA"></a>SW-MSA</h5><p>&emsp;&emsp;shift window multi-head self attention 是这项工作最创新的地方，事实上，如果删除了 shift window，这项工作在发表之前很短时间恰好有一篇 PVT 的工作通过堆叠不重合窗口实现大图像 transformer。当然，swinTransformer 具备更全的应用范围，更优的实验设计，仍然会成为一项颠覆性的工作。</p>
-<p>&emsp;&emsp;整体来说，SW-MSA 首先进行窗口的移动，准确来说是分割线移动 1/2 个 window_size（Swin-T 中是7/2=3），这样会产生与之前不同的窗口，并且新窗口的范围和旧窗口范围有部分重叠，然后在新窗口上做 W-MSA即可，但是这样的话会产生更多的窗口，并且会产生非 7x7 的窗口，一种产生这种 “不规整情况” 的示意图如下：</p>
-<p><img src="/swin_transformer/image-20220926130957112.png" alt="image-20220926130957112" style="zoom:50%;"></p>
-<p>&emsp;&emsp;这种不规则将会给批处理图像带来极大的困难，一种普通的想法是采用 padding 策略，对不同的 window 都补 0 成 7x7，但这样增加了很多计算量。swinTransformer 没有选择采用 padding 策略修补这些窗口，而是采用了一种巧妙的移位。一个完整的 SW-MSA 工作流程如下：</p>
-<p><img src="/swin_transformer/image-20220926131342976.png" alt="image-20220926131342976"></p>
-<p>&emsp;&emsp;在这个过程中，cyclic shift 和 reverse cyclic shift 操作直接采用数组切片即可完成，这里主要难以理解的是 masked MSA，即为什么要用掩码，以及怎么赋值掩码矩阵？</p>
-<p>&emsp;&emsp;至于为什么要用到掩码，这是因为在 cyclic shift 形成的新四个窗口中，对于左下、右上、右下的窗口，他们都含有图像不相邻位置的像素，这些像素可能实际上没有任何关联，如左下角的上半部分可能是草原，而其下半部分可能是上面移过来的天空。这种情况下他们是不应该互相进行计算注意力的 ，然而我们只要用 W-MSA 就一定会计算他们之间的注意力，所以我们需要给一个 mask，让我们不需要计算的部分消失掉。</p>
-<p>&emsp;&emsp;对于这四种情况，在进行 SA 之后会得到四种不同的值分布，如下图所示：</p>
-<p><img src="/swin_transformer/image-20220926132139506.png" alt="image-20220926132139506" style="zoom:50%;"></p>
-<p>&emsp;&emsp;在右边这几幅小图中，赋 0 的位置表示我们希望保留的计算，赋 -100 的位置表示我们希望忽略的计算，这些 mask 将会作用于 $\rm softmax(\frac{QK^T}{\sqrt d_k} + mask)$，此时 -100 将会经过 $\rm softmax$ 变成 0，从而消除其掩码所在位置的影响。</p>
-<h5 id="Add-amp-LayerNorm-amp-MLP"><a href="#Add-amp-LayerNorm-amp-MLP" class="headerlink" title="Add &amp; LayerNorm &amp; MLP"></a>Add &amp; LayerNorm &amp; MLP</h5><p>&emsp;&emsp;这些无论和 VIT 还是和 transformer 都没有任何区别，不再赘述。</p>
-<hr>
-<h4 id="patch-merging"><a href="#patch-merging" class="headerlink" title="patch merging"></a>patch merging</h4><p>&emsp;&emsp;这里的 patch merging 就是一个单纯的降采样的过程，其操作和 pixel shuffle 基本一致，其具体的方法和操作流程如下图：</p>
-<p><img src="/swin_transformer/image-20220926132919270.png" alt="image-20220926132919270" style="zoom:67%;"></p>
-<p>&emsp;&emsp;我们可以看到，patch merging 将原本 4x4x1 的 tensor 变成了 2x2x2 的 tensor，具体来说使长宽小一半，通道加一倍，从而达到降采样的目的，swinTransformer 中总共进行了 3 次 patch merging，将 $\frac{H}{4}\times \frac{W}{4}\times C$ 最终变成了 $\frac{H}{32}\times \frac{W}{32}\times 8C$。这样的操作使感受野逐渐增大，从而感知不同尺寸的图片信息，更广泛地应用于更多任务。</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">PatchMerging</span>(nn.Module):</span><br><span class="line">    <span class="string">r&quot;&quot;&quot; Patch Merging Layer.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        input_resolution (tuple[int]): Resolution of input feature.</span></span><br><span class="line"><span class="string">        dim (int): Number of input channels.</span></span><br><span class="line"><span class="string">        norm_layer (nn.Module, optional): Normalization layer.  Default: nn.LayerNorm</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, input_resolution, dim, norm_layer=nn.LayerNorm</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        self.input_resolution = input_resolution</span><br><span class="line">        self.dim = dim</span><br><span class="line">        self.reduction = nn.Linear(<span class="number">4</span> * dim, <span class="number">2</span> * dim, bias=<span class="literal">False</span>)</span><br><span class="line">        self.norm = norm_layer(<span class="number">4</span> * dim)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        x: B, H*W, C</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        H, W = self.input_resolution</span><br><span class="line">        B, L, C = x.shape</span><br><span class="line">        <span class="keyword">assert</span> L == H * W, <span class="string">&quot;input feature has wrong size&quot;</span></span><br><span class="line">        <span class="keyword">assert</span> H % <span class="number">2</span> == <span class="number">0</span> <span class="keyword">and</span> W % <span class="number">2</span> == <span class="number">0</span>, <span class="string">f&quot;x size (<span class="subst">&#123;H&#125;</span>*<span class="subst">&#123;W&#125;</span>) are not even.&quot;</span></span><br><span class="line"></span><br><span class="line">        x = x.view(B, H, W, C)</span><br><span class="line"></span><br><span class="line">        x0 = x[:, <span class="number">0</span>::<span class="number">2</span>, <span class="number">0</span>::<span class="number">2</span>, :]  <span class="comment"># B H/2 W/2 C</span></span><br><span class="line">        x1 = x[:, <span class="number">1</span>::<span class="number">2</span>, <span class="number">0</span>::<span class="number">2</span>, :]  <span class="comment"># B H/2 W/2 C</span></span><br><span class="line">        x2 = x[:, <span class="number">0</span>::<span class="number">2</span>, <span class="number">1</span>::<span class="number">2</span>, :]  <span class="comment"># B H/2 W/2 C</span></span><br><span class="line">        x3 = x[:, <span class="number">1</span>::<span class="number">2</span>, <span class="number">1</span>::<span class="number">2</span>, :]  <span class="comment"># B H/2 W/2 C</span></span><br><span class="line">        x = torch.cat([x0, x1, x2, x3], -<span class="number">1</span>)  <span class="comment"># B H/2 W/2 4*C</span></span><br><span class="line">        x = x.view(B, -<span class="number">1</span>, <span class="number">4</span> * C)  <span class="comment"># B H/2*W/2 4*C</span></span><br><span class="line"></span><br><span class="line">        x = self.norm(x)</span><br><span class="line">        x = self.reduction(x)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
-<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;swinTransformer 在多个应用领域均取得了超越 SOTA 的指标，由于其在多个领域都做了应用，因此根据不同的实现目标选择了不同的损失函数。</p>
-<hr>
-<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3><p>&emsp;&emsp;总而言之，swinTransformer 相对于 VIT 来说，进一步激发了 VIT 在视觉领域的潜力，将其扩展到了更多的任务，并在各种任务上面都成为了 SOTA，对 VIT 的改编无疑是巨大的成功，目前基于 CNN 的 SOTA 已经很难找到了。但这项工作同时有着一定的局限性，由于其是 VIT 在视觉领域的改编，其借鉴了很多 CV 的先验知识，尤其是很多之前 CNN 架构的处理方法，这意味着 transformer 在 NLP 到 CV 领域的迁移还没有完全性地实现，如何像 VIT 一样，在几乎不对网络结构做 CV/NLP 方向的特殊适应的情况下，直接修改数据结构就可以一个网络做多个任务，这是 swinTransformer 的团队挖出的一个大坑，也许会有下一个颠覆性的工作完成这项预期。</p>
 ]]></content>
       <categories>
         <category>paper</category>
@@ -3609,64 +3609,6 @@ g(x)=W_g\times x</script><p>&emsp;&emsp;显然，对于 方程 $(2)$ 的前半�
       </categories>
   </entry>
   <entry>
-    <title>图像对齐和图像拼接</title>
-    <url>/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/</url>
-    <content><![CDATA[<p>👉👉👉👉👉👉本次实验选取来自 <a href="http://www.liushuaicheng.org/TIP/VideoStitching2016/index.html">论文</a> 的数据集  video2 的视频帧，通过 SIFT 特征点检测进行图像对齐，其第一帧的左，右视图如下：</p>
-<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127210155800.png" alt="image-20221127210155800" style="zoom: 150%;"></p>
-<span id="more"></span>
-<h3 id="图像的-SIFT-特征检测原理"><a href="#图像的-SIFT-特征检测原理" class="headerlink" title="图像的 SIFT 特征检测原理"></a>图像的 SIFT 特征检测原理</h3><p>&emsp;&emsp;SIFT 特征全称 Scale Invariant Feature Transform（尺度不变特征变换），通过 SIFT 生成的特征点具备对旋转、尺度缩放、平移、亮度变化、视角变化、仿射变换、噪声的鲁棒性。</p>
-<p>&emsp;&emsp;为了寻找视觉不变性的特征，需要对图像使用尺度空间方法，即在图像模型中引入尺度参数。常见的尺度空间由 LoG 产生，但是 LoG 较难计算，后面发现 DoG 能够近似代替 LoG，因此 SIFT 使用 DoG 空间作为尺度空间获取关键点。</p>
-<h4 id="DoG-空间的计算"><a href="#DoG-空间的计算" class="headerlink" title="DoG 空间的计算"></a>DoG 空间的计算</h4><p>&emsp;&emsp;对 DoG 空间的有效性可以这样理解：使用高 $\sigma$ 和低 $\sigma$ 分别产生的模糊与不模糊的图像作差即可得到边缘。这也解释了 DoG 空间检测出的极值点实际上对边缘具备更强的响应。</p>
-<p>&emsp;&emsp;在计算 DoG 空间之前需要先计算 SIFT 高斯金字塔，区别于普通的高斯金字塔，SIFT 高斯金字塔每一层具有多个图像，每一层最低端的图像单独拿出来就是普通的高斯金字塔。在金字塔的每一层内，从下往上的 $\sigma$ 逐渐增大，即在每一层内越向上的图像越模糊。</p>
-<p>&emsp;&emsp;对于构建好的 SIFT 金字塔中每个层的图像做上下差分，即可得到 DoG 空间。</p>
-<h4 id="使用-DoG-空间获取极值点"><a href="#使用-DoG-空间获取极值点" class="headerlink" title="使用 DoG 空间获取极值点"></a>使用 DoG 空间获取极值点</h4><p>&emsp;&emsp;这里采用的判断逻辑是斑点的判断方式，但是和斑点不同的是 DoG 的极值点需要额外对比上下两层的点，类似于使用 3Dconv 进行卷积。 </p>
-<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127203341901.png" alt="image-20221127203341901"></p>
-<h4 id="关键点处理"><a href="#关键点处理" class="headerlink" title="关键点处理"></a>关键点处理</h4><p>&emsp;&emsp;对于上一步中获得的极值点，其具备一些缺点：1. 对边缘响应太大，2. 同一个特征检测出的特征点较多，3. 特征点是离散像素，位置不够精确。而对于这些缺点，接下来需要进一步处理这些特征点。</p>
-<p>&emsp;&emsp;对于边缘响应问题，需要计算特征点处的 Hessian 矩阵 H，这个矩阵的特征值代表了 x, y 方向的梯度，接下来需要利用两个特征值的比计算出一个阈值，将横边缘相比垂直边缘具备较大主曲率的特征点剔除；对于特征点多的问题，采用 NMS 过一遍即可；对于离散像素位置不精确问题，需要对尺度空间进行曲线拟合，利用 DoG 函数的泰勒展开计算出插值中心的偏移量，针对偏移量的大小判断是否需要改变关键点位置并逐次迭代，最终插值中心就是原位置加上基于尺度的偏移量。</p>
-<h4 id="估计关键点方向"><a href="#估计关键点方向" class="headerlink" title="估计关键点方向"></a>估计关键点方向</h4><p>&emsp;&emsp;由于关键点同时应当具备旋转不变形，因此需要确定关键点的方向，其做法如下：</p>
-<ul>
-<li>在不同的尺度上计算图像的梯度，计算范围是特征点的邻域，然后统计成直方图</li>
-<li>将直方图中最大值的梯度定为主方向，超过最大值80%的方向定为辅方向【将所有的梯度归到八个正交方向上】</li>
-</ul>
-<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127204838014.png" alt="image-20221127204838014" style="zoom:50%;"></p>
-<h4 id="生成关键点的描述子"><a href="#生成关键点的描述子" class="headerlink" title="生成关键点的描述子"></a>生成关键点的描述子</h4><p>&emsp;&emsp;为了保证旋转不变性，需要将特征点邻域内的图像旋转一个方向角 $\theta$，然后重新栅格化图像，更新梯度。接着对每个特征点的邻域分成十六个子邻域，每个子邻域的梯度分到八个方向，统计各个方向的梯度信息最终形成一个 128 维度的向量作为特征描述。</p>
-<p>&emsp;&emsp;为了去除光照产生的影响，对特征向量进行归一化处理，然后为了去除相机饱和度等因素的影响，对梯度较大的值进行截断（0.2），然后再进行一次归一化，最终根据特征点的尺度对特征向量进行排序即可得到最终的描述子。</p>
-<p>👉👉👉👉👉👉经过 SIFT 特征检测得到的特征如下图所示</p>
-<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127210417139.png" alt="image-20221127210417139" style="zoom:150%;"></p>
-<h3 id="特征描述子的距离匹配和-RANSAC-方法"><a href="#特征描述子的距离匹配和-RANSAC-方法" class="headerlink" title="特征描述子的距离匹配和 RANSAC 方法"></a>特征描述子的距离匹配和 RANSAC 方法</h3><p>&emsp;&emsp;为了描述特征的距离，可以使用简单的 L2 距离，但是这样对于比较接近的特征点会出现错误匹配的情况。</p>
-<p>&emsp;&emsp;因此更多的选用 ratio distance，即 $ d=\frac{||f_1-f_2||}{||f_1-f_2’||}$，这种方式计算了第一相似的点和第二相似的点之间的相似度差距，这种差距比较大是符合我们期望的，因为比较大就代表了我们得到的特征混淆可能性低，反之则代表相似的特征点比较多，这个特征不太合适用作对齐。</p>
-<p>&emsp;&emsp;而对于 RANSAC 方法，其本身是一个从误匹配或离群点较多的数据中正确估计数学模型的方法。该方法是基于迭代的概率性算法，其假设为：内点表示正常的数据点，而外点表示误匹配和离群点，整个数据集由内点和外点组成。</p>
-<ul>
-<li>选择出可以估计出模型的最小数据集（对于 H 矩阵随机选择 4 个点即可）</li>
-<li>使用这个数据集计算出模型 H</li>
-<li>将所有数据代入 H，计算内点的数目，比较当前的内点数目和之前最好的内点数，并且选择是否更新模型</li>
-<li>重复前三步，直到目前的内点数目大于给定的阈值或超过迭代次数</li>
-</ul>
-<p>&emsp;&emsp;这里的迭代次数是可以计算的，假设总数据中内点的概率为 $t$，预期能够获取的模型 H 的正确概率为 $P$，每次模型采样 $N$ 个点，（H 矩阵为 4）则迭代次数 $k=\frac{\log (1-P)}{\log (1-t^N)}$。</p>
-<p>👉👉👉👉👉👉对 SIFT 特征子的距离匹配（仅匹配概率最大的前 100 个点）</p>
-<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127211847840.png" alt="image-20221127211847840" style="zoom:150%;"></p>
-<p>👉👉👉👉👉👉使用 RANSAC 方法找到在上述匹配中的内点，并且构造出模型 H，结果为：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">H = [[ <span class="number">9.03698224e-01</span> -<span class="number">3.28876988e-02</span>  <span class="number">1.58813667e+02</span>]</span><br><span class="line"> [-<span class="number">2.37023637e-02</span>  <span class="number">9.45220683e-01</span>  <span class="number">5.04870429e+01</span>]</span><br><span class="line"> [-<span class="number">7.30423646e-05</span> -<span class="number">2.73295440e-05</span>  <span class="number">1.00000000e+00</span>]]</span><br></pre></td></tr></table></figure>
-<h3 id="基于单应矩阵-H-的图像变换与拼接"><a href="#基于单应矩阵-H-的图像变换与拼接" class="headerlink" title="基于单应矩阵 H 的图像变换与拼接"></a>基于单应矩阵 H 的图像变换与拼接</h3><p>&emsp;&emsp;基于已经求出的单应矩阵 H，使用 warp 方法对左图进行 Perspective 变换得到 warp 之后的图像以及合成之后的总图像：</p>
-<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127212531760.png" alt="image-20221127212531760" style="zoom:150%;"></p>
-<p>&emsp;&emsp;其中图像融合的方法为：</p>
-<ul>
-<li>对左图进行 warp</li>
-<li>将右图填充到左图的左侧</li>
-</ul>
-<p>&emsp;&emsp;这里无论是计算 left 映射到 right 的 H 矩阵还是计算 right 到 left 的 H 矩阵都可以得到同样的结果，从效果上看，右面似乎更好一些，但是这是和图像质量密切相关的：</p>
-<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127213833895.png" alt="image-20221127213833895" style="zoom:150%;"></p>
-<h3 id="实验总结"><a href="#实验总结" class="headerlink" title="实验总结"></a>实验总结</h3><p>&emsp;&emsp;实验的关键在于是否使用 RANSAC 方法，也就是对于不同特征点的匹配性，消融实验如下：</p>
-<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127214148342.png" alt="image-20221127214148342" style="zoom:150%;"></p>
-<p>&emsp;&emsp;这里尽管没有使用 RANSAC 方法，warp 之后的图像看上去也没有失真，这是因为之前 match 的特征点仅保留了最接近的 100 个，可见尽管如此仍然由不少的离群点，而如果保留 1000 个match 特征点，不使用 RANSAC 方法则会完全失真，实验结果如下。</p>
-<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127214843068.png" alt="image-20221127214843068" style="zoom:150%;"></p>
-<h3 id="demo"><a href="#demo" class="headerlink" title="demo"></a>demo</h3><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#%% import</span></span><br><span class="line"><span class="keyword">import</span> cv2</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="comment">#%% read image</span></span><br><span class="line">left_img = cv2.imread(<span class="string">&#x27;left.png&#x27;</span>)</span><br><span class="line">right_img = cv2.imread(<span class="string">&#x27;right.png&#x27;</span>)</span><br><span class="line">fig, ax = plt.subplots(<span class="number">1</span>, <span class="number">2</span>, figsize=(<span class="number">10</span>, <span class="number">5</span>))</span><br><span class="line">ax[<span class="number">0</span>].imshow(left_img)</span><br><span class="line">ax[<span class="number">0</span>].set_title(<span class="string">&#x27;Left Image&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>].imshow(right_img)</span><br><span class="line">ax[<span class="number">1</span>].set_title(<span class="string">&#x27;Right Image&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line"><span class="comment">#%% SIFT feature detection</span></span><br><span class="line">li_gray = cv2.cvtColor(left_img, cv2.COLOR_BGR2GRAY)</span><br><span class="line">ri_gray = cv2.cvtColor(right_img, cv2.COLOR_BGR2GRAY)</span><br><span class="line">sift = cv2.SIFT_create()</span><br><span class="line">kp1, des1 = sift.detectAndCompute(li_gray, <span class="literal">None</span>)</span><br><span class="line">kp2, des2 = sift.detectAndCompute(ri_gray, <span class="literal">None</span>)</span><br><span class="line">li, ri = left_img.copy(), right_img.copy()</span><br><span class="line">cv2.drawKeypoints(li, kp1, li, (<span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>))</span><br><span class="line">cv2.drawKeypoints(ri, kp2, ri, (<span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>))</span><br><span class="line">fig, ax = plt.subplots(<span class="number">1</span>, <span class="number">2</span>, figsize=(<span class="number">10</span>, <span class="number">5</span>))</span><br><span class="line">ax[<span class="number">0</span>].imshow(li)</span><br><span class="line">ax[<span class="number">0</span>].set_title(<span class="string">&#x27;Left Image&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>].imshow(ri)</span><br><span class="line">ax[<span class="number">1</span>].set_title(<span class="string">&#x27;Right Image&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line"><span class="comment">#%% feature matching</span></span><br><span class="line">matcher = cv2.DescriptorMatcher_create(<span class="string">&quot;BruteForce&quot;</span>)</span><br><span class="line">matches = <span class="built_in">list</span>(matcher.match(des1, des2, <span class="literal">None</span>))</span><br><span class="line">matches.sort(key=<span class="keyword">lambda</span> x: x.distance, reverse=<span class="literal">False</span>)</span><br><span class="line">matches_all = matches.copy()</span><br><span class="line">matches = matches[:<span class="number">100</span>]</span><br><span class="line">imMatches = cv2.drawMatches(left_img, kp1, right_img, kp2, matches, <span class="literal">None</span>)</span><br><span class="line">fig, ax = plt.subplots(<span class="number">1</span>, <span class="number">1</span>, figsize=(<span class="number">10</span>, <span class="number">5</span>))</span><br><span class="line">ax.imshow(imMatches)</span><br><span class="line">ax.set_title(<span class="string">&#x27;Matches&#x27;</span>)</span><br><span class="line">ax.axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line"><span class="comment">#%% RANSAC to find homography H</span></span><br><span class="line">match_kp_left = np.array([kp1[m.queryIdx].pt <span class="keyword">for</span> m <span class="keyword">in</span> matches])</span><br><span class="line">match_kp_right = np.array([kp2[m.trainIdx].pt <span class="keyword">for</span> m <span class="keyword">in</span> matches])</span><br><span class="line"><span class="comment"># (H, status) = cv2.findHomography(match_kp_left, match_kp_right, cv2.RANSAC, 4.0)</span></span><br><span class="line">(H2, status2) = cv2.findHomography(match_kp_left, match_kp_right, <span class="literal">None</span>, <span class="number">4.0</span>)</span><br><span class="line"></span><br><span class="line">match_kp_left_all = np.array([kp1[m.queryIdx].pt <span class="keyword">for</span> m <span class="keyword">in</span> matches_all])</span><br><span class="line">match_kp_right_all = np.array([kp2[m.trainIdx].pt <span class="keyword">for</span> m <span class="keyword">in</span> matches_all])</span><br><span class="line">(H, status) = cv2.findHomography(match_kp_left_all, match_kp_right_all, cv2.RANSAC, <span class="number">4.0</span>)</span><br><span class="line">(H3, status3) = cv2.findHomography(match_kp_left_all, match_kp_right_all, <span class="literal">None</span>, <span class="number">4.0</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;H = <span class="subst">&#123;H&#125;</span>&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;H2 = <span class="subst">&#123;H2&#125;</span>&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;H3 = <span class="subst">&#123;H3&#125;</span>&#x27;</span>)</span><br><span class="line"><span class="comment"># H =&gt; 使用 RANSAC 算法计算的单应性矩阵，保留特征点前 100 个</span></span><br><span class="line"><span class="comment"># H2 =&gt; 不使用 RANSAC 算法计算的单应性矩阵，保留特征点前 100 个</span></span><br><span class="line"><span class="comment"># H3 =&gt; 不使用 RANSAC 算法计算的单应性矩阵，保留特征点前 1000 个</span></span><br><span class="line"><span class="comment">#%% warp image</span></span><br><span class="line">warp_left = cv2.warpPerspective(left_img, H, (left_img.shape[<span class="number">1</span>] + right_img.shape[<span class="number">1</span>], left_img.shape[<span class="number">0</span>]))</span><br><span class="line">warp_all = warp_left.copy()</span><br><span class="line">warp_all[<span class="number">0</span>:right_img.shape[<span class="number">0</span>], <span class="number">0</span>:right_img.shape[<span class="number">1</span>]] = right_img</span><br><span class="line">fig, ax = plt.subplots(<span class="number">2</span>, <span class="number">1</span>, figsize=(<span class="number">10</span>, <span class="number">5</span>))</span><br><span class="line">ax[<span class="number">0</span>].imshow(warp_left)</span><br><span class="line">ax[<span class="number">0</span>].set_title(<span class="string">&#x27;Warp Left Image&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>].imshow(warp_all)</span><br><span class="line">ax[<span class="number">1</span>].set_title(<span class="string">&#x27;Warp All Image&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line"><span class="comment">#%% warp image w/o RANSAC in 100 matches</span></span><br><span class="line">warp_left_none = cv2.warpPerspective(left_img, H2, (left_img.shape[<span class="number">1</span>] + right_img.shape[<span class="number">1</span>], left_img.shape[<span class="number">0</span>]))</span><br><span class="line">warp_all_none = warp_left_none.copy()</span><br><span class="line">warp_all_none[<span class="number">0</span>:right_img.shape[<span class="number">0</span>], <span class="number">0</span>:right_img.shape[<span class="number">1</span>]] = right_img</span><br><span class="line">fig, ax = plt.subplots(<span class="number">2</span>, <span class="number">2</span>, figsize=(<span class="number">10</span>, <span class="number">5</span>))</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">0</span>].imshow(warp_left_none)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">0</span>].set_title(<span class="string">&#x27;Warp Left Image none&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">1</span>].imshow(warp_all_none)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">1</span>].set_title(<span class="string">&#x27;Warp All Image none&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">0</span>].imshow(warp_left)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">0</span>].set_title(<span class="string">&#x27;Warp Left Image RANSAC&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">1</span>].imshow(warp_all)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">1</span>].set_title(<span class="string">&#x27;Warp All Image RANSAC&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line"><span class="comment">#%% warp image w/o RANSAC in 1000 matches</span></span><br><span class="line">warp_left_all = cv2.warpPerspective(left_img, H3, (left_img.shape[<span class="number">1</span>] + right_img.shape[<span class="number">1</span>], left_img.shape[<span class="number">0</span>]))</span><br><span class="line">warp_all_all = warp_left_all.copy()</span><br><span class="line">warp_all_all[<span class="number">0</span>:right_img.shape[<span class="number">0</span>], <span class="number">0</span>:right_img.shape[<span class="number">1</span>]] = right_img</span><br><span class="line">fig, ax = plt.subplots(<span class="number">2</span>, <span class="number">2</span>, figsize=(<span class="number">10</span>, <span class="number">5</span>))</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">0</span>].imshow(warp_left_all)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">0</span>].set_title(<span class="string">&#x27;Warp Left Image None 1000&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">1</span>].imshow(warp_all_all)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">1</span>].set_title(<span class="string">&#x27;Warp All Image None 1000&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">0</span>].imshow(warp_left)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">0</span>].set_title(<span class="string">&#x27;Warp Left Image RANSAC 1000&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">1</span>].imshow(warp_all)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">1</span>].set_title(<span class="string">&#x27;Warp All Image RANSAC 1000&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>methods</category>
-      </categories>
-  </entry>
-  <entry>
     <title>复数</title>
     <url>/%E5%A4%8D%E6%95%B0/</url>
     <content><![CDATA[<h3 id="分母有理化"><a href="#分母有理化" class="headerlink" title="分母有理化"></a>分母有理化</h3><span id="more"></span>
@@ -3739,6 +3681,64 @@ g(x)=W_g\times x</script><p>&emsp;&emsp;显然，对于 方程 $(2)$ 的前半�
 ]]></content>
       <categories>
         <category>math_high_school</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>图像对齐和图像拼接</title>
+    <url>/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/</url>
+    <content><![CDATA[<p>👉👉👉👉👉👉本次实验选取来自 <a href="http://www.liushuaicheng.org/TIP/VideoStitching2016/index.html">论文</a> 的数据集  video2 的视频帧，通过 SIFT 特征点检测进行图像对齐，其第一帧的左，右视图如下：</p>
+<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127210155800.png" alt="image-20221127210155800" style="zoom: 150%;"></p>
+<span id="more"></span>
+<h3 id="图像的-SIFT-特征检测原理"><a href="#图像的-SIFT-特征检测原理" class="headerlink" title="图像的 SIFT 特征检测原理"></a>图像的 SIFT 特征检测原理</h3><p>&emsp;&emsp;SIFT 特征全称 Scale Invariant Feature Transform（尺度不变特征变换），通过 SIFT 生成的特征点具备对旋转、尺度缩放、平移、亮度变化、视角变化、仿射变换、噪声的鲁棒性。</p>
+<p>&emsp;&emsp;为了寻找视觉不变性的特征，需要对图像使用尺度空间方法，即在图像模型中引入尺度参数。常见的尺度空间由 LoG 产生，但是 LoG 较难计算，后面发现 DoG 能够近似代替 LoG，因此 SIFT 使用 DoG 空间作为尺度空间获取关键点。</p>
+<h4 id="DoG-空间的计算"><a href="#DoG-空间的计算" class="headerlink" title="DoG 空间的计算"></a>DoG 空间的计算</h4><p>&emsp;&emsp;对 DoG 空间的有效性可以这样理解：使用高 $\sigma$ 和低 $\sigma$ 分别产生的模糊与不模糊的图像作差即可得到边缘。这也解释了 DoG 空间检测出的极值点实际上对边缘具备更强的响应。</p>
+<p>&emsp;&emsp;在计算 DoG 空间之前需要先计算 SIFT 高斯金字塔，区别于普通的高斯金字塔，SIFT 高斯金字塔每一层具有多个图像，每一层最低端的图像单独拿出来就是普通的高斯金字塔。在金字塔的每一层内，从下往上的 $\sigma$ 逐渐增大，即在每一层内越向上的图像越模糊。</p>
+<p>&emsp;&emsp;对于构建好的 SIFT 金字塔中每个层的图像做上下差分，即可得到 DoG 空间。</p>
+<h4 id="使用-DoG-空间获取极值点"><a href="#使用-DoG-空间获取极值点" class="headerlink" title="使用 DoG 空间获取极值点"></a>使用 DoG 空间获取极值点</h4><p>&emsp;&emsp;这里采用的判断逻辑是斑点的判断方式，但是和斑点不同的是 DoG 的极值点需要额外对比上下两层的点，类似于使用 3Dconv 进行卷积。 </p>
+<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127203341901.png" alt="image-20221127203341901"></p>
+<h4 id="关键点处理"><a href="#关键点处理" class="headerlink" title="关键点处理"></a>关键点处理</h4><p>&emsp;&emsp;对于上一步中获得的极值点，其具备一些缺点：1. 对边缘响应太大，2. 同一个特征检测出的特征点较多，3. 特征点是离散像素，位置不够精确。而对于这些缺点，接下来需要进一步处理这些特征点。</p>
+<p>&emsp;&emsp;对于边缘响应问题，需要计算特征点处的 Hessian 矩阵 H，这个矩阵的特征值代表了 x, y 方向的梯度，接下来需要利用两个特征值的比计算出一个阈值，将横边缘相比垂直边缘具备较大主曲率的特征点剔除；对于特征点多的问题，采用 NMS 过一遍即可；对于离散像素位置不精确问题，需要对尺度空间进行曲线拟合，利用 DoG 函数的泰勒展开计算出插值中心的偏移量，针对偏移量的大小判断是否需要改变关键点位置并逐次迭代，最终插值中心就是原位置加上基于尺度的偏移量。</p>
+<h4 id="估计关键点方向"><a href="#估计关键点方向" class="headerlink" title="估计关键点方向"></a>估计关键点方向</h4><p>&emsp;&emsp;由于关键点同时应当具备旋转不变形，因此需要确定关键点的方向，其做法如下：</p>
+<ul>
+<li>在不同的尺度上计算图像的梯度，计算范围是特征点的邻域，然后统计成直方图</li>
+<li>将直方图中最大值的梯度定为主方向，超过最大值80%的方向定为辅方向【将所有的梯度归到八个正交方向上】</li>
+</ul>
+<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127204838014.png" alt="image-20221127204838014" style="zoom:50%;"></p>
+<h4 id="生成关键点的描述子"><a href="#生成关键点的描述子" class="headerlink" title="生成关键点的描述子"></a>生成关键点的描述子</h4><p>&emsp;&emsp;为了保证旋转不变性，需要将特征点邻域内的图像旋转一个方向角 $\theta$，然后重新栅格化图像，更新梯度。接着对每个特征点的邻域分成十六个子邻域，每个子邻域的梯度分到八个方向，统计各个方向的梯度信息最终形成一个 128 维度的向量作为特征描述。</p>
+<p>&emsp;&emsp;为了去除光照产生的影响，对特征向量进行归一化处理，然后为了去除相机饱和度等因素的影响，对梯度较大的值进行截断（0.2），然后再进行一次归一化，最终根据特征点的尺度对特征向量进行排序即可得到最终的描述子。</p>
+<p>👉👉👉👉👉👉经过 SIFT 特征检测得到的特征如下图所示</p>
+<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127210417139.png" alt="image-20221127210417139" style="zoom:150%;"></p>
+<h3 id="特征描述子的距离匹配和-RANSAC-方法"><a href="#特征描述子的距离匹配和-RANSAC-方法" class="headerlink" title="特征描述子的距离匹配和 RANSAC 方法"></a>特征描述子的距离匹配和 RANSAC 方法</h3><p>&emsp;&emsp;为了描述特征的距离，可以使用简单的 L2 距离，但是这样对于比较接近的特征点会出现错误匹配的情况。</p>
+<p>&emsp;&emsp;因此更多的选用 ratio distance，即 $ d=\frac{||f_1-f_2||}{||f_1-f_2’||}$，这种方式计算了第一相似的点和第二相似的点之间的相似度差距，这种差距比较大是符合我们期望的，因为比较大就代表了我们得到的特征混淆可能性低，反之则代表相似的特征点比较多，这个特征不太合适用作对齐。</p>
+<p>&emsp;&emsp;而对于 RANSAC 方法，其本身是一个从误匹配或离群点较多的数据中正确估计数学模型的方法。该方法是基于迭代的概率性算法，其假设为：内点表示正常的数据点，而外点表示误匹配和离群点，整个数据集由内点和外点组成。</p>
+<ul>
+<li>选择出可以估计出模型的最小数据集（对于 H 矩阵随机选择 4 个点即可）</li>
+<li>使用这个数据集计算出模型 H</li>
+<li>将所有数据代入 H，计算内点的数目，比较当前的内点数目和之前最好的内点数，并且选择是否更新模型</li>
+<li>重复前三步，直到目前的内点数目大于给定的阈值或超过迭代次数</li>
+</ul>
+<p>&emsp;&emsp;这里的迭代次数是可以计算的，假设总数据中内点的概率为 $t$，预期能够获取的模型 H 的正确概率为 $P$，每次模型采样 $N$ 个点，（H 矩阵为 4）则迭代次数 $k=\frac{\log (1-P)}{\log (1-t^N)}$。</p>
+<p>👉👉👉👉👉👉对 SIFT 特征子的距离匹配（仅匹配概率最大的前 100 个点）</p>
+<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127211847840.png" alt="image-20221127211847840" style="zoom:150%;"></p>
+<p>👉👉👉👉👉👉使用 RANSAC 方法找到在上述匹配中的内点，并且构造出模型 H，结果为：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">H = [[ <span class="number">9.03698224e-01</span> -<span class="number">3.28876988e-02</span>  <span class="number">1.58813667e+02</span>]</span><br><span class="line"> [-<span class="number">2.37023637e-02</span>  <span class="number">9.45220683e-01</span>  <span class="number">5.04870429e+01</span>]</span><br><span class="line"> [-<span class="number">7.30423646e-05</span> -<span class="number">2.73295440e-05</span>  <span class="number">1.00000000e+00</span>]]</span><br></pre></td></tr></table></figure>
+<h3 id="基于单应矩阵-H-的图像变换与拼接"><a href="#基于单应矩阵-H-的图像变换与拼接" class="headerlink" title="基于单应矩阵 H 的图像变换与拼接"></a>基于单应矩阵 H 的图像变换与拼接</h3><p>&emsp;&emsp;基于已经求出的单应矩阵 H，使用 warp 方法对左图进行 Perspective 变换得到 warp 之后的图像以及合成之后的总图像：</p>
+<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127212531760.png" alt="image-20221127212531760" style="zoom:150%;"></p>
+<p>&emsp;&emsp;其中图像融合的方法为：</p>
+<ul>
+<li>对左图进行 warp</li>
+<li>将右图填充到左图的左侧</li>
+</ul>
+<p>&emsp;&emsp;这里无论是计算 left 映射到 right 的 H 矩阵还是计算 right 到 left 的 H 矩阵都可以得到同样的结果，从效果上看，右面似乎更好一些，但是这是和图像质量密切相关的：</p>
+<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127213833895.png" alt="image-20221127213833895" style="zoom:150%;"></p>
+<h3 id="实验总结"><a href="#实验总结" class="headerlink" title="实验总结"></a>实验总结</h3><p>&emsp;&emsp;实验的关键在于是否使用 RANSAC 方法，也就是对于不同特征点的匹配性，消融实验如下：</p>
+<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127214148342.png" alt="image-20221127214148342" style="zoom:150%;"></p>
+<p>&emsp;&emsp;这里尽管没有使用 RANSAC 方法，warp 之后的图像看上去也没有失真，这是因为之前 match 的特征点仅保留了最接近的 100 个，可见尽管如此仍然由不少的离群点，而如果保留 1000 个match 特征点，不使用 RANSAC 方法则会完全失真，实验结果如下。</p>
+<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127214843068.png" alt="image-20221127214843068" style="zoom:150%;"></p>
+<h3 id="demo"><a href="#demo" class="headerlink" title="demo"></a>demo</h3><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#%% import</span></span><br><span class="line"><span class="keyword">import</span> cv2</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="comment">#%% read image</span></span><br><span class="line">left_img = cv2.imread(<span class="string">&#x27;left.png&#x27;</span>)</span><br><span class="line">right_img = cv2.imread(<span class="string">&#x27;right.png&#x27;</span>)</span><br><span class="line">fig, ax = plt.subplots(<span class="number">1</span>, <span class="number">2</span>, figsize=(<span class="number">10</span>, <span class="number">5</span>))</span><br><span class="line">ax[<span class="number">0</span>].imshow(left_img)</span><br><span class="line">ax[<span class="number">0</span>].set_title(<span class="string">&#x27;Left Image&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>].imshow(right_img)</span><br><span class="line">ax[<span class="number">1</span>].set_title(<span class="string">&#x27;Right Image&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line"><span class="comment">#%% SIFT feature detection</span></span><br><span class="line">li_gray = cv2.cvtColor(left_img, cv2.COLOR_BGR2GRAY)</span><br><span class="line">ri_gray = cv2.cvtColor(right_img, cv2.COLOR_BGR2GRAY)</span><br><span class="line">sift = cv2.SIFT_create()</span><br><span class="line">kp1, des1 = sift.detectAndCompute(li_gray, <span class="literal">None</span>)</span><br><span class="line">kp2, des2 = sift.detectAndCompute(ri_gray, <span class="literal">None</span>)</span><br><span class="line">li, ri = left_img.copy(), right_img.copy()</span><br><span class="line">cv2.drawKeypoints(li, kp1, li, (<span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>))</span><br><span class="line">cv2.drawKeypoints(ri, kp2, ri, (<span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>))</span><br><span class="line">fig, ax = plt.subplots(<span class="number">1</span>, <span class="number">2</span>, figsize=(<span class="number">10</span>, <span class="number">5</span>))</span><br><span class="line">ax[<span class="number">0</span>].imshow(li)</span><br><span class="line">ax[<span class="number">0</span>].set_title(<span class="string">&#x27;Left Image&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>].imshow(ri)</span><br><span class="line">ax[<span class="number">1</span>].set_title(<span class="string">&#x27;Right Image&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line"><span class="comment">#%% feature matching</span></span><br><span class="line">matcher = cv2.DescriptorMatcher_create(<span class="string">&quot;BruteForce&quot;</span>)</span><br><span class="line">matches = <span class="built_in">list</span>(matcher.match(des1, des2, <span class="literal">None</span>))</span><br><span class="line">matches.sort(key=<span class="keyword">lambda</span> x: x.distance, reverse=<span class="literal">False</span>)</span><br><span class="line">matches_all = matches.copy()</span><br><span class="line">matches = matches[:<span class="number">100</span>]</span><br><span class="line">imMatches = cv2.drawMatches(left_img, kp1, right_img, kp2, matches, <span class="literal">None</span>)</span><br><span class="line">fig, ax = plt.subplots(<span class="number">1</span>, <span class="number">1</span>, figsize=(<span class="number">10</span>, <span class="number">5</span>))</span><br><span class="line">ax.imshow(imMatches)</span><br><span class="line">ax.set_title(<span class="string">&#x27;Matches&#x27;</span>)</span><br><span class="line">ax.axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line"><span class="comment">#%% RANSAC to find homography H</span></span><br><span class="line">match_kp_left = np.array([kp1[m.queryIdx].pt <span class="keyword">for</span> m <span class="keyword">in</span> matches])</span><br><span class="line">match_kp_right = np.array([kp2[m.trainIdx].pt <span class="keyword">for</span> m <span class="keyword">in</span> matches])</span><br><span class="line"><span class="comment"># (H, status) = cv2.findHomography(match_kp_left, match_kp_right, cv2.RANSAC, 4.0)</span></span><br><span class="line">(H2, status2) = cv2.findHomography(match_kp_left, match_kp_right, <span class="literal">None</span>, <span class="number">4.0</span>)</span><br><span class="line"></span><br><span class="line">match_kp_left_all = np.array([kp1[m.queryIdx].pt <span class="keyword">for</span> m <span class="keyword">in</span> matches_all])</span><br><span class="line">match_kp_right_all = np.array([kp2[m.trainIdx].pt <span class="keyword">for</span> m <span class="keyword">in</span> matches_all])</span><br><span class="line">(H, status) = cv2.findHomography(match_kp_left_all, match_kp_right_all, cv2.RANSAC, <span class="number">4.0</span>)</span><br><span class="line">(H3, status3) = cv2.findHomography(match_kp_left_all, match_kp_right_all, <span class="literal">None</span>, <span class="number">4.0</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;H = <span class="subst">&#123;H&#125;</span>&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;H2 = <span class="subst">&#123;H2&#125;</span>&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;H3 = <span class="subst">&#123;H3&#125;</span>&#x27;</span>)</span><br><span class="line"><span class="comment"># H =&gt; 使用 RANSAC 算法计算的单应性矩阵，保留特征点前 100 个</span></span><br><span class="line"><span class="comment"># H2 =&gt; 不使用 RANSAC 算法计算的单应性矩阵，保留特征点前 100 个</span></span><br><span class="line"><span class="comment"># H3 =&gt; 不使用 RANSAC 算法计算的单应性矩阵，保留特征点前 1000 个</span></span><br><span class="line"><span class="comment">#%% warp image</span></span><br><span class="line">warp_left = cv2.warpPerspective(left_img, H, (left_img.shape[<span class="number">1</span>] + right_img.shape[<span class="number">1</span>], left_img.shape[<span class="number">0</span>]))</span><br><span class="line">warp_all = warp_left.copy()</span><br><span class="line">warp_all[<span class="number">0</span>:right_img.shape[<span class="number">0</span>], <span class="number">0</span>:right_img.shape[<span class="number">1</span>]] = right_img</span><br><span class="line">fig, ax = plt.subplots(<span class="number">2</span>, <span class="number">1</span>, figsize=(<span class="number">10</span>, <span class="number">5</span>))</span><br><span class="line">ax[<span class="number">0</span>].imshow(warp_left)</span><br><span class="line">ax[<span class="number">0</span>].set_title(<span class="string">&#x27;Warp Left Image&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>].imshow(warp_all)</span><br><span class="line">ax[<span class="number">1</span>].set_title(<span class="string">&#x27;Warp All Image&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line"><span class="comment">#%% warp image w/o RANSAC in 100 matches</span></span><br><span class="line">warp_left_none = cv2.warpPerspective(left_img, H2, (left_img.shape[<span class="number">1</span>] + right_img.shape[<span class="number">1</span>], left_img.shape[<span class="number">0</span>]))</span><br><span class="line">warp_all_none = warp_left_none.copy()</span><br><span class="line">warp_all_none[<span class="number">0</span>:right_img.shape[<span class="number">0</span>], <span class="number">0</span>:right_img.shape[<span class="number">1</span>]] = right_img</span><br><span class="line">fig, ax = plt.subplots(<span class="number">2</span>, <span class="number">2</span>, figsize=(<span class="number">10</span>, <span class="number">5</span>))</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">0</span>].imshow(warp_left_none)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">0</span>].set_title(<span class="string">&#x27;Warp Left Image none&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">1</span>].imshow(warp_all_none)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">1</span>].set_title(<span class="string">&#x27;Warp All Image none&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">0</span>].imshow(warp_left)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">0</span>].set_title(<span class="string">&#x27;Warp Left Image RANSAC&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">1</span>].imshow(warp_all)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">1</span>].set_title(<span class="string">&#x27;Warp All Image RANSAC&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line"><span class="comment">#%% warp image w/o RANSAC in 1000 matches</span></span><br><span class="line">warp_left_all = cv2.warpPerspective(left_img, H3, (left_img.shape[<span class="number">1</span>] + right_img.shape[<span class="number">1</span>], left_img.shape[<span class="number">0</span>]))</span><br><span class="line">warp_all_all = warp_left_all.copy()</span><br><span class="line">warp_all_all[<span class="number">0</span>:right_img.shape[<span class="number">0</span>], <span class="number">0</span>:right_img.shape[<span class="number">1</span>]] = right_img</span><br><span class="line">fig, ax = plt.subplots(<span class="number">2</span>, <span class="number">2</span>, figsize=(<span class="number">10</span>, <span class="number">5</span>))</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">0</span>].imshow(warp_left_all)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">0</span>].set_title(<span class="string">&#x27;Warp Left Image None 1000&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">1</span>].imshow(warp_all_all)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">1</span>].set_title(<span class="string">&#x27;Warp All Image None 1000&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">0</span>].imshow(warp_left)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">0</span>].set_title(<span class="string">&#x27;Warp Left Image RANSAC 1000&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">1</span>].imshow(warp_all)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">1</span>].set_title(<span class="string">&#x27;Warp All Image RANSAC 1000&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>methods</category>
       </categories>
   </entry>
   <entry>
