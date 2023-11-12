@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"bnucsy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="BoxSnake: Polygonal Instance Segmentation with Box Supervision   【segmentation】【ICCV2023】【paper】【code】 abstract&amp;emsp;&amp;emsp;本文首次仅使用 box-level anno 监督 polygon-level 分割，在假设（1.物体边界通常有像素变化；2.在物体 box 的邻域内，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BoxSnake">
+<meta property="og:url" content="http://bnucsy.github.io/BoxSnake/index.html">
+<meta property="og:site_name" content="CSY&#39;s blog">
+<meta property="og:description" content="BoxSnake: Polygonal Instance Segmentation with Box Supervision   【segmentation】【ICCV2023】【paper】【code】 abstract&amp;emsp;&amp;emsp;本文首次仅使用 box-level anno 监督 polygon-level 分割，在假设（1.物体边界通常有像素变化；2.在物体 box 的邻域内，">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://bnucsy.github.io/BoxSnake/image-20231110094336781.png">
+<meta property="og:image" content="http://bnucsy.github.io/BoxSnake/image-20231110110238854.png">
+<meta property="og:image" content="http://bnucsy.github.io/BoxSnake/image-20231112211157085.png">
+<meta property="og:image" content="http://bnucsy.github.io/BoxSnake/image-20231112214532066.png">
+<meta property="og:image" content="http://bnucsy.github.io/BoxSnake/image-20231112221542743.png">
+<meta property="og:image" content="http://bnucsy.github.io/BoxSnake/image-20231112222622703.png">
+<meta property="og:image" content="http://bnucsy.github.io/BoxSnake/image-20231112222703927.png">
+<meta property="article:published_time" content="2023-11-10T01:31:37.000Z">
+<meta property="article:modified_time" content="2023-11-12T14:27:19.728Z">
+<meta property="article:author" content="ShuYang Chu">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://bnucsy.github.io/BoxSnake/image-20231110094336781.png">
+
+<link rel="canonical" href="http://bnucsy.github.io/BoxSnake/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>BoxSnake | CSY's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CSY's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/bnucsy/" class="github-corner" title="Follow me on Github" aria-label="Follow me on Github" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://bnucsy.github.io/BoxSnake/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ShuYang Chu">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CSY's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          BoxSnake
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-11-10 09:31:37" itemprop="dateCreated datePublished" datetime="2023-11-10T09:31:37+08:00">2023-11-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-11-12 22:27:19" itemprop="dateModified" datetime="2023-11-12T22:27:19+08:00">2023-11-12</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper/" itemprop="url" rel="index"><span itemprop="name">paper</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/paper/cv/" itemprop="url" rel="index"><span itemprop="name">cv</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/BoxSnake/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/BoxSnake/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2><center> BoxSnake: Polygonal Instance Segmentation with Box Supervision </center></h2>
+
+<p>【segmentation】【ICCV2023】【<a target="_blank" rel="noopener" href="http://arxiv.org/abs/2303.11630">paper</a>】【<a target="_blank" rel="noopener" href="https://github.com/Yangr116/BoxSnake">code</a>】</p>
+<h3 id="abstract"><a href="#abstract" class="headerlink" title="abstract"></a>abstract</h3><p>&emsp;&emsp;本文首次仅使用 box-level anno 监督 polygon-level 分割，在假设（1.物体边界通常有像素变化；2.在物体 box 的邻域内，物体内外区域像素应分布均匀）成立下，提出了针对两个假设进行约束的损失函数，使 box-level 的分割可以细化至 polygon-level 的分割。</p>
+<h3 id="overview"><a href="#overview" class="headerlink" title="overview"></a>overview</h3><p><img src="/BoxSnake/image-20231110094336781.png" alt="image-20231110094336781" style="zoom:50%;"></p>
+<span id="more"></span>
+<hr>
+<h3 id="contribution"><a href="#contribution" class="headerlink" title="contribution"></a>contribution</h3><ul>
+<li>首次仅使用 box-level 监督模型进行 polygon-level 的分割预测</li>
+<li>提出 local pairwise loss 用以约束 instance 边缘的像素变化</li>
+<li>提出 global pairwise loss 用以约束 instance 内外的像素分布均匀（仅考虑 box 领域内）</li>
+</ul>
+<h3 id="formulation"><a href="#formulation" class="headerlink" title="formulation"></a>formulation</h3><p>&emsp;&emsp;输入图像 $\mathcal{I}\in\mathbb{R}^{H\times W\times3}$，其像素点集合记为 $\Omega_{\mathcal{I}}$；模型将会对 $N$ 个物体预测 $N$ 个多边形集合，每个多边形集合为 $\mathcal{C}=\{(x_i,y_i)\}_{i=1}^K$ 表示每个多边形由 $K$ 个点组成。</p>
+<h3 id="framework"><a href="#framework" class="headerlink" title="framework"></a>framework</h3><p><img src="/BoxSnake/image-20231110110238854.png" alt="image-20231110110238854" style="zoom: 30%;"></p>
+<ol>
+<li><p>模型首先使用 ResNet 输出 box（此 box 采用 Mask R-CNN 的方式监督）和 FPN Features，并<strong>直接在全图按照椭圆采样</strong>初始化 polygon points</p>
+</li>
+<li><p>将 polygon points 进行 embedding 之后输入由一系列 SA 和 Cross-SA 组成的 transformer blocks，根据输出的 offset for each point 得到最终的输出</p>
+</li>
+</ol>
+<p>&emsp;&emsp;本文的工作重点不在于此框架，更应该关注的是如何使用损失函数约束 refined points。本文共提出了三个损失函数从三个不同的层面进行约束：</p>
+<ul>
+<li><strong>Point-based Unary Loss</strong>：用于优化 refined points 的 box</li>
+</ul>
+<p>&emsp;&emsp;这里的损失函数非常简单，使用 CIoU 进行 box-level 的监督。具体来说，i) 对最终输出的点集 $\mathcal{C}_r$，计算 $(x_1,y_1)=\min(\mathcal{C}_r),\ (x_2,y_2)=\max(\mathcal{C}_r)$，ii) 依据 $(x_1,y_1)$ 作为左上角，$(x_2,y_2)$ 作为右上角计算得到预测 box $b_c$，iii) 计算损失 $\mathcal{L}_u=1-CIoU(b_c,b_{gt})$。</p>
+<p>&emsp;&emsp;在这样的损失监督下，即使是最好的情况，也只能保证 box-level 的预测，反映在多边形上可能是 random 的点或者在“更期望和原始 box 一致”的要求下尽可能像边缘移动，如下图 $(b)$ 所示。</p>
+<p><img src="/BoxSnake/image-20231112211157085.png" alt="image-20231112211157085" style="zoom:50%;"></p>
+<ul>
+<li><strong>Local Pairwise Loss：</strong>用于优化最终输出，使多边形边缘和像素变化位置重合</li>
+</ul>
+<p>&emsp;&emsp;这是这篇文章最主要的贡献，讲道理想到“多边形边缘是像素变化较大的位置”并不困难，但如何设计对应的损失函数，既要反映此规律，又能正确回传梯度、有效率地优化不太容易。$\mathcal{L}_{lp}$ 大致可以描述为：<strong>在一个邻域内，任意两个像素之间的色彩相似度 $w$ 和分类惩罚 $\Delta u$（in box or not）乘积之和</strong>。简单来说，对于两个相近的色彩，色彩相似度 $w$ 会比较大，而如果此时两个像素没有被分到同一类，则 $\Delta u$ 也会很大，就会产生很大的惩罚项。模型会被迫让相似度大的像素被分为一类。</p>
+<p>&emsp;&emsp;在位置 $(i,j)$ 处，记其 $k\times k$ 邻域内的像素集合为 $\Omega_k^{(i,j)}$，类别函数（一元）为 $\mathcal{U_C}$，相似度计算函数（二元）为 $\mathcal{W}$。定义相似度计算函数为：$\mathcal{W}(\mathcal{I}(i,j),\mathcal{I}(p,q))=\exp(-\frac{|\mathcal{I}(i,j)-\mathcal{I}(p,q)|_2}{2\tau_1^2})$，其中 $\tau_1$ 为温度超参。简单来说就是，颜色越像，值越大。</p>
+<p>&emsp;&emsp;类别函数相对复杂：$\mathcal{U_C}(i,j)=\sigma(\frac{2\cdot(\Phi(i,j)-0.5)\cdot \mathcal{D_C}(i,j) }{\tau_2})$，其中 $\sigma$ 即为 Sigmoid；$\Phi(i,j)=1\ \mathrm{if}\ (i,j)\ \mathrm{in\ Polygon\ else\ 0}$ 表示点是否在多边形之中；$\mathcal{D_C}$ 是距离函数，表示 $(i,j)$ 距离最近的多边形边缘的欧氏距离；$\tau_2$ 是另一个温度超参。简单来说可以理解为 soft 的 0-1 分类函数。大致示意如下图：</p>
+<p><img src="/BoxSnake/image-20231112214532066.png" alt="image-20231112214532066" style="zoom:50%;"></p>
+<p>&emsp;&emsp;总结来说，约束相似颜色之间不存在多边形的损失函数为：</p>
+<script type="math/tex; mode=display">
+\mathcal{L}_{lp}=\sum\limits_{(p,q)\in\Omega_k^{(i,j)}}\mathcal{W}(\mathcal{I}(i,j),\mathcal{I}(p,q))\cdot\|\mathcal{U_C}(i,j)-\mathcal{U_C}(p,q)\|_1</script><p>&emsp;&emsp;尽管 $\mathcal{U_C}$ 看上去很复杂，但其实际起到的作用就是硬分类函数 $\Phi$ 的作用，之所以搞复杂是因为 $\Phi$ 无法回传梯度，而 $\mathcal{U_C}$ 的梯度可以通过 $\mathcal{D_C}$ 回传到多边形点集上。</p>
+<ul>
+<li><strong>Global Pairwise Loss：</strong>防止模型在 $\mathcal{L}_{lp}$ 优化下受到太多干扰（但实验似乎表明没有这种现象，同时 $\mathcal{L}_{gp}$ 的超参只有 0.03）</li>
+</ul>
+<p>&emsp;&emsp;对于 $\mathcal{L}_{lp}$，模型可能受到大量的干扰（instance 内的像素变化位置太多，混淆了边界位置像素变化），因此 $\mathcal{L}_{gp}$ 用于清除这种混淆， $\mathcal{L}_{gp}$ 将会使 $\mathcal{U_C}$ 内/外的像素方差更小。由于 $\mathcal{U_C}$ 是 soft boundary，因此 $\mathcal{L}_{gp}$ 定义为：</p>
+<script type="math/tex; mode=display">
+\mathcal{L}_{gp} = \sum\limits_{(x,y)\in\Omega}\|\mathcal{I}(x,y)-u_{in} \|_2\cdot \mathcal{U_C}(x,y)+\sum\limits_{(x,y)\in\Omega}\|\mathcal{I}(x,y)-u_{out} \|_2\cdot (1-\mathcal{U_C}(x,y))</script><p> &emsp;&emsp;其中 $u_{in},u_{out}$ 就表示 instance 内外的像素色彩均值，在 soft 的情况下定义为加权平均：</p>
+<script type="math/tex; mode=display">
+u_{in}=\frac{\sum\limits_{(x,y)\in\Omega_c}\mathcal{I}(x,y)\cdot\mathcal{U_C}(x,y)}{\sum\limits_{(x,y)\in\Omega_c}\mathcal{U_C}(x,y)}\\
+u_{out}=\frac{\sum\limits_{(x,y)\in\Omega_c}\mathcal{I}(x,y)\cdot(1-\mathcal{U_C}(x,y))}{\sum\limits_{(x,y)\in\Omega_c}(1-\mathcal{U_C}(x,y))}</script><p>&emsp;&emsp;需要特别指出：上式中 $\Omega_c$ 指的并不是所有像素集合 $\Omega_{\mathcal I}$，而是按照预测的多边形点集 $\mathcal C$ 进行简单扩展并 crop&amp;resize 得到的新图像，过程如下图所示。这很容易理解，因为 GP 的假设是 instance 内外的像素一致性，但是一张图有多个 instance，外部像素不可能一致，因此这种 clipped-image 当做的“global”才是更合理的。</p>
+<p><img src="/BoxSnake/image-20231112221542743.png" alt="image-20231112221542743" style="zoom: 33%;"></p>
+<p>&emsp;&emsp;总结而言，三个损失函数直接按照线性进行组合：</p>
+<script type="math/tex; mode=display">
+\mathcal{L}_{ploygon}=\mathcal{L}_u+\alpha\mathcal{L}_{lp}+\beta\mathcal{L}_{gp},\ \mathrm{where\ \alpha=0.5,\ \beta=0.03}</script><h3 id="experiment"><a href="#experiment" class="headerlink" title="experiment"></a>experiment</h3><p>&emsp;&emsp;大部分实验结果表明本方法有一定的提升能力，但也要注意到本方法是 box-2-polygon 的，和其他 box-2-mask 的方法本身就有着一定的优势。另外需要指出，在定量、定性的消融实验中，global pairwise 损失相对于 local pairwise 损失的有效性相当“轻微”</p>
+<p><img src="/BoxSnake/image-20231112222622703.png" alt="image-20231112222622703" style="zoom:50%;"></p>
+<p><img src="/BoxSnake/image-20231112222703927.png" alt="image-20231112222703927" style="zoom:50%;"></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>ShuYang Chu
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://bnucsy.github.io/BoxSnake/" title="BoxSnake">http://bnucsy.github.io/BoxSnake/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/Co-rectification/" rel="prev" title="multi-network learning rPPG">
+      <i class="fa fa-chevron-left"></i> multi-network learning rPPG
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"> BoxSnake: Polygonal Instance Segmentation with Box Supervision </span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#abstract"><span class="nav-text">abstract</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#overview"><span class="nav-text">overview</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#contribution"><span class="nav-text">contribution</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#formulation"><span class="nav-text">formulation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#framework"><span class="nav-text">framework</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#experiment"><span class="nav-text">experiment</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ShuYang Chu</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">59</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ShuYang Chu</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'gSZuY7rr1fsTF5DTHs68r5lu-gzGzoHsz',
+      appKey     : 'JqjUXxwDxPg9qbRlCyMx3gkg',
+      placeholder: "在这里写下评论",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
