@@ -77,55 +77,6 @@ O(u_i, x) = ||D(u_i,x)-D(u_c,x+(u_c-u_i)\times D(u_i,x))||_1</script><p>&emsp;&e
       </categories>
   </entry>
   <entry>
-    <title>原始transformer</title>
-    <url>/Attention%20is%20all%20you%20need/</url>
-    <content><![CDATA[<h2 id="attention-is-all-you-need【机器翻译】【NIPS】"><a href="#attention-is-all-you-need【机器翻译】【NIPS】" class="headerlink" title="attention is all you need【机器翻译】【NIPS】"></a><a href="https://papers.nips.cc/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf">attention is all you need</a>【机器翻译】【NIPS】</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;原始transformer，RNN（解决 序列建模/位置敏感）$\to$ LSTM（解决 参数依赖/难以训练）$\to$transformer（解决 并行运算）。此篇笔记简要介绍网络、详细分析过程</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Attention%20is%20all%20you%20need/image-20220504100751796.png" alt="image-20220504100751796"></p>
-<span id="more"></span>
-<hr>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/Attention%20is%20all%20you%20need/image-20220504100937194.png" alt="image-20220504100937194" style="zoom: 67%;"></p>
-<p>&emsp;&emsp;上图是网络概览图，简单概括：transformer由编码器和解码器两部分组成，对于编码器和解码器，在输入之前都有embedding部分和位置编码部分。</p>
-<h3 id="理论"><a href="#理论" class="headerlink" title="理论"></a>理论</h3><h4 id="embedding-and-positionEncoding"><a href="#embedding-and-positionEncoding" class="headerlink" title="embedding and positionEncoding"></a>embedding and positionEncoding</h4><p>&emsp;&emsp;embedding部分主要目的是将输入的词进行向量化表示。对输入的句子$X$，应当有$X=\{x_i\}_n \to (l,n)$，其中 $l$ 为句子个数，即batchsize，$n$为句子中单词的个数的最大值，$x_i \to (1,x_d)$，具体维度并不确定。对每一个单词进行embedding操作【可以使用的方法包括glove, word2Vec等】，将会得到$X’=\{w_i\}_n\to (n,d)$，其中$w_i\to (1,d)$，$d$代表转化之后每个单词的维度。在标准transformer中为512。</p>
-<p>&emsp;&emsp;此时得到的向量$X’$中不包含位置信息，为了包含位置信息，加入位置编码矩阵$P \to (n,d)$。具体来说，对于位置为 $pos$ 的词向量，对该向量第 $i$ 个位置（$2k$ 或 $2k+1$）的值，有：</p>
-<script type="math/tex; mode=display">
-P(pos,2k)=\sin(\frac{pos}{10000^{2k/d}}),k\in Z</script><script type="math/tex; mode=display">
-P(pos,2k+1) = \cos(\frac{pos}{10000^{2k/d}}),k\in Z</script><p>&emsp;&emsp;在得到位置编码之后，需要进行相加操作得到最终的编码结果，即 $A = P+X’\to(n,d)$。</p>
-<p>&emsp;&emsp;虽然位置编码到这里就结束了，但是在实际操作中有些具体细节，包括 ①decoder网络的输入不允许网络看到当前位置之后的数据，因此需要有一个mask上三角矩阵，②对于长度不足 $n$ 的句子的padding。</p>
-<h4 id="encoder"><a href="#encoder" class="headerlink" title="encoder"></a>encoder</h4><p>&emsp;&emsp;encoder层如网络结构图所示，其本身是一个循环结构，因此要求输入输出维度一致，标准transformer循环层数为6。具体到每一个encoder层，其包含一个MHA（多头自注意力层）和一个FFN（前馈网络）。更具体地，每一个encoder层对embedding得到的矩阵 $A$，有 $A^{(i)} \to MHA(A) \to Z\to FFN(Z)\to A^{(i+1)}$。</p>
-<p>&emsp;&emsp;对于MHA，其全称为MultiHeadAttention，其由多个Self-Attention并行组成，对于每一个Self-Attention，有如下的计算过程：</p>
-<hr>
-<p>&emsp;&emsp;记 $A =\{a_i\}_n\to (n,d)$，$a_i\to (1,d)$，对每一个 $a_i$ 计算 $Q_i,K_i,V_i\to(1,k)$，其中 $k$ 可以表示对每个单词提取的特征维度，在标准transformer上是64，维度的进一步变小是为了方便计算。$Q,K,V$ 的计算公式为：</p>
-<script type="math/tex; mode=display">
-Q_i=a_i\times W_Q</script><script type="math/tex; mode=display">
-K_i= a_i\times W_k</script><script type="math/tex; mode=display">
-V_i=a_i\times W_V</script><p>&emsp;&emsp;其中，$W_Q,W_K,W_V \to (d,k)$ 是随机初始化得到的，属于网络中的参数，随梯度进行更新。将上述计算过程写成矩阵的格式，即为 $Q=A\times W_Q\to (n,k)$，$K,V$ 同 $Q$。此时对于如 $Q=\{Q_i\},Q_i\to (1,k)$ 表示第 $i$ 个单词的 $k$ 个特征。$Q,K,V$ 分别表示 Query, Key, Value。</p>
-<p>&emsp;&emsp;形象化地理解 $Q,K,V$ 可以以浏览器查询为例子， 其中 $Q$ 表示需要查询的字段，$K$ 表示知识库包含的字段，$V$ 表示知识库中该字段的返回结果。使用 $Q_i\times K_i$ 即可得到对于某个查询在某字段的“得分”。将得分变化至0-1之间，再与 $V_i$ 相乘即可得到在某个字段的解，所有的 $V_i$ 求和即可得到最终 $Q_i$ 的查询结果。</p>
-<p>&emsp;&emsp;按照以上思路，对于 $a_i$ 可以得到 $Z_i= \sum\limits_{j\in[1,k]} \rm softmax (\frac{ Q_i\times K_i^T}{\sqrt d_k})\times V_i \to(1,k)$，其中 $d_k$ 表示 $Q,K,V$ 的第二维度，即 $k$。重写成矩阵的形式，即可得到：</p>
-<script type="math/tex; mode=display">
-Z=\rm softmax (\frac{Q\times K^T}{\sqrt {d_k}})\times V \to(n,k)</script><p>&emsp;&emsp;这个式子虽然很好地表示了 $Z$ 的求法，但是在实际计算的过程之中，对于得到 $Q\times K^T$ 需要进行mask，即和mask矩阵按位相乘，目的是使被padding部分的注意力清零。</p>
-<hr>
-<p>&emsp;&emsp;上述过程讲述了如何通过输入 $A\to(n,d)$ 求得对应的Self-Attention输出 $Z\to(n,k)$，但是在实际操作过程中往往使用MHA，即不共享参数同时并行计算 $p$ 个 $Z$，标准transformer计算8个。</p>
-<p>&emsp;&emsp;对得到的 $Z_0\to Z_7$，将其横向拼接得到 $Z_{mix}\to(n,p\times k)$，然后对 $Z_{mix}$ 进行线性变换，经过一个Linear层将 $Z_{mix}$ 映射到 $Z’\to(n,d)$，此时的 $Z’$ 将会经过 $A\&amp;N$ 后送至FFN 。</p>
-<h4 id="Add-and-Norm"><a href="#Add-and-Norm" class="headerlink" title="Add and Norm"></a>Add and Norm</h4><p>&emsp;&emsp;对于 $A\&amp;N$，大致上 $Add$ 对应残差连接，$Norm$ 对应 LayerNorm。具体来说，对于MHA，$A\&amp;N$ 输出的结果是 $\rm LayerNorm(A + MHA(A))$。对于FFN，输出为 $\rm LayerNorm(Z’+FFN(Z’))$ 。</p>
-<h4 id="FFN"><a href="#FFN" class="headerlink" title="FFN"></a>FFN</h4><p>&emsp;&emsp;FFN网络结构简单，由两个线性层组成，在第一个线性层之后经过RELU，再经过第二个线性层，具体来说两个线性层维度为 $d\to 2048\to d$。</p>
-<p>&emsp;&emsp;FFN包括上述的 A&amp;N 部分看起来很容易，但是原论文中进行了消融实验，这两个部分非常重要，尤其对于FFN部分。FFN部分是positionWise的，即这个网络实际上是对每一个维度进行的，类似于kernel=1的Conv2d。</p>
-<h4 id="decoder"><a href="#decoder" class="headerlink" title="decoder"></a>decoder</h4><p>&emsp;&emsp;decoder部分整体和encoder部分没有太大的差别，区别在于decoder具备两个MHA，两个MHA在实现上和encoder的均略有不同。</p>
-<p>&emsp;&emsp;对于第一个Masked MHA，首先是起始与终止符，对于输入的序列，起始符号为\<begin\>，终止符号是\<end\>，分别代表句首和句尾。其次是mask，在计算输入的时候就需要进行mask，对每个输入句子，输入的第 $i$ 个句子仅能看到前 $i$ 个词语。除此之外，在计算出 $Q\times K^T$ 之后也需要进行mask。这两个mask操作都是直接按位乘mask矩阵。mask矩阵为上三角矩阵，举例来说，对 4 个单词。</end\></begin\></p>
-<script type="math/tex; mode=display">
-mask = \begin{pmatrix}
-1~1~1~1\\
-0~1~1~1\\
-0~0~1~1\\
-0~0~0~1
-\end{pmatrix}</script><p>&emsp;&emsp;对于第二个MHA，其 $Q,K,V$ 不单独计算，其中 $K,V$ 直接使用encoder输出的结果，$Q$ 使用第一个masked MHA输出的 $A$ 单独进行 $Q$ 的计算。之后的 $A\&amp;N$ 部分也使用第一个masked MHA的输出作为输入。</p>
-<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;标准transformer的损失采用交叉熵损失，但是在实际的操作过程中需要忽略padding的输出和ground truth。除此之外，学习率 $l$ 优化器使用Adam优化器，随着训练轮数 $s$ 先变大后变小。</p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>nlp</category>
-      </categories>
-  </entry>
-  <entry>
     <title>Anchor_based_colorization</title>
     <url>/Anchor_based_colorization/</url>
     <content><![CDATA[<h2><center> Disentangled Image Colorization via Global Anchors </center></h2>
@@ -215,67 +166,6 @@ mask = \begin{pmatrix}
 <p><img src="/Anchor_based_colorization/image-20230214105919533.png" alt="image-20230214105919533" style="zoom: 50%;"></p>
 <p>&emsp;&emsp;同时在是否存在锚点分支、是否进行软像素分割、是否进行基于像素级别的增强、是否进行特征聚类四个方面分别进行了消融实验。</p>
 <p><img src="/Anchor_based_colorization/image-20230214105953306.png" alt="image-20230214105953306" style="zoom: 67%;"></p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>BoxSnake</title>
-    <url>/BoxSnake/</url>
-    <content><![CDATA[<h2><center> BoxSnake: Polygonal Instance Segmentation with Box Supervision </center></h2>
-
-<p>【segmentation】【ICCV2023】【<a href="http://arxiv.org/abs/2303.11630">paper</a>】【<a href="https://github.com/Yangr116/BoxSnake">code</a>】</p>
-<h3 id="abstract"><a href="#abstract" class="headerlink" title="abstract"></a>abstract</h3><p>&emsp;&emsp;本文首次仅使用 box-level anno 监督 polygon-level 分割，在假设（1.物体边界通常有像素变化；2.在物体 box 的邻域内，物体内外区域像素应分布均匀）成立下，提出了针对两个假设进行约束的损失函数，使 box-level 的分割可以细化至 polygon-level 的分割。</p>
-<h3 id="overview"><a href="#overview" class="headerlink" title="overview"></a>overview</h3><p><img src="/BoxSnake/image-20231110094336781.png" alt="image-20231110094336781" style="zoom:50%;"></p>
-<span id="more"></span>
-<hr>
-<h3 id="contribution"><a href="#contribution" class="headerlink" title="contribution"></a>contribution</h3><ul>
-<li>首次仅使用 box-level 监督模型进行 polygon-level 的分割预测</li>
-<li>提出 local pairwise loss 用以约束 instance 边缘的像素变化</li>
-<li>提出 global pairwise loss 用以约束 instance 内外的像素分布均匀（仅考虑 box 领域内）</li>
-</ul>
-<h3 id="formulation"><a href="#formulation" class="headerlink" title="formulation"></a>formulation</h3><p>&emsp;&emsp;输入图像 $\mathcal{I}\in\mathbb{R}^{H\times W\times3}$，其像素点集合记为 $\Omega_{\mathcal{I}}$；模型将会对 $N$ 个物体预测 $N$ 个多边形集合，每个多边形集合为 $\mathcal{C}=\{(x_i,y_i)\}_{i=1}^K$ 表示每个多边形由 $K$ 个点组成。</p>
-<h3 id="framework"><a href="#framework" class="headerlink" title="framework"></a>framework</h3><p><img src="/BoxSnake/image-20231110110238854.png" alt="image-20231110110238854" style="zoom: 30%;"></p>
-<ol>
-<li><p>模型首先使用 ResNet 输出 box（此 box 采用 Mask R-CNN 的方式监督）和 FPN Features，并<strong>直接在全图按照椭圆采样</strong>初始化 polygon points</p>
-</li>
-<li><p>将 polygon points 进行 embedding 之后输入由一系列 SA 和 Cross-SA 组成的 transformer blocks，根据输出的 offset for each point 得到最终的输出</p>
-</li>
-</ol>
-<p>&emsp;&emsp;本文的工作重点不在于此框架，更应该关注的是如何使用损失函数约束 refined points。本文共提出了三个损失函数从三个不同的层面进行约束：</p>
-<ul>
-<li><strong>Point-based Unary Loss</strong>：用于优化 refined points 的 box</li>
-</ul>
-<p>&emsp;&emsp;这里的损失函数非常简单，使用 CIoU 进行 box-level 的监督。具体来说，i) 对最终输出的点集 $\mathcal{C}_r$，计算 $(x_1,y_1)=\min(\mathcal{C}_r),\ (x_2,y_2)=\max(\mathcal{C}_r)$，ii) 依据 $(x_1,y_1)$ 作为左上角，$(x_2,y_2)$ 作为右上角计算得到预测 box $b_c$，iii) 计算损失 $\mathcal{L}_u=1-CIoU(b_c,b_{gt})$。</p>
-<p>&emsp;&emsp;在这样的损失监督下，即使是最好的情况，也只能保证 box-level 的预测，反映在多边形上可能是 random 的点或者在“更期望和原始 box 一致”的要求下尽可能像边缘移动，如下图 $(b)$ 所示。</p>
-<p><img src="/BoxSnake/image-20231112211157085.png" alt="image-20231112211157085" style="zoom:50%;"></p>
-<ul>
-<li><strong>Local Pairwise Loss：</strong>用于优化最终输出，使多边形边缘和像素变化位置重合</li>
-</ul>
-<p>&emsp;&emsp;这是这篇文章最主要的贡献，讲道理想到“多边形边缘是像素变化较大的位置”并不困难，但如何设计对应的损失函数，既要反映此规律，又能正确回传梯度、有效率地优化不太容易。$\mathcal{L}_{lp}$ 大致可以描述为：<strong>在一个邻域内，任意两个像素之间的色彩相似度 $w$ 和分类惩罚 $\Delta u$（in box or not）乘积之和</strong>。简单来说，对于两个相近的色彩，色彩相似度 $w$ 会比较大，而如果此时两个像素没有被分到同一类，则 $\Delta u$ 也会很大，就会产生很大的惩罚项。模型会被迫让相似度大的像素被分为一类。</p>
-<p>&emsp;&emsp;在位置 $(i,j)$ 处，记其 $k\times k$ 邻域内的像素集合为 $\Omega_k^{(i,j)}$，类别函数（一元）为 $\mathcal{U_C}$，相似度计算函数（二元）为 $\mathcal{W}$。定义相似度计算函数为：$\mathcal{W}(\mathcal{I}(i,j),\mathcal{I}(p,q))=\exp(-\frac{|\mathcal{I}(i,j)-\mathcal{I}(p,q)|_2}{2\tau_1^2})$，其中 $\tau_1$ 为温度超参。简单来说就是，颜色越像，值越大。</p>
-<p>&emsp;&emsp;类别函数相对复杂：$\mathcal{U_C}(i,j)=\sigma(\frac{2\cdot(\Phi(i,j)-0.5)\cdot \mathcal{D_C}(i,j) }{\tau_2})$，其中 $\sigma$ 即为 Sigmoid；$\Phi(i,j)=1\ \mathrm{if}\ (i,j)\ \mathrm{in\ Polygon\ else\ 0}$ 表示点是否在多边形之中；$\mathcal{D_C}$ 是距离函数，表示 $(i,j)$ 距离最近的多边形边缘的欧氏距离；$\tau_2$ 是另一个温度超参。简单来说可以理解为 soft 的 0-1 分类函数。大致示意如下图：</p>
-<p><img src="/BoxSnake/image-20231112214532066.png" alt="image-20231112214532066" style="zoom:50%;"></p>
-<p>&emsp;&emsp;总结来说，约束相似颜色之间不存在多边形的损失函数为：</p>
-<script type="math/tex; mode=display">
-\mathcal{L}_{lp}=\sum\limits_{(p,q)\in\Omega_k^{(i,j)}}\mathcal{W}(\mathcal{I}(i,j),\mathcal{I}(p,q))\cdot\|\mathcal{U_C}(i,j)-\mathcal{U_C}(p,q)\|_1</script><p>&emsp;&emsp;尽管 $\mathcal{U_C}$ 看上去很复杂，但其实际起到的作用就是硬分类函数 $\Phi$ 的作用，之所以搞复杂是因为 $\Phi$ 无法回传梯度，而 $\mathcal{U_C}$ 的梯度可以通过 $\mathcal{D_C}$ 回传到多边形点集上。</p>
-<ul>
-<li><strong>Global Pairwise Loss：</strong>防止模型在 $\mathcal{L}_{lp}$ 优化下受到太多干扰（但实验似乎表明没有这种现象，同时 $\mathcal{L}_{gp}$ 的超参只有 0.03）</li>
-</ul>
-<p>&emsp;&emsp;对于 $\mathcal{L}_{lp}$，模型可能受到大量的干扰（instance 内的像素变化位置太多，混淆了边界位置像素变化），因此 $\mathcal{L}_{gp}$ 用于清除这种混淆， $\mathcal{L}_{gp}$ 将会使 $\mathcal{U_C}$ 内/外的像素方差更小。由于 $\mathcal{U_C}$ 是 soft boundary，因此 $\mathcal{L}_{gp}$ 定义为：</p>
-<script type="math/tex; mode=display">
-\mathcal{L}_{gp} = \sum\limits_{(x,y)\in\Omega}\|\mathcal{I}(x,y)-u_{in} \|_2\cdot \mathcal{U_C}(x,y)+\sum\limits_{(x,y)\in\Omega}\|\mathcal{I}(x,y)-u_{out} \|_2\cdot (1-\mathcal{U_C}(x,y))</script><p> &emsp;&emsp;其中 $u_{in},u_{out}$ 就表示 instance 内外的像素色彩均值，在 soft 的情况下定义为加权平均：</p>
-<script type="math/tex; mode=display">
-u_{in}=\frac{\sum\limits_{(x,y)\in\Omega_c}\mathcal{I}(x,y)\cdot\mathcal{U_C}(x,y)}{\sum\limits_{(x,y)\in\Omega_c}\mathcal{U_C}(x,y)}\\
-u_{out}=\frac{\sum\limits_{(x,y)\in\Omega_c}\mathcal{I}(x,y)\cdot(1-\mathcal{U_C}(x,y))}{\sum\limits_{(x,y)\in\Omega_c}(1-\mathcal{U_C}(x,y))}</script><p>&emsp;&emsp;需要特别指出：上式中 $\Omega_c$ 指的并不是所有像素集合 $\Omega_{\mathcal I}$，而是按照预测的多边形点集 $\mathcal C$ 进行简单扩展并 crop&amp;resize 得到的新图像，过程如下图所示。这很容易理解，因为 GP 的假设是 instance 内外的像素一致性，但是一张图有多个 instance，外部像素不可能一致，因此这种 clipped-image 当做的“global”才是更合理的。</p>
-<p><img src="/BoxSnake/image-20231112221542743.png" alt="image-20231112221542743" style="zoom: 33%;"></p>
-<p>&emsp;&emsp;总结而言，三个损失函数直接按照线性进行组合：</p>
-<script type="math/tex; mode=display">
-\mathcal{L}_{ploygon}=\mathcal{L}_u+\alpha\mathcal{L}_{lp}+\beta\mathcal{L}_{gp},\ \mathrm{where\ \alpha=0.5,\ \beta=0.03}</script><h3 id="experiment"><a href="#experiment" class="headerlink" title="experiment"></a>experiment</h3><p>&emsp;&emsp;大部分实验结果表明本方法有一定的提升能力，但也要注意到本方法是 box-2-polygon 的，和其他 box-2-mask 的方法本身就有着一定的优势。另外需要指出，在定量、定性的消融实验中，global pairwise 损失相对于 local pairwise 损失的有效性相当“轻微”</p>
-<p><img src="/BoxSnake/image-20231112222622703.png" alt="image-20231112222622703" style="zoom:50%;"></p>
-<p><img src="/BoxSnake/image-20231112222703927.png" alt="image-20231112222703927" style="zoom:50%;"></p>
 ]]></content>
       <categories>
         <category>paper</category>
@@ -380,49 +270,113 @@ x_{mo}=F(Concat(h_i^b,\ h_i^f))</script><h3 id="结果"><a href="#结果" class=
       </categories>
   </entry>
   <entry>
-    <title>AutoHR</title>
-    <url>/AutoHR/</url>
-    <content><![CDATA[<h2><center> AutoHR: A Strong End-to-end Baseline for Remote Heart Rate Measurement with Neural Searching </center></h2>
+    <title>BoxSnake</title>
+    <url>/BoxSnake/</url>
+    <content><![CDATA[<h2><center> BoxSnake: Polygonal Instance Segmentation with Box Supervision </center></h2>
 
-<p>【心率检测】【SPL2020】【<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&amp;arnumber=9133501">paper</a>】【<a href>code未开源</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种基于 NAS 的心率检测 backbone 设计策略，在操作域中加入了 TDC（时空差分卷积），同时提出了一种时域和频域的混合损失函数，在单数据集和跨数据集上的测试都取得了较好的结果，并且为了解决现有方法泛化能力弱的问题提出了新的数据增强策略，取得了端到端的 SOTA。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/AutoHR/image-20221106184645470.png" alt="image-20221106184645470"></p>
+<p>【segmentation】【ICCV2023】【<a href="http://arxiv.org/abs/2303.11630">paper</a>】【<a href="https://github.com/Yangr116/BoxSnake">code</a>】</p>
+<h3 id="abstract"><a href="#abstract" class="headerlink" title="abstract"></a>abstract</h3><p>&emsp;&emsp;本文首次仅使用 box-level anno 监督 polygon-level 分割，在假设（1.物体边界通常有像素变化；2.在物体 box 的邻域内，物体内外区域像素应分布均匀）成立下，提出了针对两个假设进行约束的损失函数，使 box-level 的分割可以细化至 polygon-level 的分割。</p>
+<h3 id="overview"><a href="#overview" class="headerlink" title="overview"></a>overview</h3><p><img src="/BoxSnake/image-20231110094336781.png" alt="image-20231110094336781" style="zoom:50%;"></p>
 <span id="more"></span>
 <hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>首次使用 NAS 搜索 HR 任务的网络，并且在 NAS 搜索中加入了 TDC</li>
-<li>提出了一种时域频域的 loss，提出两种数据增强策略</li>
+<h3 id="contribution"><a href="#contribution" class="headerlink" title="contribution"></a>contribution</h3><ul>
+<li>首次仅使用 box-level 监督模型进行 polygon-level 的分割预测</li>
+<li>提出 local pairwise loss 用以约束 instance 边缘的像素变化</li>
+<li>提出 global pairwise loss 用以约束 instance 内外的像素分布均匀（仅考虑 box 领域内）</li>
 </ul>
-<h3 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h3><h4 id="NAS（神经结构搜索）"><a href="#NAS（神经结构搜索）" class="headerlink" title="NAS（神经结构搜索）"></a>NAS（神经结构搜索）</h4><p>&emsp;&emsp;NAS(Neural Architecture Search) 意图使用深度学习任务自主设计神经网络，其基本工作流程如下图所示。首先由人工给定搜索的空间以及搜索策略，由机器自主探索空间中的操作组成的网络结构，并根据其网络的表现更新网络架构和超参数。</p>
-<p><img src="/AutoHR/e082b8ba4993c229c993b7dfa19d4641.png" alt="img"></p>
-<p>&emsp;&emsp;但是 NAS 有着难以避免的问题：1.超参数和搜索空间的网络架构都是离散的，2.大量的超参数使得训练时间太长。为了解决这些问题，提出了层次化表示：Learning Transferable Architectures for Scalable Image Recognition，权重共享：Reinforcement Learning for Architecture Search by Network Transformation，表现预测：Progressive Neural Architecture Search 等方法。</p>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><h4 id="TDC"><a href="#TDC" class="headerlink" title="TDC"></a>TDC</h4><p>&emsp;&emsp;时空差分卷积（TDC）是一种新的卷积策略，其卷积过程大致如下图所示。具体来说，对第 $t$ 帧图像 $p_0$ 为位置的 3x3 卷积过程如下：对第 $t$ 帧图像的 $p_0$ 位置进行 expand 操作，扩展到整个 3x3 的大小，并且分别和 $t-1$，$t+1$ 帧的对应位置进行作差。注意这里的作差中 expand 的部分带有一个参数 $\theta$ 用来控制当前帧对临近帧的影响程度，对原位置直接进行卷积，并且将最终的结果相加。</p>
-<p><img src="/AutoHR/image-20221106184757405.png" alt="image-20221106184757405" style="zoom:50%;"></p>
-<p>&emsp;&emsp;上面的过程使用公式可以表示为：</p>
+<h3 id="formulation"><a href="#formulation" class="headerlink" title="formulation"></a>formulation</h3><p>&emsp;&emsp;输入图像 $\mathcal{I}\in\mathbb{R}^{H\times W\times3}$，其像素点集合记为 $\Omega_{\mathcal{I}}$；模型将会对 $N$ 个物体预测 $N$ 个多边形集合，每个多边形集合为 $\mathcal{C}=\{(x_i,y_i)\}_{i=1}^K$ 表示每个多边形由 $K$ 个点组成。</p>
+<h3 id="framework"><a href="#framework" class="headerlink" title="framework"></a>framework</h3><p><img src="/BoxSnake/image-20231110110238854.png" alt="image-20231110110238854" style="zoom: 30%;"></p>
+<ol>
+<li><p>模型首先使用 ResNet 输出 box（此 box 采用 Mask R-CNN 的方式监督）和 FPN Features，并<strong>直接在全图按照椭圆采样</strong>初始化 polygon points</p>
+</li>
+<li><p>将 polygon points 进行 embedding 之后输入由一系列 SA 和 Cross-SA 组成的 transformer blocks，根据输出的 offset for each point 得到最终的输出</p>
+</li>
+</ol>
+<p>&emsp;&emsp;本文的工作重点不在于此框架，更应该关注的是如何使用损失函数约束 refined points。本文共提出了三个损失函数从三个不同的层面进行约束：</p>
+<ul>
+<li><strong>Point-based Unary Loss</strong>：用于优化 refined points 的 box</li>
+</ul>
+<p>&emsp;&emsp;这里的损失函数非常简单，使用 CIoU 进行 box-level 的监督。具体来说，i) 对最终输出的点集 $\mathcal{C}_r$，计算 $(x_1,y_1)=\min(\mathcal{C}_r),\ (x_2,y_2)=\max(\mathcal{C}_r)$，ii) 依据 $(x_1,y_1)$ 作为左上角，$(x_2,y_2)$ 作为右上角计算得到预测 box $b_c$，iii) 计算损失 $\mathcal{L}_u=1-CIoU(b_c,b_{gt})$。</p>
+<p>&emsp;&emsp;在这样的损失监督下，即使是最好的情况，也只能保证 box-level 的预测，反映在多边形上可能是 random 的点或者在“更期望和原始 box 一致”的要求下尽可能像边缘移动，如下图 $(b)$ 所示。</p>
+<p><img src="/BoxSnake/image-20231112211157085.png" alt="image-20231112211157085" style="zoom:50%;"></p>
+<ul>
+<li><strong>Local Pairwise Loss：</strong>用于优化最终输出，使多边形边缘和像素变化位置重合</li>
+</ul>
+<p>&emsp;&emsp;这是这篇文章最主要的贡献，讲道理想到“多边形边缘是像素变化较大的位置”并不困难，但如何设计对应的损失函数，既要反映此规律，又能正确回传梯度、有效率地优化不太容易。$\mathcal{L}_{lp}$ 大致可以描述为：<strong>在一个邻域内，任意两个像素之间的色彩相似度 $w$ 和分类惩罚 $\Delta u$（in box or not）乘积之和</strong>。简单来说，对于两个相近的色彩，色彩相似度 $w$ 会比较大，而如果此时两个像素没有被分到同一类，则 $\Delta u$ 也会很大，就会产生很大的惩罚项。模型会被迫让相似度大的像素被分为一类。</p>
+<p>&emsp;&emsp;在位置 $(i,j)$ 处，记其 $k\times k$ 邻域内的像素集合为 $\Omega_k^{(i,j)}$，类别函数（一元）为 $\mathcal{U_C}$，相似度计算函数（二元）为 $\mathcal{W}$。定义相似度计算函数为：$\mathcal{W}(\mathcal{I}(i,j),\mathcal{I}(p,q))=\exp(-\frac{|\mathcal{I}(i,j)-\mathcal{I}(p,q)|_2}{2\tau_1^2})$，其中 $\tau_1$ 为温度超参。简单来说就是，颜色越像，值越大。</p>
+<p>&emsp;&emsp;类别函数相对复杂：$\mathcal{U_C}(i,j)=\sigma(\frac{2\cdot(\Phi(i,j)-0.5)\cdot \mathcal{D_C}(i,j) }{\tau_2})$，其中 $\sigma$ 即为 Sigmoid；$\Phi(i,j)=1\ \mathrm{if}\ (i,j)\ \mathrm{in\ Polygon\ else\ 0}$ 表示点是否在多边形之中；$\mathcal{D_C}$ 是距离函数，表示 $(i,j)$ 距离最近的多边形边缘的欧氏距离；$\tau_2$ 是另一个温度超参。简单来说可以理解为 soft 的 0-1 分类函数。大致示意如下图：</p>
+<p><img src="/BoxSnake/image-20231112214532066.png" alt="image-20231112214532066" style="zoom:50%;"></p>
+<p>&emsp;&emsp;总结来说，约束相似颜色之间不存在多边形的损失函数为：</p>
 <script type="math/tex; mode=display">
-O(p_0^t)=\mathop\sum\limits_{p_n^{t-1}\in\mathcal R_{t-1}}w(p_n^{t-1})·(I(p_0^{t-1}+p_n^{t-1})-\theta·I(p_0^t))</script><script type="math/tex; mode=display">
-+\mathop\sum\limits_{p_n^{t+1}\in\mathcal R_{t+1}}w(p_n^{t+1})·(I(p_0^{t+1}+p_n^{t+1})-\theta·I(p_0^t))</script><script type="math/tex; mode=display">
-+\mathop\sum\limits_{p_n^{t-1}\in\mathcal R_{t}}w(p_n^{t})·I(p_0^{t}+p_n^{t})</script><h4 id="前向过程"><a href="#前向过程" class="headerlink" title="前向过程"></a>前向过程</h4><p>&emsp;&emsp;正如概览图中所示，整个网络由一个有向无环图进行估计，记所有的操作空间为 $\mathcal O$，对于图中的每一个边 $(i,j)$，其输出为：$\tilde o^{(i,j)}(x_i)=\sum_{o\in\mathcal O}\eta_o^{(i,j)}·o(x_i)$，其中的 $o$  代表操作空间中的每一个操作，$\eta$ 由一个 softmax 的式子给出，$\eta_o^{(i,j)}=\frac{exp(\alpha_o^{(i,j)})}{\sum_{o’\in\mathcal O}exp(\alpha_{o’}^{(i,j)})}$，其中的 $\alpha_o^{(i,j)}$ 表示在边 $(i,j)$ 中操作 $o$ 的权重或系数。</p>
-<p>&emsp;&emsp;在这种表示下，可以通过如下式子进行训练从而找到最适合的 $\alpha$，在训练的过程中，由于有四个 block，这四个 block 可以以共享权重或不共享权重的方式训练，其中权重共享实际上是 NAS 的共识，这样不仅可以加速搜索，同样可以取得更好的结果。本文的消融实验也探讨了这部分。</p>
+\mathcal{L}_{lp}=\sum\limits_{(p,q)\in\Omega_k^{(i,j)}}\mathcal{W}(\mathcal{I}(i,j),\mathcal{I}(p,q))\cdot\|\mathcal{U_C}(i,j)-\mathcal{U_C}(p,q)\|_1</script><p>&emsp;&emsp;尽管 $\mathcal{U_C}$ 看上去很复杂，但其实际起到的作用就是硬分类函数 $\Phi$ 的作用，之所以搞复杂是因为 $\Phi$ 无法回传梯度，而 $\mathcal{U_C}$ 的梯度可以通过 $\mathcal{D_C}$ 回传到多边形点集上。</p>
+<ul>
+<li><strong>Global Pairwise Loss：</strong>防止模型在 $\mathcal{L}_{lp}$ 优化下受到太多干扰（但实验似乎表明没有这种现象，同时 $\mathcal{L}_{gp}$ 的超参只有 0.03）</li>
+</ul>
+<p>&emsp;&emsp;对于 $\mathcal{L}_{lp}$，模型可能受到大量的干扰（instance 内的像素变化位置太多，混淆了边界位置像素变化），因此 $\mathcal{L}_{gp}$ 用于清除这种混淆， $\mathcal{L}_{gp}$ 将会使 $\mathcal{U_C}$ 内/外的像素方差更小。由于 $\mathcal{U_C}$ 是 soft boundary，因此 $\mathcal{L}_{gp}$ 定义为：</p>
 <script type="math/tex; mode=display">
-\min\limits_\alpha \mathcal L_{val(\Phi^*(\alpha),\alpha)},\ s.t.\ \Phi^*(\alpha)=\arg \min\limits_\Phi\mathcal L_{train}(\Phi,\alpha)</script><p>&emsp;&emsp;通过这种方式找到的网络结构每个 cell 中的每一条边都含有所有的 $\mathcal O$ 中的网络算子，并且每一个算子都具备对应的权重，但是这样的网络结构太大，其中的多个算子中某些算子的权重其实非常低，因此作者采用这样的方法进行网络的剪枝以确定最终的网络：1.对于最终的输出 output 的入边，每个边选取一个权重最大的操作保留，2.对于其他的中间节点 B1,B2,B3 的入边，每个选取权重最大的两个操作保留。</p>
-<p><img src="/AutoHR/image-20221106195942710.png" alt="image-20221106195942710" style="zoom:50%;"></p>
-<h4 id="损失函数"><a href="#损失函数" class="headerlink" title="损失函数"></a>损失函数</h4><p>&emsp;&emsp;损失函数包括两个部分，分为时间和频率，其中时间部分就是所谓的线性相关性，具体由下式给出，并且这个函数在 rPPGNet 之中也用到了，不过 rPPGNet 更晚一些就是了。</p>
+\mathcal{L}_{gp} = \sum\limits_{(x,y)\in\Omega}\|\mathcal{I}(x,y)-u_{in} \|_2\cdot \mathcal{U_C}(x,y)+\sum\limits_{(x,y)\in\Omega}\|\mathcal{I}(x,y)-u_{out} \|_2\cdot (1-\mathcal{U_C}(x,y))</script><p> &emsp;&emsp;其中 $u_{in},u_{out}$ 就表示 instance 内外的像素色彩均值，在 soft 的情况下定义为加权平均：</p>
 <script type="math/tex; mode=display">
-\mathcal L_{np}=1-\frac{T\mathop\sum\limits_{i=1}^T y_iy_i^g-\mathop\sum\limits_{i=1}^Ty_i\mathop\sum\limits_{i=1}^Ty_i^g}{\sqrt{(T\mathop\sum\limits_{i=1}^Ty_i^2-(\mathop\sum\limits_{i=1}^Ty_i)^2)(T\mathop\sum\limits_{i=1}^T(y_i^g)^2-(\mathop\sum\limits_{i=1}^Ty_i^g)^2)}}</script><p>&emsp;&emsp;对于频率域，就是对 $y_i$ 求功率谱密度，然后和 GT 做比较，即：</p>
+u_{in}=\frac{\sum\limits_{(x,y)\in\Omega_c}\mathcal{I}(x,y)\cdot\mathcal{U_C}(x,y)}{\sum\limits_{(x,y)\in\Omega_c}\mathcal{U_C}(x,y)}\\
+u_{out}=\frac{\sum\limits_{(x,y)\in\Omega_c}\mathcal{I}(x,y)\cdot(1-\mathcal{U_C}(x,y))}{\sum\limits_{(x,y)\in\Omega_c}(1-\mathcal{U_C}(x,y))}</script><p>&emsp;&emsp;需要特别指出：上式中 $\Omega_c$ 指的并不是所有像素集合 $\Omega_{\mathcal I}$，而是按照预测的多边形点集 $\mathcal C$ 进行简单扩展并 crop&amp;resize 得到的新图像，过程如下图所示。这很容易理解，因为 GP 的假设是 instance 内外的像素一致性，但是一张图有多个 instance，外部像素不可能一致，因此这种 clipped-image 当做的“global”才是更合理的。</p>
+<p><img src="/BoxSnake/image-20231112221542743.png" alt="image-20231112221542743" style="zoom: 33%;"></p>
+<p>&emsp;&emsp;总结而言，三个损失函数直接按照线性进行组合：</p>
 <script type="math/tex; mode=display">
-\mathcal L_{fre}=\sum CE(PSD(y_i),y_i^g)</script><p>&emsp;&emsp;整体来说的损失函数由 $\mathcal L_{overall}=\lambda·\mathcal L_{time}+\mathcal L_{fre}$ 给出，其中 $\lambda$ 用于平衡损失。</p>
-<h4 id="数据增强"><a href="#数据增强" class="headerlink" title="数据增强"></a>数据增强</h4><p>&emsp;&emsp;本文针对现有数据集的两个问题提出了两个数据增强策略：1.头部运动可能导致 ROI 遮挡，2.HR 分布严重不平衡，呈倒 V 形。</p>
-<p>&emsp;&emsp;对于这两个问题的改进为：1.在随机时间片段（小于 20% 的空间大小和 20% 的时间长度）内随机擦除或切除部分时空管，模拟 ROI 遮挡的情况，2.对视频进行时间上采样和下采样，以生成具有极小或极大 HR 值的额外训练样本。具体来说，HR 值大于 90 bpm 的视频将被时间插值两次，而 HR 值小于 70 bpm 的视频将以采样率 2 下采样，分别模拟一半和两倍的心率。</p>
-<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文做了简单的消融实验，针对性地探究了 a）损失函数，b）TDC 中的 $\theta$ 值，c）是否具备 NAS / TDC 部分，d）是否使用数据增强策略。结果如下图所示，虽然基本上都没有提太多，但是每个方法都或多或少提了0.几 的点。</p>
-<p><img src="/AutoHR/image-20221106202041824.png" alt="image-20221106202041824" style="zoom:70%;"></p>
-<p>&emsp;&emsp;除了消融实验，本文还和目前的 SOTA 进行了比较，其中的△表示传统方法，◇表示非端到端的方法，☆表示端到端的深度学习方法。这里的 RhythmNet 是同年的论文，提出了 VIPL-HR，也是很棒的 SOTA 文章。</p>
-<p><img src="/AutoHR/image-20221106202146459.png" alt="image-20221106202146459" style="zoom:80%;"></p>
+\mathcal{L}_{ploygon}=\mathcal{L}_u+\alpha\mathcal{L}_{lp}+\beta\mathcal{L}_{gp},\ \mathrm{where\ \alpha=0.5,\ \beta=0.03}</script><h3 id="experiment"><a href="#experiment" class="headerlink" title="experiment"></a>experiment</h3><p>&emsp;&emsp;大部分实验结果表明本方法有一定的提升能力，但也要注意到本方法是 box-2-polygon 的，和其他 box-2-mask 的方法本身就有着一定的优势。另外需要指出，在定量、定性的消融实验中，global pairwise 损失相对于 local pairwise 损失的有效性相当“轻微”</p>
+<p><img src="/BoxSnake/image-20231112222622703.png" alt="image-20231112222622703" style="zoom:50%;"></p>
+<p><img src="/BoxSnake/image-20231112222703927.png" alt="image-20231112222703927" style="zoom:50%;"></p>
 ]]></content>
       <categories>
         <category>paper</category>
         <category>cv</category>
-        <category>hr</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>原始transformer</title>
+    <url>/Attention%20is%20all%20you%20need/</url>
+    <content><![CDATA[<h2 id="attention-is-all-you-need【机器翻译】【NIPS】"><a href="#attention-is-all-you-need【机器翻译】【NIPS】" class="headerlink" title="attention is all you need【机器翻译】【NIPS】"></a><a href="https://papers.nips.cc/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf">attention is all you need</a>【机器翻译】【NIPS】</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;原始transformer，RNN（解决 序列建模/位置敏感）$\to$ LSTM（解决 参数依赖/难以训练）$\to$transformer（解决 并行运算）。此篇笔记简要介绍网络、详细分析过程</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Attention%20is%20all%20you%20need/image-20220504100751796.png" alt="image-20220504100751796"></p>
+<span id="more"></span>
+<hr>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/Attention%20is%20all%20you%20need/image-20220504100937194.png" alt="image-20220504100937194" style="zoom: 67%;"></p>
+<p>&emsp;&emsp;上图是网络概览图，简单概括：transformer由编码器和解码器两部分组成，对于编码器和解码器，在输入之前都有embedding部分和位置编码部分。</p>
+<h3 id="理论"><a href="#理论" class="headerlink" title="理论"></a>理论</h3><h4 id="embedding-and-positionEncoding"><a href="#embedding-and-positionEncoding" class="headerlink" title="embedding and positionEncoding"></a>embedding and positionEncoding</h4><p>&emsp;&emsp;embedding部分主要目的是将输入的词进行向量化表示。对输入的句子$X$，应当有$X=\{x_i\}_n \to (l,n)$，其中 $l$ 为句子个数，即batchsize，$n$为句子中单词的个数的最大值，$x_i \to (1,x_d)$，具体维度并不确定。对每一个单词进行embedding操作【可以使用的方法包括glove, word2Vec等】，将会得到$X’=\{w_i\}_n\to (n,d)$，其中$w_i\to (1,d)$，$d$代表转化之后每个单词的维度。在标准transformer中为512。</p>
+<p>&emsp;&emsp;此时得到的向量$X’$中不包含位置信息，为了包含位置信息，加入位置编码矩阵$P \to (n,d)$。具体来说，对于位置为 $pos$ 的词向量，对该向量第 $i$ 个位置（$2k$ 或 $2k+1$）的值，有：</p>
+<script type="math/tex; mode=display">
+P(pos,2k)=\sin(\frac{pos}{10000^{2k/d}}),k\in Z</script><script type="math/tex; mode=display">
+P(pos,2k+1) = \cos(\frac{pos}{10000^{2k/d}}),k\in Z</script><p>&emsp;&emsp;在得到位置编码之后，需要进行相加操作得到最终的编码结果，即 $A = P+X’\to(n,d)$。</p>
+<p>&emsp;&emsp;虽然位置编码到这里就结束了，但是在实际操作中有些具体细节，包括 ①decoder网络的输入不允许网络看到当前位置之后的数据，因此需要有一个mask上三角矩阵，②对于长度不足 $n$ 的句子的padding。</p>
+<h4 id="encoder"><a href="#encoder" class="headerlink" title="encoder"></a>encoder</h4><p>&emsp;&emsp;encoder层如网络结构图所示，其本身是一个循环结构，因此要求输入输出维度一致，标准transformer循环层数为6。具体到每一个encoder层，其包含一个MHA（多头自注意力层）和一个FFN（前馈网络）。更具体地，每一个encoder层对embedding得到的矩阵 $A$，有 $A^{(i)} \to MHA(A) \to Z\to FFN(Z)\to A^{(i+1)}$。</p>
+<p>&emsp;&emsp;对于MHA，其全称为MultiHeadAttention，其由多个Self-Attention并行组成，对于每一个Self-Attention，有如下的计算过程：</p>
+<hr>
+<p>&emsp;&emsp;记 $A =\{a_i\}_n\to (n,d)$，$a_i\to (1,d)$，对每一个 $a_i$ 计算 $Q_i,K_i,V_i\to(1,k)$，其中 $k$ 可以表示对每个单词提取的特征维度，在标准transformer上是64，维度的进一步变小是为了方便计算。$Q,K,V$ 的计算公式为：</p>
+<script type="math/tex; mode=display">
+Q_i=a_i\times W_Q</script><script type="math/tex; mode=display">
+K_i= a_i\times W_k</script><script type="math/tex; mode=display">
+V_i=a_i\times W_V</script><p>&emsp;&emsp;其中，$W_Q,W_K,W_V \to (d,k)$ 是随机初始化得到的，属于网络中的参数，随梯度进行更新。将上述计算过程写成矩阵的格式，即为 $Q=A\times W_Q\to (n,k)$，$K,V$ 同 $Q$。此时对于如 $Q=\{Q_i\},Q_i\to (1,k)$ 表示第 $i$ 个单词的 $k$ 个特征。$Q,K,V$ 分别表示 Query, Key, Value。</p>
+<p>&emsp;&emsp;形象化地理解 $Q,K,V$ 可以以浏览器查询为例子， 其中 $Q$ 表示需要查询的字段，$K$ 表示知识库包含的字段，$V$ 表示知识库中该字段的返回结果。使用 $Q_i\times K_i$ 即可得到对于某个查询在某字段的“得分”。将得分变化至0-1之间，再与 $V_i$ 相乘即可得到在某个字段的解，所有的 $V_i$ 求和即可得到最终 $Q_i$ 的查询结果。</p>
+<p>&emsp;&emsp;按照以上思路，对于 $a_i$ 可以得到 $Z_i= \sum\limits_{j\in[1,k]} \rm softmax (\frac{ Q_i\times K_i^T}{\sqrt d_k})\times V_i \to(1,k)$，其中 $d_k$ 表示 $Q,K,V$ 的第二维度，即 $k$。重写成矩阵的形式，即可得到：</p>
+<script type="math/tex; mode=display">
+Z=\rm softmax (\frac{Q\times K^T}{\sqrt {d_k}})\times V \to(n,k)</script><p>&emsp;&emsp;这个式子虽然很好地表示了 $Z$ 的求法，但是在实际计算的过程之中，对于得到 $Q\times K^T$ 需要进行mask，即和mask矩阵按位相乘，目的是使被padding部分的注意力清零。</p>
+<hr>
+<p>&emsp;&emsp;上述过程讲述了如何通过输入 $A\to(n,d)$ 求得对应的Self-Attention输出 $Z\to(n,k)$，但是在实际操作过程中往往使用MHA，即不共享参数同时并行计算 $p$ 个 $Z$，标准transformer计算8个。</p>
+<p>&emsp;&emsp;对得到的 $Z_0\to Z_7$，将其横向拼接得到 $Z_{mix}\to(n,p\times k)$，然后对 $Z_{mix}$ 进行线性变换，经过一个Linear层将 $Z_{mix}$ 映射到 $Z’\to(n,d)$，此时的 $Z’$ 将会经过 $A\&amp;N$ 后送至FFN 。</p>
+<h4 id="Add-and-Norm"><a href="#Add-and-Norm" class="headerlink" title="Add and Norm"></a>Add and Norm</h4><p>&emsp;&emsp;对于 $A\&amp;N$，大致上 $Add$ 对应残差连接，$Norm$ 对应 LayerNorm。具体来说，对于MHA，$A\&amp;N$ 输出的结果是 $\rm LayerNorm(A + MHA(A))$。对于FFN，输出为 $\rm LayerNorm(Z’+FFN(Z’))$ 。</p>
+<h4 id="FFN"><a href="#FFN" class="headerlink" title="FFN"></a>FFN</h4><p>&emsp;&emsp;FFN网络结构简单，由两个线性层组成，在第一个线性层之后经过RELU，再经过第二个线性层，具体来说两个线性层维度为 $d\to 2048\to d$。</p>
+<p>&emsp;&emsp;FFN包括上述的 A&amp;N 部分看起来很容易，但是原论文中进行了消融实验，这两个部分非常重要，尤其对于FFN部分。FFN部分是positionWise的，即这个网络实际上是对每一个维度进行的，类似于kernel=1的Conv2d。</p>
+<h4 id="decoder"><a href="#decoder" class="headerlink" title="decoder"></a>decoder</h4><p>&emsp;&emsp;decoder部分整体和encoder部分没有太大的差别，区别在于decoder具备两个MHA，两个MHA在实现上和encoder的均略有不同。</p>
+<p>&emsp;&emsp;对于第一个Masked MHA，首先是起始与终止符，对于输入的序列，起始符号为\<begin\>，终止符号是\<end\>，分别代表句首和句尾。其次是mask，在计算输入的时候就需要进行mask，对每个输入句子，输入的第 $i$ 个句子仅能看到前 $i$ 个词语。除此之外，在计算出 $Q\times K^T$ 之后也需要进行mask。这两个mask操作都是直接按位乘mask矩阵。mask矩阵为上三角矩阵，举例来说，对 4 个单词。</end\></begin\></p>
+<script type="math/tex; mode=display">
+mask = \begin{pmatrix}
+1~1~1~1\\
+0~1~1~1\\
+0~0~1~1\\
+0~0~0~1
+\end{pmatrix}</script><p>&emsp;&emsp;对于第二个MHA，其 $Q,K,V$ 不单独计算，其中 $K,V$ 直接使用encoder输出的结果，$Q$ 使用第一个masked MHA输出的 $A$ 单独进行 $Q$ 的计算。之后的 $A\&amp;N$ 部分也使用第一个masked MHA的输出作为输入。</p>
+<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;标准transformer的损失采用交叉熵损失，但是在实际的操作过程中需要忽略padding的输出和ground truth。除此之外，学习率 $l$ 优化器使用Adam优化器，随着训练轮数 $s$ 先变大后变小。</p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>nlp</category>
       </categories>
   </entry>
   <entry>
@@ -489,6 +443,96 @@ O(p_0^t)=\mathop\sum\limits_{p_n^{t-1}\in\mathcal R_{t-1}}w(p_n^{t-1})·(I(p_0^{
         <category>paper</category>
         <category>cv</category>
         <category>hr</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>AutoHR</title>
+    <url>/AutoHR/</url>
+    <content><![CDATA[<h2><center> AutoHR: A Strong End-to-end Baseline for Remote Heart Rate Measurement with Neural Searching </center></h2>
+
+<p>【心率检测】【SPL2020】【<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&amp;arnumber=9133501">paper</a>】【<a href>code未开源</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种基于 NAS 的心率检测 backbone 设计策略，在操作域中加入了 TDC（时空差分卷积），同时提出了一种时域和频域的混合损失函数，在单数据集和跨数据集上的测试都取得了较好的结果，并且为了解决现有方法泛化能力弱的问题提出了新的数据增强策略，取得了端到端的 SOTA。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/AutoHR/image-20221106184645470.png" alt="image-20221106184645470"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>首次使用 NAS 搜索 HR 任务的网络，并且在 NAS 搜索中加入了 TDC</li>
+<li>提出了一种时域频域的 loss，提出两种数据增强策略</li>
+</ul>
+<h3 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h3><h4 id="NAS（神经结构搜索）"><a href="#NAS（神经结构搜索）" class="headerlink" title="NAS（神经结构搜索）"></a>NAS（神经结构搜索）</h4><p>&emsp;&emsp;NAS(Neural Architecture Search) 意图使用深度学习任务自主设计神经网络，其基本工作流程如下图所示。首先由人工给定搜索的空间以及搜索策略，由机器自主探索空间中的操作组成的网络结构，并根据其网络的表现更新网络架构和超参数。</p>
+<p><img src="/AutoHR/e082b8ba4993c229c993b7dfa19d4641.png" alt="img"></p>
+<p>&emsp;&emsp;但是 NAS 有着难以避免的问题：1.超参数和搜索空间的网络架构都是离散的，2.大量的超参数使得训练时间太长。为了解决这些问题，提出了层次化表示：Learning Transferable Architectures for Scalable Image Recognition，权重共享：Reinforcement Learning for Architecture Search by Network Transformation，表现预测：Progressive Neural Architecture Search 等方法。</p>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><h4 id="TDC"><a href="#TDC" class="headerlink" title="TDC"></a>TDC</h4><p>&emsp;&emsp;时空差分卷积（TDC）是一种新的卷积策略，其卷积过程大致如下图所示。具体来说，对第 $t$ 帧图像 $p_0$ 为位置的 3x3 卷积过程如下：对第 $t$ 帧图像的 $p_0$ 位置进行 expand 操作，扩展到整个 3x3 的大小，并且分别和 $t-1$，$t+1$ 帧的对应位置进行作差。注意这里的作差中 expand 的部分带有一个参数 $\theta$ 用来控制当前帧对临近帧的影响程度，对原位置直接进行卷积，并且将最终的结果相加。</p>
+<p><img src="/AutoHR/image-20221106184757405.png" alt="image-20221106184757405" style="zoom:50%;"></p>
+<p>&emsp;&emsp;上面的过程使用公式可以表示为：</p>
+<script type="math/tex; mode=display">
+O(p_0^t)=\mathop\sum\limits_{p_n^{t-1}\in\mathcal R_{t-1}}w(p_n^{t-1})·(I(p_0^{t-1}+p_n^{t-1})-\theta·I(p_0^t))</script><script type="math/tex; mode=display">
++\mathop\sum\limits_{p_n^{t+1}\in\mathcal R_{t+1}}w(p_n^{t+1})·(I(p_0^{t+1}+p_n^{t+1})-\theta·I(p_0^t))</script><script type="math/tex; mode=display">
++\mathop\sum\limits_{p_n^{t-1}\in\mathcal R_{t}}w(p_n^{t})·I(p_0^{t}+p_n^{t})</script><h4 id="前向过程"><a href="#前向过程" class="headerlink" title="前向过程"></a>前向过程</h4><p>&emsp;&emsp;正如概览图中所示，整个网络由一个有向无环图进行估计，记所有的操作空间为 $\mathcal O$，对于图中的每一个边 $(i,j)$，其输出为：$\tilde o^{(i,j)}(x_i)=\sum_{o\in\mathcal O}\eta_o^{(i,j)}·o(x_i)$，其中的 $o$  代表操作空间中的每一个操作，$\eta$ 由一个 softmax 的式子给出，$\eta_o^{(i,j)}=\frac{exp(\alpha_o^{(i,j)})}{\sum_{o’\in\mathcal O}exp(\alpha_{o’}^{(i,j)})}$，其中的 $\alpha_o^{(i,j)}$ 表示在边 $(i,j)$ 中操作 $o$ 的权重或系数。</p>
+<p>&emsp;&emsp;在这种表示下，可以通过如下式子进行训练从而找到最适合的 $\alpha$，在训练的过程中，由于有四个 block，这四个 block 可以以共享权重或不共享权重的方式训练，其中权重共享实际上是 NAS 的共识，这样不仅可以加速搜索，同样可以取得更好的结果。本文的消融实验也探讨了这部分。</p>
+<script type="math/tex; mode=display">
+\min\limits_\alpha \mathcal L_{val(\Phi^*(\alpha),\alpha)},\ s.t.\ \Phi^*(\alpha)=\arg \min\limits_\Phi\mathcal L_{train}(\Phi,\alpha)</script><p>&emsp;&emsp;通过这种方式找到的网络结构每个 cell 中的每一条边都含有所有的 $\mathcal O$ 中的网络算子，并且每一个算子都具备对应的权重，但是这样的网络结构太大，其中的多个算子中某些算子的权重其实非常低，因此作者采用这样的方法进行网络的剪枝以确定最终的网络：1.对于最终的输出 output 的入边，每个边选取一个权重最大的操作保留，2.对于其他的中间节点 B1,B2,B3 的入边，每个选取权重最大的两个操作保留。</p>
+<p><img src="/AutoHR/image-20221106195942710.png" alt="image-20221106195942710" style="zoom:50%;"></p>
+<h4 id="损失函数"><a href="#损失函数" class="headerlink" title="损失函数"></a>损失函数</h4><p>&emsp;&emsp;损失函数包括两个部分，分为时间和频率，其中时间部分就是所谓的线性相关性，具体由下式给出，并且这个函数在 rPPGNet 之中也用到了，不过 rPPGNet 更晚一些就是了。</p>
+<script type="math/tex; mode=display">
+\mathcal L_{np}=1-\frac{T\mathop\sum\limits_{i=1}^T y_iy_i^g-\mathop\sum\limits_{i=1}^Ty_i\mathop\sum\limits_{i=1}^Ty_i^g}{\sqrt{(T\mathop\sum\limits_{i=1}^Ty_i^2-(\mathop\sum\limits_{i=1}^Ty_i)^2)(T\mathop\sum\limits_{i=1}^T(y_i^g)^2-(\mathop\sum\limits_{i=1}^Ty_i^g)^2)}}</script><p>&emsp;&emsp;对于频率域，就是对 $y_i$ 求功率谱密度，然后和 GT 做比较，即：</p>
+<script type="math/tex; mode=display">
+\mathcal L_{fre}=\sum CE(PSD(y_i),y_i^g)</script><p>&emsp;&emsp;整体来说的损失函数由 $\mathcal L_{overall}=\lambda·\mathcal L_{time}+\mathcal L_{fre}$ 给出，其中 $\lambda$ 用于平衡损失。</p>
+<h4 id="数据增强"><a href="#数据增强" class="headerlink" title="数据增强"></a>数据增强</h4><p>&emsp;&emsp;本文针对现有数据集的两个问题提出了两个数据增强策略：1.头部运动可能导致 ROI 遮挡，2.HR 分布严重不平衡，呈倒 V 形。</p>
+<p>&emsp;&emsp;对于这两个问题的改进为：1.在随机时间片段（小于 20% 的空间大小和 20% 的时间长度）内随机擦除或切除部分时空管，模拟 ROI 遮挡的情况，2.对视频进行时间上采样和下采样，以生成具有极小或极大 HR 值的额外训练样本。具体来说，HR 值大于 90 bpm 的视频将被时间插值两次，而 HR 值小于 70 bpm 的视频将以采样率 2 下采样，分别模拟一半和两倍的心率。</p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文做了简单的消融实验，针对性地探究了 a）损失函数，b）TDC 中的 $\theta$ 值，c）是否具备 NAS / TDC 部分，d）是否使用数据增强策略。结果如下图所示，虽然基本上都没有提太多，但是每个方法都或多或少提了0.几 的点。</p>
+<p><img src="/AutoHR/image-20221106202041824.png" alt="image-20221106202041824" style="zoom:70%;"></p>
+<p>&emsp;&emsp;除了消融实验，本文还和目前的 SOTA 进行了比较，其中的△表示传统方法，◇表示非端到端的方法，☆表示端到端的深度学习方法。这里的 RhythmNet 是同年的论文，提出了 VIPL-HR，也是很棒的 SOTA 文章。</p>
+<p><img src="/AutoHR/image-20221106202146459.png" alt="image-20221106202146459" style="zoom:80%;"></p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+        <category>hr</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>multi-network learning rPPG</title>
+    <url>/Co-rectification/</url>
+    <content><![CDATA[<h2><center> Contactless Pulse Estimation Leveraging Pseudo Labels and Self-Supervision </center></h2>
+
+<p>【rPPG】【ICCV2023】【<a href="https://openaccess.thecvf.com/content/ICCV2023/html/Li_Contactless_Pulse_Estimation_Leveraging_Pseudo_Labels_and_Self-Supervision_ICCV_2023_paper.html">paper</a>】【<a href>code not available</a>】</p>
+<h3 id="abstract"><a href="#abstract" class="headerlink" title="abstract"></a>abstract</h3><p>&emsp;&emsp;本文提出了一种使用伪标签监督辅助对比学习的无监督范式，使用 2SR 生成伪标签并通过课程式学习逐步平衡伪标签监督和对比学习。关于伪标签监督是多网络学习在 rPPG 的一种成功迁移。需要指出本文将视频 $x$ 转化为了 STMap，但在之后多次用到 $\phi(x)$，难免造成模型直接处理视频的误会。</p>
+<h3 id="overview"><a href="#overview" class="headerlink" title="overview"></a>overview</h3><p><img src="/Co-rectification/image-20231109185005424.png" alt="image-20231109185005424" style="zoom:50%;"></p>
+<span id="more"></span>
+<hr>
+<h3 id="contribution"><a href="#contribution" class="headerlink" title="contribution"></a>contribution</h3><ul>
+<li>在普通自监督的基础上使用伪标签进行额外监督</li>
+<li>使用双模型联合训练的方式对伪标签进行优化</li>
+</ul>
+<h3 id="formulation"><a href="#formulation" class="headerlink" title="formulation"></a>formulation</h3><p>&emsp;&emsp;输入视频被转化为 STMap $x$；双模型 $\phi_1:x\to y_1$ 和 $\phi_2:x\to y_2$ 均为 Dual-GAN 的 backbone（不共享参数） ；2SR 作为传统方法直接从视频中估计伪标签 $y_p$；通过对 $y$ 计算 PSD $\mathcal{F}(y)$ 获取其对应心率 $h$。</p>
+<h3 id="framework"><a href="#framework" class="headerlink" title="framework"></a>framework</h3><p><img src="/Co-rectification/image-20231109191326777.png" alt="image-20231109191326777" style="zoom:50%;"></p>
+<ul>
+<li>自监督学习范式</li>
+</ul>
+<p>&emsp;&emsp;这部分基本与之前的相关工作没有区别，本文使用时间移位来构建 pos.，即对于 anchor，将其在视频内的位置平移 $\pm f$ 帧得到正样本：$\mathcal{L}_p=d(\mathcal{F}(\phi(x)),\mathcal{F}(\phi(x_{\pm f})))$，也就是期望模型在 anchor 和 pos. 上获取一致的 PSD。</p>
+<p>&emsp;&emsp;本文使用频率的上采样 $u_{\uparrow}$ 和下采样 $d_{\downarrow}$ 获取 neg.：$\mathcal{L}_n=-d(\mathcal{F}(\phi(x)),\mathcal{F}(\phi(x_{d_\downarrow})))-d(\mathcal{F}(\phi(x)),\mathcal{F}(\phi(x_{u_\uparrow})))$，也就是期望模型对于上下采样之后的 anchor 和 neg. 获取不同的 PSD，上下采样的范围是 [0.6,1.3]。</p>
+<p>&emsp;&emsp;由于构造 neg. 时使用了上采样和下采样，因此视频对应的心率也应该呈现对应的变化，即 $h_{u\uparrow}&lt;h&lt;h_{d\downarrow}$，针对这种理应的变化设计损失函数为：$\mathcal{L}_{rank}=\max(h_{u\uparrow}-h,0)+\max(h-h_{d\downarrow},0)$。</p>
+<p>&emsp;&emsp;综合自监督部分，损失函数为：</p>
+<script type="math/tex; mode=display">
+\mathcal{L}_{self-sup}=\mathcal{L}_p-\mathcal{L}_n+\alpha\mathcal{L}_{rank},\ \mathrm{where\ \alpha=0.01}</script><ul>
+<li>伪标签学习范式</li>
+</ul>
+<p>&emsp;&emsp;本文实质上是 multi-network learning 在 rPPG 上的成功应用，在两个模型上的协同优化循环优化 $\phi_1$ 和 $\phi_2$，优化 $\phi_1$ 可以表述为：</p>
+<p>&emsp;&emsp;i ) 计算 batch 内的 $\epsilon_1= \mathrm{abs}(h_p^b-h_1^b)\mathrm{\ for\ b\in[1,bs]}$，其表示模型输出和伪标签直接的差值</p>
+<p>&emsp;&emsp;ii) 在 $\epsilon_2$ 中选择误差最大的 $\lambda$ 个下标 $\{b_i\}_1^\lambda$，此时认为这些下标对应的伪标签是置信度低的，从而使用 $h_2^{b_i}$ 替换掉 $h_p^{b_i}$ 作为对 $\phi_1$ 的监督，此时并不更新 $\phi_2$</p>
+<p>&emsp;&emsp;对于伪标签学习，损失函数 $\mathcal{L}_{pseudo}$ 为简单的 MSE。但考虑到前期同一个 batch 内会出现多个由于网络没有充分训练的“偏差值”，因此 $\lambda$ 应当随着训练缓慢增大。具体来说，$\lambda=\frac{e_t}{e_{max}}\lambda_{max}$，其中 $e_t$ 表示第 $t$ 个 epoch，$\lambda_{max}=8$。</p>
+<p>&emsp;&emsp;综合伪标签学习和对比学习时，应该考虑到前期的对比学习相对于伪标签学习这种“伪监督学习”具备更低的置信度，因此 trade-off 应该先考虑伪标签学习，再考虑对比学习。</p>
+<script type="math/tex; mode=display">
+\mathcal{L}=(1-\frac{e_t}{e_{max}})\mathcal{L}_{pseudo}+\mathcal{L}_{self-sup}</script><h3 id="experiment"><a href="#experiment" class="headerlink" title="experiment"></a>experiment</h3><p>&emsp;&emsp;是第一个在 VIPL 上测试的模型，分成 10s 的 clip 做 video-level 测试，intra- 和 cross- 都 OK</p>
+<p><img src="/Co-rectification/image-20231109204253372.png" alt="image-20231109204253372" style="zoom:50%;"></p>
+<p><img src="/Co-rectification/image-20231109204310352.png" alt="image-20231109204310352" style="zoom:50%;"></p>
+<p>&emsp;&emsp;消融实验很有说服力</p>
+<p><img src="/Co-rectification/image-20231109204403769.png" alt="image-20231109204403769"></p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
       </categories>
   </entry>
   <entry>
@@ -592,50 +636,6 @@ L_{tf}=\lambda_{s}\cdot L_{s}+L_{code'}</script><p>&emsp;&emsp;其中，$L_s$ �
 <p>&emsp;&emsp;另一方面本文测试了和 VQGAN 在预测 codebook 序列上的正确性，由于 transformer 结构，准确度提升了很多（但是这里的 transformer 就是普通的 transformer，是否可以针对 transformer 的架构进行改进？）</p>
 <p><img src="/CodeFormer/image-20230209100935785.png" alt="image-20230209100935785"></p>
 <p>&emsp;&emsp;最后本文还论证了在第二阶段锁定解码器的必要性，通过测试是否在第二阶段更新解码器，得出结论：在第二阶段微调解码器会破坏学习到的先验知识。然后将本文的网络应用于了人脸图像修补，人脸图像上色等任务，同样取得了不错的结果。</p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>multi-network learning rPPG</title>
-    <url>/Co-rectification/</url>
-    <content><![CDATA[<h2><center> Contactless Pulse Estimation Leveraging Pseudo Labels and Self-Supervision </center></h2>
-
-<p>【rPPG】【ICCV2023】【<a href="https://openaccess.thecvf.com/content/ICCV2023/html/Li_Contactless_Pulse_Estimation_Leveraging_Pseudo_Labels_and_Self-Supervision_ICCV_2023_paper.html">paper</a>】【<a href>code not available</a>】</p>
-<h3 id="abstract"><a href="#abstract" class="headerlink" title="abstract"></a>abstract</h3><p>&emsp;&emsp;本文提出了一种使用伪标签监督辅助对比学习的无监督范式，使用 2SR 生成伪标签并通过课程式学习逐步平衡伪标签监督和对比学习。关于伪标签监督是多网络学习在 rPPG 的一种成功迁移。需要指出本文将视频 $x$ 转化为了 STMap，但在之后多次用到 $\phi(x)$，难免造成模型直接处理视频的误会。</p>
-<h3 id="overview"><a href="#overview" class="headerlink" title="overview"></a>overview</h3><p><img src="/Co-rectification/image-20231109185005424.png" alt="image-20231109185005424" style="zoom:50%;"></p>
-<span id="more"></span>
-<hr>
-<h3 id="contribution"><a href="#contribution" class="headerlink" title="contribution"></a>contribution</h3><ul>
-<li>在普通自监督的基础上使用伪标签进行额外监督</li>
-<li>使用双模型联合训练的方式对伪标签进行优化</li>
-</ul>
-<h3 id="formulation"><a href="#formulation" class="headerlink" title="formulation"></a>formulation</h3><p>&emsp;&emsp;输入视频被转化为 STMap $x$；双模型 $\phi_1:x\to y_1$ 和 $\phi_2:x\to y_2$ 均为 Dual-GAN 的 backbone（不共享参数） ；2SR 作为传统方法直接从视频中估计伪标签 $y_p$；通过对 $y$ 计算 PSD $\mathcal{F}(y)$ 获取其对应心率 $h$。</p>
-<h3 id="framework"><a href="#framework" class="headerlink" title="framework"></a>framework</h3><p><img src="/Co-rectification/image-20231109191326777.png" alt="image-20231109191326777" style="zoom:50%;"></p>
-<ul>
-<li>自监督学习范式</li>
-</ul>
-<p>&emsp;&emsp;这部分基本与之前的相关工作没有区别，本文使用时间移位来构建 pos.，即对于 anchor，将其在视频内的位置平移 $\pm f$ 帧得到正样本：$\mathcal{L}_p=d(\mathcal{F}(\phi(x)),\mathcal{F}(\phi(x_{\pm f})))$，也就是期望模型在 anchor 和 pos. 上获取一致的 PSD。</p>
-<p>&emsp;&emsp;本文使用频率的上采样 $u_{\uparrow}$ 和下采样 $d_{\downarrow}$ 获取 neg.：$\mathcal{L}_n=-d(\mathcal{F}(\phi(x)),\mathcal{F}(\phi(x_{d_\downarrow})))-d(\mathcal{F}(\phi(x)),\mathcal{F}(\phi(x_{u_\uparrow})))$，也就是期望模型对于上下采样之后的 anchor 和 neg. 获取不同的 PSD，上下采样的范围是 [0.6,1.3]。</p>
-<p>&emsp;&emsp;由于构造 neg. 时使用了上采样和下采样，因此视频对应的心率也应该呈现对应的变化，即 $h_{u\uparrow}&lt;h&lt;h_{d\downarrow}$，针对这种理应的变化设计损失函数为：$\mathcal{L}_{rank}=\max(h_{u\uparrow}-h,0)+\max(h-h_{d\downarrow},0)$。</p>
-<p>&emsp;&emsp;综合自监督部分，损失函数为：</p>
-<script type="math/tex; mode=display">
-\mathcal{L}_{self-sup}=\mathcal{L}_p-\mathcal{L}_n+\alpha\mathcal{L}_{rank},\ \mathrm{where\ \alpha=0.01}</script><ul>
-<li>伪标签学习范式</li>
-</ul>
-<p>&emsp;&emsp;本文实质上是 multi-network learning 在 rPPG 上的成功应用，在两个模型上的协同优化循环优化 $\phi_1$ 和 $\phi_2$，优化 $\phi_1$ 可以表述为：</p>
-<p>&emsp;&emsp;i ) 计算 batch 内的 $\epsilon_1= \mathrm{abs}(h_p^b-h_1^b)\mathrm{\ for\ b\in[1,bs]}$，其表示模型输出和伪标签直接的差值</p>
-<p>&emsp;&emsp;ii) 在 $\epsilon_2$ 中选择误差最大的 $\lambda$ 个下标 $\{b_i\}_1^\lambda$，此时认为这些下标对应的伪标签是置信度低的，从而使用 $h_2^{b_i}$ 替换掉 $h_p^{b_i}$ 作为对 $\phi_1$ 的监督，此时并不更新 $\phi_2$</p>
-<p>&emsp;&emsp;对于伪标签学习，损失函数 $\mathcal{L}_{pseudo}$ 为简单的 MSE。但考虑到前期同一个 batch 内会出现多个由于网络没有充分训练的“偏差值”，因此 $\lambda$ 应当随着训练缓慢增大。具体来说，$\lambda=\frac{e_t}{e_{max}}\lambda_{max}$，其中 $e_t$ 表示第 $t$ 个 epoch，$\lambda_{max}=8$。</p>
-<p>&emsp;&emsp;综合伪标签学习和对比学习时，应该考虑到前期的对比学习相对于伪标签学习这种“伪监督学习”具备更低的置信度，因此 trade-off 应该先考虑伪标签学习，再考虑对比学习。</p>
-<script type="math/tex; mode=display">
-\mathcal{L}=(1-\frac{e_t}{e_{max}})\mathcal{L}_{pseudo}+\mathcal{L}_{self-sup}</script><h3 id="experiment"><a href="#experiment" class="headerlink" title="experiment"></a>experiment</h3><p>&emsp;&emsp;是第一个在 VIPL 上测试的模型，分成 10s 的 clip 做 video-level 测试，intra- 和 cross- 都 OK</p>
-<p><img src="/Co-rectification/image-20231109204253372.png" alt="image-20231109204253372" style="zoom:50%;"></p>
-<p><img src="/Co-rectification/image-20231109204310352.png" alt="image-20231109204310352" style="zoom:50%;"></p>
-<p>&emsp;&emsp;消融实验很有说服力</p>
-<p><img src="/Co-rectification/image-20231109204403769.png" alt="image-20231109204403769"></p>
 ]]></content>
       <categories>
         <category>paper</category>
@@ -1506,21 +1506,6 @@ math\_express</script><h3 id="结果"><a href="#结果" class="headerlink" title
       </categories>
   </entry>
   <entry>
-    <title>基于transformer的光场超分辨率重建</title>
-    <url>/Light%20Field%20Image%20Super-Resolution%20With%20Transformers/</url>
-    <content><![CDATA[<h2 id="Light-Field-Image-Super-Resolution-With-Transformers【光场超分】【SLP】"><a href="#Light-Field-Image-Super-Resolution-With-Transformers【光场超分】【SLP】" class="headerlink" title="Light Field Image Super-Resolution With Transformers【光场超分】【SLP】"></a><a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&amp;arnumber=9695363">Light Field Image Super-Resolution With Transformers</a>【光场超分】【SLP】</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文将transformer方法应用到了光场超分的领域，提出了一个简单且有效的baseline，相对于SOTA具有更小的计算代价和更优的效果。具体来说，提出了角度转换和空间转换两个模块，意图更好地学习不同视图之间的互补性。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Light%20Field%20Image%20Super-Resolution%20With%20Transformers/image-20220504094155843.png" alt="image-20220504094155843"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><h3 id="理论"><a href="#理论" class="headerlink" title="理论"></a>理论</h3><h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><script type="math/tex; mode=display">
-math\_express</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><hr>
-<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3>]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-      </categories>
-  </entry>
-  <entry>
     <title>I3D</title>
     <url>/I3D/</url>
     <content><![CDATA[<h2 id="Quo-Vadis-Action-Recognition-A-New-Model-and-the-Kinetics-Dataset-【视频动作识别】-CVPR2017"><a href="#Quo-Vadis-Action-Recognition-A-New-Model-and-the-Kinetics-Dataset-【视频动作识别】-CVPR2017" class="headerlink" title="Quo Vadis, Action Recognition? A New Model and the Kinetics Dataset 【视频动作识别】 CVPR2017"></a><a href="https://openaccess.thecvf.com/content_cvpr_2017/papers/Carreira_Quo_Vadis_Action_CVPR_2017_paper.pdf">Quo Vadis, Action Recognition? A New Model and the Kinetics Dataset</a> 【视频动作识别】 CVPR2017</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种新的视频理解网络结构，和一个新的数据集。这两个都是里程碑式的工作，对于新网络架构，其名字叫做“膨胀的3D网络”，方法简单有效，仅是将 2D 卷积核进行 3D 膨胀，相对于以往的训练 3D 卷积核，关键就在于先训练 2D 网络，再在不改变权重的情况下进行扩张后进行微调。新的数据集也十分有效，大小适合，范围多样，是视频理解领域新工作绕不开的测试数据集。</p>
@@ -1556,6 +1541,73 @@ math\_express</script><h3 id="结果"><a href="#结果" class="headerlink" title
         <category>paper</category>
         <category>cv</category>
         <category>video</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>LTML</title>
+    <url>/LTML/</url>
+    <content><![CDATA[<h2><center> Long-Tailed Multi-Label Visual Recognition by Collaborative Training on
+Uniform and Re-balanced Samplings </center></h2>
+
+<p>【长尾识别】【ICCV2021】【<a href="https://ieeexplore.ieee.org/document/9578135/">paper</a>】【<a href>code未开源</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种双分支网络，分别对均匀采样和<strong>重平衡采样</strong>的数据进行处理，对于每个网络的结果分别计算<strong>带有样本数先验的</strong>分类误差，同时为了消除两个网络可能针对自己的数据集产生的过拟合问题，提出了<strong>一种交叉损失</strong>使两个网络能够具备一致性的 bias。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/LTML/image-20231010104505727.png" alt="image-20231010104505727" style="zoom:50%;"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>一个双分支网络，同时使用均匀采样和 re-balanced 采样进行预测</li>
+<li>一个新的一致性损失来约束双分支网络的一致性</li>
+<li>一个仿照 focalloss 在 BCE 上的改进损失</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/LTML/image-20231009213745051.png" alt="image-20231009213745051" style="zoom:50%;"></p>
+<p>&emsp;&emsp;数据准备：首先对于数据集进行两种不同的采样，使用均匀采样（每个样本被选中的概率为 $\frac1N$）得到的训练集（共 $N$ 个）称为 $X$，使用 re-balanced 采样（即每个样本被选中的概率为 $\frac1K\cdot \frac 1{N_k}$，$K$ 表示数据集共有多少类别，$N_k$ 表示该样本所属类别的数目）得到的训练集称为 $X’$。对应的 label 分别为 $Y,Y’\in(N,K)$，每行对应一个 one-hot 向量。</p>
+<p>&emsp;&emsp;网络前向：如上图所示的 $\phi$ 表示去掉最后一层的卷积 ResNet，$f_1,g_1$ 均表示 ResNet 的最后一层，但是不共享参数。$f_2,g_2$ 均表示由 MLP 组成的分类头，但是不共享参数。从 $X,X’$ 中的数据（分别随机采样的数据）首先统一进入 $\phi$，得到的特征分别进入两个分支，记进入 $f$ 分支的为 $x^u$，$g$ 的为 $x^r$。经过上下两个子分支之后共输出 4 个分类结果：</p>
+<ul>
+<li>$u=f_2(f_1(\phi(x^u)))$</li>
+<li>$\hat r=f_2(f_1(\phi(x^r)))$</li>
+<li>$\hat u=g_2(g_1(\phi(x^u)))$</li>
+<li>$r=g_2(g_1(\phi(x^r)))$</li>
+</ul>
+<p>&emsp;&emsp;因此，可以简单地想到，$u,\hat u,y^u$ 应该一致，$r,\hat r,y^r$ 应该一致，分别计算 loss 即可。</p>
+<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;对于 $(u,y^u)$ 和 $(r,y^r)$，其约束的是每个分支正确预测对应类别概率的能力，因此采用分类损失计算：</p>
+<script type="math/tex; mode=display">
+\mathcal L_{cls}=-\frac1K\sum_{k=1}^{K}w_k(y_{ik}^u\log(\zeta(u_{ik}\cdot\sigma_k^p+\mu_k^p)))+(1-y_{ik}^u)\log(1-\zeta(u_{ik}\cdot\sigma_k^n+\mu_k^n))</script><p>&emsp;&emsp;其中，$i\in[1,N]$，$y_{ik}$ 表示第 $i$ 个样本是否为第 $k$ 个类别（0/1），$w_k=y_{ik}^ue^{1-\rho}+(1-y_{ik}^u)e^\rho,\ \rho=\frac{N_k}N$ ，$\sigma_k^p,\mu_k^p$ 分别表示第 $k$ 个类别正样本的方差均值，上标为 $n$ 的表示负样本。</p>
+<p>&emsp;&emsp;简单理解为：</p>
+<ul>
+<li>$w_k $ 是一个 class/sample-ware 的参数，该类别的正样本越多，对错误的惩罚就越小</li>
+<li>所谓正样本数就是属于该类别的样本 $N_k$，$\sigma_k^p,\mu_k^p$ 表示的是 $Y$ 中所有满足第 $k$ 个值为 1 的行组成集合的均值方差</li>
+<li>$u_{ik}\cdot\sigma_k^p+\mu_k^p$ 中的 $u_{ik}$ 是一个概率，属于 $(0,1)$，这样写而不是直接使用 $u_{ik}$ 可以再对由于正负样本数量不同产生的 bias 进行修正</li>
+<li>整体的损失表示：当 $y_{ik}^u$ 为 1 时，$u_{ik}$ 越大越好，反之则越小越好；$w_k$ 使正样本多的类别权重减小；$u_{ik}\cdot\sigma_k^p+\mu_k^p$ 使正样本多的类别最终预测出的概率值偏低，负样本多的类别最终预测出的概率值偏高。</li>
+</ul>
+<p>&emsp;&emsp;而对于 $(\hat u,u)$ 和 $(\hat r,r)$，其约束的是两个模型对同样的输入得到同样输出的能力（也就是限制模型对于数据的 bias）：</p>
+<script type="math/tex; mode=display">
+\mathcal L_{con}(u_i,\hat u_i)=\frac1K\sum_{k=1}^K(u_{ik}-\hat u_{ik})^2</script><p>&emsp;&emsp;这个损失很直观，就是两个模型对于同样的输入应该得到同样的输出。</p>
+<p>&emsp;&emsp;最终的 loss 为：</p>
+<script type="math/tex; mode=display">
+\mathcal L(x^u_i , x^r_j ; y^i_u, y^j_r) =\mathcal L_{cls}(u_i, y_i^u) + \mathcal L_{cls}(r_j , y_j^r)+λ(\mathcal L_{con}(u_i, \hat u_i) + \mathcal L_{con}(r_j ,\hat r_j ))</script><p>&emsp;&emsp;$\lambda$ 是平衡权重的超参。</p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><ul>
+<li>nonsense</li>
+</ul>
+<p><img src="/LTML/image-20231009223810488.png" alt="image-20231009223810488" style="zoom:50%;"></p>
+]]></content>
+      <categories>
+        <category>cv</category>
+        <category>LongTail</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>基于transformer的光场超分辨率重建</title>
+    <url>/Light%20Field%20Image%20Super-Resolution%20With%20Transformers/</url>
+    <content><![CDATA[<h2 id="Light-Field-Image-Super-Resolution-With-Transformers【光场超分】【SLP】"><a href="#Light-Field-Image-Super-Resolution-With-Transformers【光场超分】【SLP】" class="headerlink" title="Light Field Image Super-Resolution With Transformers【光场超分】【SLP】"></a><a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&amp;arnumber=9695363">Light Field Image Super-Resolution With Transformers</a>【光场超分】【SLP】</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文将transformer方法应用到了光场超分的领域，提出了一个简单且有效的baseline，相对于SOTA具有更小的计算代价和更优的效果。具体来说，提出了角度转换和空间转换两个模块，意图更好地学习不同视图之间的互补性。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Light%20Field%20Image%20Super-Resolution%20With%20Transformers/image-20220504094155843.png" alt="image-20220504094155843"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><h3 id="理论"><a href="#理论" class="headerlink" title="理论"></a>理论</h3><h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><script type="math/tex; mode=display">
+math\_express</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><hr>
+<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3>]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
       </categories>
   </entry>
   <entry>
@@ -1631,58 +1683,6 @@ o(L_r(x,u),D(x,u))[即 \widehat L]=\widetilde o(L_r(x,u),D(x,u)) +L_r(x,u)</scri
       <categories>
         <category>paper</category>
         <category>mypaper</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>LTML</title>
-    <url>/LTML/</url>
-    <content><![CDATA[<h2><center> Long-Tailed Multi-Label Visual Recognition by Collaborative Training on
-Uniform and Re-balanced Samplings </center></h2>
-
-<p>【长尾识别】【ICCV2021】【<a href="https://ieeexplore.ieee.org/document/9578135/">paper</a>】【<a href>code未开源</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种双分支网络，分别对均匀采样和<strong>重平衡采样</strong>的数据进行处理，对于每个网络的结果分别计算<strong>带有样本数先验的</strong>分类误差，同时为了消除两个网络可能针对自己的数据集产生的过拟合问题，提出了<strong>一种交叉损失</strong>使两个网络能够具备一致性的 bias。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/LTML/image-20231010104505727.png" alt="image-20231010104505727" style="zoom:50%;"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>一个双分支网络，同时使用均匀采样和 re-balanced 采样进行预测</li>
-<li>一个新的一致性损失来约束双分支网络的一致性</li>
-<li>一个仿照 focalloss 在 BCE 上的改进损失</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/LTML/image-20231009213745051.png" alt="image-20231009213745051" style="zoom:50%;"></p>
-<p>&emsp;&emsp;数据准备：首先对于数据集进行两种不同的采样，使用均匀采样（每个样本被选中的概率为 $\frac1N$）得到的训练集（共 $N$ 个）称为 $X$，使用 re-balanced 采样（即每个样本被选中的概率为 $\frac1K\cdot \frac 1{N_k}$，$K$ 表示数据集共有多少类别，$N_k$ 表示该样本所属类别的数目）得到的训练集称为 $X’$。对应的 label 分别为 $Y,Y’\in(N,K)$，每行对应一个 one-hot 向量。</p>
-<p>&emsp;&emsp;网络前向：如上图所示的 $\phi$ 表示去掉最后一层的卷积 ResNet，$f_1,g_1$ 均表示 ResNet 的最后一层，但是不共享参数。$f_2,g_2$ 均表示由 MLP 组成的分类头，但是不共享参数。从 $X,X’$ 中的数据（分别随机采样的数据）首先统一进入 $\phi$，得到的特征分别进入两个分支，记进入 $f$ 分支的为 $x^u$，$g$ 的为 $x^r$。经过上下两个子分支之后共输出 4 个分类结果：</p>
-<ul>
-<li>$u=f_2(f_1(\phi(x^u)))$</li>
-<li>$\hat r=f_2(f_1(\phi(x^r)))$</li>
-<li>$\hat u=g_2(g_1(\phi(x^u)))$</li>
-<li>$r=g_2(g_1(\phi(x^r)))$</li>
-</ul>
-<p>&emsp;&emsp;因此，可以简单地想到，$u,\hat u,y^u$ 应该一致，$r,\hat r,y^r$ 应该一致，分别计算 loss 即可。</p>
-<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;对于 $(u,y^u)$ 和 $(r,y^r)$，其约束的是每个分支正确预测对应类别概率的能力，因此采用分类损失计算：</p>
-<script type="math/tex; mode=display">
-\mathcal L_{cls}=-\frac1K\sum_{k=1}^{K}w_k(y_{ik}^u\log(\zeta(u_{ik}\cdot\sigma_k^p+\mu_k^p)))+(1-y_{ik}^u)\log(1-\zeta(u_{ik}\cdot\sigma_k^n+\mu_k^n))</script><p>&emsp;&emsp;其中，$i\in[1,N]$，$y_{ik}$ 表示第 $i$ 个样本是否为第 $k$ 个类别（0/1），$w_k=y_{ik}^ue^{1-\rho}+(1-y_{ik}^u)e^\rho,\ \rho=\frac{N_k}N$ ，$\sigma_k^p,\mu_k^p$ 分别表示第 $k$ 个类别正样本的方差均值，上标为 $n$ 的表示负样本。</p>
-<p>&emsp;&emsp;简单理解为：</p>
-<ul>
-<li>$w_k $ 是一个 class/sample-ware 的参数，该类别的正样本越多，对错误的惩罚就越小</li>
-<li>所谓正样本数就是属于该类别的样本 $N_k$，$\sigma_k^p,\mu_k^p$ 表示的是 $Y$ 中所有满足第 $k$ 个值为 1 的行组成集合的均值方差</li>
-<li>$u_{ik}\cdot\sigma_k^p+\mu_k^p$ 中的 $u_{ik}$ 是一个概率，属于 $(0,1)$，这样写而不是直接使用 $u_{ik}$ 可以再对由于正负样本数量不同产生的 bias 进行修正</li>
-<li>整体的损失表示：当 $y_{ik}^u$ 为 1 时，$u_{ik}$ 越大越好，反之则越小越好；$w_k$ 使正样本多的类别权重减小；$u_{ik}\cdot\sigma_k^p+\mu_k^p$ 使正样本多的类别最终预测出的概率值偏低，负样本多的类别最终预测出的概率值偏高。</li>
-</ul>
-<p>&emsp;&emsp;而对于 $(\hat u,u)$ 和 $(\hat r,r)$，其约束的是两个模型对同样的输入得到同样输出的能力（也就是限制模型对于数据的 bias）：</p>
-<script type="math/tex; mode=display">
-\mathcal L_{con}(u_i,\hat u_i)=\frac1K\sum_{k=1}^K(u_{ik}-\hat u_{ik})^2</script><p>&emsp;&emsp;这个损失很直观，就是两个模型对于同样的输入应该得到同样的输出。</p>
-<p>&emsp;&emsp;最终的 loss 为：</p>
-<script type="math/tex; mode=display">
-\mathcal L(x^u_i , x^r_j ; y^i_u, y^j_r) =\mathcal L_{cls}(u_i, y_i^u) + \mathcal L_{cls}(r_j , y_j^r)+λ(\mathcal L_{con}(u_i, \hat u_i) + \mathcal L_{con}(r_j ,\hat r_j ))</script><p>&emsp;&emsp;$\lambda$ 是平衡权重的超参。</p>
-<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><ul>
-<li>nonsense</li>
-</ul>
-<p><img src="/LTML/image-20231009223810488.png" alt="image-20231009223810488" style="zoom:50%;"></p>
-]]></content>
-      <categories>
-        <category>cv</category>
-        <category>LongTail</category>
       </categories>
   </entry>
   <entry>
@@ -1890,6 +1890,80 @@ z^{proto}=\gamma z^{proto}+(1-\gamma) \mathbb E_{x^{(i)}\sim p(\mathcal T)}\frac
       </categories>
   </entry>
   <entry>
+    <title>MoCo_V1_V2_V3</title>
+    <url>/MoCo/</url>
+    <content><![CDATA[<h2 id="Momentum-Contrast-for-Unsupervised-Visual-Representation-Learning-【目标检测、图像分割】-CVPR2020"><a href="#Momentum-Contrast-for-Unsupervised-Visual-Representation-Learning-【目标检测、图像分割】-CVPR2020" class="headerlink" title="Momentum_Contrast_for_Unsupervised_Visual_Representation_Learning 【目标检测、图像分割】 CVPR2020"></a><a href="https://openaccess.thecvf.com/content_CVPR_2020/papers/He_Momentum_Contrast_for_Unsupervised_Visual_Representation_Learning_CVPR_2020_paper.pdf">Momentum_Contrast_for_Unsupervised_Visual_Representation_Learning</a> 【目标检测、图像分割】 CVPR2020</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;这篇文章实际上发布了有相当一段时间了，在两年之后的今天会看这项工作，很难不折服于 MoCo 的框架通用性、泛化性以及作者高度的前瞻性。随后作者又提出了 MoCoV2，MoCoV3，这两项工作在一定程度上就是单纯的对 MoCo 的适应性改编，尤其是 MoCoV2，几乎没有什么更新的想法，而 MoCoV3 至少发现了一些一直被人们所忽略的 VIT 的训练特性。作为相当一段时间内在对比学习领域和 SimCLR 齐名的前二名，MoCo 对对比学习问题进行了高度抽象，提出了简单又高效的改革。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/MoCo/image-20220928213908179.png" alt="image-20220928213908179" style="zoom:50%;"></p>
+<span id="more"></span>
+<hr>
+<h3 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h3><p>&emsp;&emsp;在讲述 MoCo 发展史之前，首先需要了解何为对比学习，以及以往的对比学习都采取了哪样的策略，这些工作尽管很出名，但是为什么被 MoCo 的作者说成”不可避免地受限“。</p>
+<h4 id="对比学习"><a href="#对比学习" class="headerlink" title="对比学习"></a>对比学习</h4><p>&emsp;&emsp;首先，对比学习并非某种网络结构，更多地，这是像 AE、VAE、GAN 类似的无监督学习的一种学习方式。在对比学习之中，我们需要做两个关键的事情，1.构造正负例样本的向量表征，2.选择合适的损失函数训练分类/预测问题。</p>
+<p>&emsp;&emsp;我们将举一个非常简单的例子描述对比学习，这种方式实际上出现在 SimCLR 之中。</p>
+<p><img src="/MoCo/image-20220928224432063.png" alt="image-20220928224432063" style="zoom:40%;"></p>
+<p>&emsp;&emsp;简单来说，通过对同一张图像进行数据增强，得到的两个新图像互为正样本，同样的，由两个不同的图像进行数据增强之后的结果就是负样本，因此对于某个图像，对他来说是正样本的只有 1 个，负样本有很多个，准确来说应该是 (batchSize-1)x2 个，因此问题转化为一个多分类问题。将所有的正负样本输入一个编码器，得到向量表征，这里的向量表征就是我们在最后想要得到的具备强语义信息。对向量继续通过一个 MLP 进行分类，并对分类之后的结果求 NCELoss，梯度回传并更新编码器，我们其实只想要编码器，这里训练用的 MLP 在推理的时候并不使用，而是到时候再训练一个新的解码器。</p>
+<h4 id="代理任务"><a href="#代理任务" class="headerlink" title="代理任务"></a>代理任务</h4><p>&emsp;&emsp;所谓代理任务，即构造正负样本的方法，其中最出名的是 个体判别 方法，该方法将每个图像数据增强后的结果看做一个类，任何两个不同的图像都不属于一个类 ，这种简单粗暴的方式反而具备很好的效果，一直被 SimCLR，MoCo 等对比学习经典作品采用。</p>
+<p>&emsp;&emsp;当然，还有其他的代理任务，正是代理任务的灵活性给了对比学习很高的进步空间，比如将一张图像打成多个 patch，选择中心 patch 作为基准，对其他 8 个 patch 进行标号，随机选取一个 patch，然后预测其相对于基准的标号。再比如在视频流中，每个帧和下一帧互为正样本，其他的随机抽取均为负样本。再比如在所有时序数据中，选取前四帧分别经过编码器和 MLP 整合成一个语义表征，则下四帧经过同样的编码器后的表征就是正样本，任意其他四帧经过编码器之后的就是负样本，这也就是 CPC 的策略，简单泛化效果好。</p>
+<h4 id="对比学习中的困难点"><a href="#对比学习中的困难点" class="headerlink" title="对比学习中的困难点"></a>对比学习中的困难点</h4><p>&emsp;&emsp;当然，对比学习很棒，自监督意味着不需要额外的标号。但是正如 MoCo 所说，大多数工作都主要致力于解决这两个问题：1.负样本的一致性问题，2.负样本的数量问题。简单来说，问题 2 意味着负样本太少会让编码器学习到一些捷径，从而难以学到有力的表征，问题 1 意味着不同的负样本表征可能是由不同参数的编码器得到的，这加重了模型的训练难度，可能使其学到额外的知识并难以收敛。</p>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>MoCo<ul>
+<li>提出了一种抽象的 q-k 描述来总结以往的对比学习优化目标和局限性</li>
+<li>提出使用 queue 的数据结构将 batchSize 和 dictSize 分开，保证了 key 数据多样性</li>
+<li>提出了动量更新的策略，保证了多个 key 之间的数据一致性</li>
+</ul>
+</li>
+<li>MoCoV2<ul>
+<li>对 ResNet50 之后的 MLP 层进行了加深</li>
+<li>采用了一种更新的数据增强策略</li>
+</ul>
+</li>
+<li>MoCoV3<ul>
+<li>将骨干网络换成了 VIT，微调了 loss，取得了相对于 MoCo，MoCoV2 稍好一点点的结果</li>
+<li>发现了在 VIT 训练过程中 patch projection 会导致训练精度突变的问题，并给出了解决方案</li>
+</ul>
+</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p>&emsp;&emsp;MoCo 实际上只是提出了一种网络架构，并没有规定在这个架构中具体的网络是什么，在 MoCo 刚提出的时候还是 CNN 时代，因此最初选取的骨干网络是 ResNet50，之后 MoCoV2 对 ResNet50 进行了一点小改动，在 MoCoV3 的时候已经是 transformer 盛行时代了，因此 MoCoV3 把骨干网络换成了 VIT，但是在实际操作的过程中发现了效果并没有太好，因此作者认真探究了为何会变差，得到了很有意思的结论。</p>
+<h4 id="MoCo"><a href="#MoCo" class="headerlink" title="MoCo"></a>MoCo</h4><p><img src="/MoCo/image-20220929180009533.png" alt="image-20220929180009533" style="zoom:50%;"></p>
+<p>&emsp;&emsp;对于 MoCo，所有的问题被重新表述了，在选用个体判别的代理任务的情况下，现在我们认为同一个 batch 内的所有图像中，由某一个图像数据增强得到的两个图像其中一个为 $x^q$，其他的都是 $x^k$，在所有的 $x^k$ 之中，只有 $x^{k_0}$ 的正样本，其他的都是负样本。对于 $x^q$ 和 $x^k$ 做转置乘，得到他们的相似性，这就相当于构造了一个字典，所有的 $x^k$ 就是字典中的键，原本的两个困难就可以被重新描述为 1. 字典的键要尽可能多，2. 字典的键要尽可能一致。为了解决这两个问题，MoCo 提出了两个方案：1.使用队列存储字典，2.不训练 key 的编码器</p>
+<h5 id="队列和动量更新"><a href="#队列和动量更新" class="headerlink" title="队列和动量更新"></a>队列和动量更新</h5><p>&emsp;&emsp;对于刚刚提出的两个改进策略，1.将每次 batch 得到的所有 $x^k$ 都存储在一个队列里面，当队列满了之后就每次剔除队列头的元素，通过这种方式就可以保证负样本的数量。2.不训练 key 的编码器，而是每次直接从 query 的编码器中 copy 参数过来，通过一个公式进行动量更新，在保证 key 编码器在逐渐变化的情况下不失去 key 的一致性。</p>
+<p>&emsp;&emsp;在每个 batch 得到 query 和 key 之后，key 进入队列，此时如果队列满了，就将队头移出。对于很多的 key，这之中有的是正样本，有的是负样本，总共约有 6W 多个，将这些 key 和 query 计算 loss，具体的 loss 这里选择 $\rm InfoNCELoss$，其具体计算公式如下：</p>
+<script type="math/tex; mode=display">
+\zeta_q=-\log\frac{\exp(q·k_+/\tau)}{\sum_{i=0}^{K}\exp(q·k_i/\tau)}</script><p>&emsp;&emsp;这里其实和 NCELoss 几乎没区别，加了个 $\tau$，目的是使模型更加好训练，据说是因为要控制 $q·k_+$ 的分布，咱也不太懂原理是啥。</p>
+<p>&emsp;&emsp;总之，现在我们计算出来了 loss，接下来就可以进行反向传播了，但是要注意的是，这里的反向传播只能传播到 query 的编码器之中，我们切断了向 key 的梯度。然后更新 query 的编码器，更新完 query 的编码器之后我们同样要更新 key 的编码器，我们记 query 的编码器参数为 $\theta_q$，key 前一时刻编码器参数为 $\theta_k^{i-1}$，则当前时刻的 key 编码器参数由如下公式更新：</p>
+<script type="math/tex; mode=display">
+\theta_k^i=m\times\theta_k^{i-1}+(1-m)\times\theta_q</script><p>&emsp;&emsp;这个式子也就是所谓的动量更新，这里的 $m$ 就是动量，$m$ 越大代表 key 编码器更新越慢，而事实上 $m$ 在 MoCo 中选择非常之大，为 0.999，也就是每次 query 的编码器参数对 key 编码器参数的影响只占 $0.1\%$。</p>
+<p>&emsp;&emsp;据此策略，MoCo 就可以展开训练了，作者选取 ResNet50 作为骨干网络，取得了很好的结果，并且给出了训练时的 pytorch 风格的伪代码：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># f_q, f_k: encoder networks for query and key</span></span><br><span class="line"><span class="comment"># queue: dictionary as a queue of K keys (CxK)</span></span><br><span class="line"><span class="comment"># m: momentum</span></span><br><span class="line"><span class="comment"># t: temperature</span></span><br><span class="line">f_k.params = f_q.params <span class="comment"># initialize</span></span><br><span class="line"><span class="keyword">for</span> x <span class="keyword">in</span> loader: <span class="comment"># load a minibatch x with N samples</span></span><br><span class="line">    x_q = aug(x) <span class="comment"># a randomly augmented version</span></span><br><span class="line">    x_k = aug(x) <span class="comment"># another randomly augmented version</span></span><br><span class="line">    q = f_q.forward(x_q) <span class="comment"># queries: NxC</span></span><br><span class="line">    k = f_k.forward(x_k) <span class="comment"># keys: NxC</span></span><br><span class="line">    k = k.detach() <span class="comment"># no gradient to keys</span></span><br><span class="line">    <span class="comment"># positive logits: Nx1</span></span><br><span class="line">    l_pos = bmm(q.view(N,<span class="number">1</span>,C), k.view(N,C,<span class="number">1</span>))</span><br><span class="line">    <span class="comment"># negative logits: NxK</span></span><br><span class="line">    l_neg = mm(q.view(N,C), queue.view(C,K))</span><br><span class="line">    <span class="comment"># logits: Nx(1+K)</span></span><br><span class="line">    logits = cat([l_pos, l_neg], dim=<span class="number">1</span>)</span><br><span class="line">    <span class="comment"># contrastive loss, Eqn.(1)</span></span><br><span class="line">    labels = zeros(N) <span class="comment"># positives are the 0-th</span></span><br><span class="line">    loss = CrossEntropyLoss(logits/t, labels)</span><br><span class="line">    <span class="comment"># SGD update: query network</span></span><br><span class="line">    loss.backward()</span><br><span class="line">    update(f_q.params)</span><br><span class="line">    <span class="comment"># momentum update: key network</span></span><br><span class="line">    f_k.params = m*f_k.params+(<span class="number">1</span>-m)*f_q.params</span><br><span class="line">    <span class="comment"># update dictionary</span></span><br><span class="line">    enqueue(queue, k) <span class="comment"># enqueue the current minibatch</span></span><br><span class="line">    dequeue(queue) <span class="comment"># dequeue the earliest minibatch</span></span><br></pre></td></tr></table></figure>
+<h5 id="MoCo和其他对比学习框架"><a href="#MoCo和其他对比学习框架" class="headerlink" title="MoCo和其他对比学习框架"></a>MoCo和其他对比学习框架</h5><p>&emsp;&emsp;MoCo 在之前提到，以往的工作往往受限于字典大小和表征一致性，那么具体是如何受限的呢，MoCo 给出了对比，在 MoCo 的动量更新、队列存储之前，对比学习往往才有两种训练方式，一种是端到端的训练，另一种是使用 memory bank 存储较多 key 的训练。</p>
+<p><img src="/MoCo/image-20220929185622211.png" alt="image-20220929185622211"></p>
+<p>&emsp;&emsp;对于端到端的训练，我们将 query 和 key 分别输入同样的 encoder，并且得到的 loss 直接反向传播到两个编码器，这两个编码器既可以共享参数也可以不共享参数，这样做的好处是每次我们得到的 $k$ 都是通过同一个编码器得到的，缺点就是每次一个 batch 得到的 $k$ 的个数太少了。</p>
+<p>&emsp;&emsp;对于基于 memory bank 的方法，为了解决单个 batch 得到的 $k$ 的个数太少的问题，将预先将很多负样本通过一个 encoder 存储起来，这个就叫做 memory bank，每次计算时，从 memory bank 里面随机抽取几个负样本进行计算，并梯度回传更新 query 的 encoder，此时将我们抽取出来的负样本重新走一遍更新之后的 encoder，并更新这些样本然后再放回 memory bank。这样做的问题就是，memory bank 里面的 $k$ 不够一致，他们是由不同的 encoder 得到的，虽然为了解决这个问题，memory bank 方法采用了动量更新的方式更新改动的负样本，但是仍然无法从根本上解决一致性问题。</p>
+<h4 id="MoCoV2"><a href="#MoCoV2" class="headerlink" title="MoCoV2"></a>MoCoV2</h4><p><a href="https://arxiv.org/pdf/2003.04297.pdf">Improved Baselines with Momentum Contrastive Learning</a></p>
+<p>&emsp;&emsp;在 MoCo 发表的同一年，SimCLR 也发表了出来，因此 FAIR 团队把 SimCLR 的技术关键点移植到了 MoCo，提出了 MoCoV2，在指标上超越了 SimCLR，但是因为实在没有什么创新，因此也没有发表，作者写了个三页的小报告挂在了 arxiv 上，具体来说，改动分为这两个方面。</p>
+<p>&emsp;&emsp;1.加入一个预测头，也就是解码器，这个解码器由后接 RELU 的两层 MLP 组成，这个解码器只在训练的时候使用，而在训练完成之后将这个 linear projection 扔掉，这实际上是 SimCLRV1 的策略。2.加入了一个更加有效的数据增强方式，blur augmentation，即模糊图像。之后可以专门写一篇总结基于 torchvision.transforms 的数据增强 API。</p>
+<h4 id="MoCoV3"><a href="#MoCoV3" class="headerlink" title="MoCoV3"></a>MoCoV3</h4><p><a href="https://arxiv.org/pdf/2104.02057.pdf">An Empirical Study of Training Self-Supervised Vision Transformers</a></p>
+<p>&emsp;&emsp;MoCoV3 是 VIT 提出之后作者将骨干网络换成 VIT 之后的续写，是在 MoCoV2 的改进基础上的续写，实际上如果仅仅如此，有可能 MoCoV3 也变成一篇技术报告，但是作者在替换骨干网络之后发现了奇怪的事情。</p>
+<p>&emsp;&emsp;作者发现在将骨干网络替换为 VIT 之后出现了训练不稳定的问题，具体的不稳定体现在训练时的准确率会在某些时刻突然下降又升高。这和很多因素有关，作者做了一些实验，包括 batchsize，学习率，优化器。</p>
+<p><img src="/MoCo/image-20220929230910284.png" alt="image-20220929230910284" style="zoom:57%;"></p>
+<p><img src="/MoCo/image-20220929231009289.png" alt="image-20220929231009289" style="zoom:64%;"></p>
+<p><img src="/MoCo/image-20220929231210763.png" alt="image-20220929231210763" style="zoom:100%;"></p>
+<p>&emsp;&emsp;通过上面三张图像，我们可以发现，batchsize 和学习率都属于适中最好。这没啥说的，但问题就在于无论是选择了不太好的 batchsize 还是不太好的学习率，这些不稳定是有规律可循的。另外就是优化器，作者默认AdamW 作为优化器（常用于 ViT model），而另一方面，最近的工作经常使用 LARS 优化器处理大的 batchsize，作者对 LAMB 优化器进行实验，其是 LARS 中 AdamW 对应版本。这些优化器说实话不太理解，只知道最基础的 SGD、Adam 之类的，之后可以写一篇总结各种优化器及其优劣。总之，作者通过测试，发现 LAMB 优化器不太好，不如 AdamW。</p>
+<p>&emsp;&emsp;在发现有规律可循之后，作者尝试探索了一下，打印出了网络的第一层和最后一层的参数梯度变化图像如下</p>
+<p><img src="/MoCo/image-20220929231717516.png" alt="image-20220929231717516" style="zoom:80%;"></p>
+<p>&emsp;&emsp;作者认为，这些突起的梯度，是因为在 MoCoV2 中加入的 linear projection 的训练问题，因此作者提出了一种策略：不训练 linear projection，仅做随机初始化。这是很离谱的想法，这样就让人很难理解为什么这样一个随机初始化又不更新的线性层对原本的 MoCo 有辅助作用，但实际上是有的，并且使用不训练策略之后梯度变化真的稳定了，而且在不同的学习率之下都是更稳定了。</p>
+<p><img src="/MoCo/image-20220929232042931.png" alt="image-20220929232042931" style="zoom:80%;"></p>
+<p>&emsp;&emsp;甚至不仅如此，作者还贴心地测试了 SimCLR 和 BYOL，将 SimCLR 和 BYOL 的线性层也改成随机初始化不训练的方式，神奇的是得到的训练结果真的上了几个点，并且没有了准确率的突变。</p>
+<p><img src="/MoCo/image-20220929232245194.png" alt="image-20220929232245194" style="zoom:70%;"></p>
+<p>&emsp;&emsp;总之，这就是 MoCoV3 的贡献，其不仅成功将 VIT 应用于 MoCo 的骨干网络，并且提升了结果，最关键的是其找到了新对比学习框架中常见的准确率突变问题的解决方案，并且在多个框架中验证了其有效性。同样地，这是 MoCoV3 的伪代码：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># f_q: encoder: backbone + proj mlp + pred mlp</span></span><br><span class="line"><span class="comment"># f_k: momentum encoder: backbone + proj mlp</span></span><br><span class="line"><span class="comment"># m: momentum coefficient</span></span><br><span class="line"><span class="comment"># tau: temperature</span></span><br><span class="line"><span class="keyword">for</span> x <span class="keyword">in</span> loader: <span class="comment"># load a minibatch x with N samples</span></span><br><span class="line">    x1, x2 = aug(x), aug(x) <span class="comment"># augmentation</span></span><br><span class="line">    q1, q2 = f_q(x1), f_q(x2) <span class="comment"># queries: [N, C] each</span></span><br><span class="line">    k1, k2 = f_k(x1), f_k(x2) <span class="comment"># keys: [N, C] each</span></span><br><span class="line">    loss = ctr(q1, k2) + ctr(q2, k1) <span class="comment"># symmetrized</span></span><br><span class="line">    loss.backward()</span><br><span class="line">    update(f_q) <span class="comment"># optimizer update: f_q</span></span><br><span class="line">    f_k = m*f_k + (<span class="number">1</span>-m)*f_q <span class="comment"># momentum update: f_k</span></span><br><span class="line"><span class="comment"># contrastive loss</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">ctr</span>(<span class="params">q, k</span>):</span><br><span class="line">    logits = mm(q, k.t()) <span class="comment"># [N, N] pairs</span></span><br><span class="line">    labels = <span class="built_in">range</span>(N) <span class="comment"># positives are in diagonal</span></span><br><span class="line">    loss = CrossEntropyLoss(logits/tau, labels)</span><br><span class="line">    <span class="keyword">return</span> <span class="number">2</span> * tau * loss</span><br></pre></td></tr></table></figure>
+<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;$\rm InfoNCELoss$ 已经说过，不再赘述，之后可以专门写一篇总结$\rm MSE, RMSE, NCE,InfoNCE,BCE,CE$ 等的区别和联系。</p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
     <title>MoCoGAN_HD</title>
     <url>/MoCoGAN_HD/</url>
     <content><![CDATA[<h2><center> A GOOD IMAGE GENERATOR IS WHAT YOU NEED FOR HIGH-RESOLUTION VIDEO SYNTHESIS </center></h2>
@@ -1970,113 +2044,6 @@ z^{proto}=\gamma z^{proto}+(1-\gamma) \mathbb E_{x^{(i)}\sim p(\mathcal T)}\frac
       </categories>
   </entry>
   <entry>
-    <title>MoCo_V1_V2_V3</title>
-    <url>/MoCo/</url>
-    <content><![CDATA[<h2 id="Momentum-Contrast-for-Unsupervised-Visual-Representation-Learning-【目标检测、图像分割】-CVPR2020"><a href="#Momentum-Contrast-for-Unsupervised-Visual-Representation-Learning-【目标检测、图像分割】-CVPR2020" class="headerlink" title="Momentum_Contrast_for_Unsupervised_Visual_Representation_Learning 【目标检测、图像分割】 CVPR2020"></a><a href="https://openaccess.thecvf.com/content_CVPR_2020/papers/He_Momentum_Contrast_for_Unsupervised_Visual_Representation_Learning_CVPR_2020_paper.pdf">Momentum_Contrast_for_Unsupervised_Visual_Representation_Learning</a> 【目标检测、图像分割】 CVPR2020</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;这篇文章实际上发布了有相当一段时间了，在两年之后的今天会看这项工作，很难不折服于 MoCo 的框架通用性、泛化性以及作者高度的前瞻性。随后作者又提出了 MoCoV2，MoCoV3，这两项工作在一定程度上就是单纯的对 MoCo 的适应性改编，尤其是 MoCoV2，几乎没有什么更新的想法，而 MoCoV3 至少发现了一些一直被人们所忽略的 VIT 的训练特性。作为相当一段时间内在对比学习领域和 SimCLR 齐名的前二名，MoCo 对对比学习问题进行了高度抽象，提出了简单又高效的改革。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/MoCo/image-20220928213908179.png" alt="image-20220928213908179" style="zoom:50%;"></p>
-<span id="more"></span>
-<hr>
-<h3 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h3><p>&emsp;&emsp;在讲述 MoCo 发展史之前，首先需要了解何为对比学习，以及以往的对比学习都采取了哪样的策略，这些工作尽管很出名，但是为什么被 MoCo 的作者说成”不可避免地受限“。</p>
-<h4 id="对比学习"><a href="#对比学习" class="headerlink" title="对比学习"></a>对比学习</h4><p>&emsp;&emsp;首先，对比学习并非某种网络结构，更多地，这是像 AE、VAE、GAN 类似的无监督学习的一种学习方式。在对比学习之中，我们需要做两个关键的事情，1.构造正负例样本的向量表征，2.选择合适的损失函数训练分类/预测问题。</p>
-<p>&emsp;&emsp;我们将举一个非常简单的例子描述对比学习，这种方式实际上出现在 SimCLR 之中。</p>
-<p><img src="/MoCo/image-20220928224432063.png" alt="image-20220928224432063" style="zoom:40%;"></p>
-<p>&emsp;&emsp;简单来说，通过对同一张图像进行数据增强，得到的两个新图像互为正样本，同样的，由两个不同的图像进行数据增强之后的结果就是负样本，因此对于某个图像，对他来说是正样本的只有 1 个，负样本有很多个，准确来说应该是 (batchSize-1)x2 个，因此问题转化为一个多分类问题。将所有的正负样本输入一个编码器，得到向量表征，这里的向量表征就是我们在最后想要得到的具备强语义信息。对向量继续通过一个 MLP 进行分类，并对分类之后的结果求 NCELoss，梯度回传并更新编码器，我们其实只想要编码器，这里训练用的 MLP 在推理的时候并不使用，而是到时候再训练一个新的解码器。</p>
-<h4 id="代理任务"><a href="#代理任务" class="headerlink" title="代理任务"></a>代理任务</h4><p>&emsp;&emsp;所谓代理任务，即构造正负样本的方法，其中最出名的是 个体判别 方法，该方法将每个图像数据增强后的结果看做一个类，任何两个不同的图像都不属于一个类 ，这种简单粗暴的方式反而具备很好的效果，一直被 SimCLR，MoCo 等对比学习经典作品采用。</p>
-<p>&emsp;&emsp;当然，还有其他的代理任务，正是代理任务的灵活性给了对比学习很高的进步空间，比如将一张图像打成多个 patch，选择中心 patch 作为基准，对其他 8 个 patch 进行标号，随机选取一个 patch，然后预测其相对于基准的标号。再比如在视频流中，每个帧和下一帧互为正样本，其他的随机抽取均为负样本。再比如在所有时序数据中，选取前四帧分别经过编码器和 MLP 整合成一个语义表征，则下四帧经过同样的编码器后的表征就是正样本，任意其他四帧经过编码器之后的就是负样本，这也就是 CPC 的策略，简单泛化效果好。</p>
-<h4 id="对比学习中的困难点"><a href="#对比学习中的困难点" class="headerlink" title="对比学习中的困难点"></a>对比学习中的困难点</h4><p>&emsp;&emsp;当然，对比学习很棒，自监督意味着不需要额外的标号。但是正如 MoCo 所说，大多数工作都主要致力于解决这两个问题：1.负样本的一致性问题，2.负样本的数量问题。简单来说，问题 2 意味着负样本太少会让编码器学习到一些捷径，从而难以学到有力的表征，问题 1 意味着不同的负样本表征可能是由不同参数的编码器得到的，这加重了模型的训练难度，可能使其学到额外的知识并难以收敛。</p>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>MoCo<ul>
-<li>提出了一种抽象的 q-k 描述来总结以往的对比学习优化目标和局限性</li>
-<li>提出使用 queue 的数据结构将 batchSize 和 dictSize 分开，保证了 key 数据多样性</li>
-<li>提出了动量更新的策略，保证了多个 key 之间的数据一致性</li>
-</ul>
-</li>
-<li>MoCoV2<ul>
-<li>对 ResNet50 之后的 MLP 层进行了加深</li>
-<li>采用了一种更新的数据增强策略</li>
-</ul>
-</li>
-<li>MoCoV3<ul>
-<li>将骨干网络换成了 VIT，微调了 loss，取得了相对于 MoCo，MoCoV2 稍好一点点的结果</li>
-<li>发现了在 VIT 训练过程中 patch projection 会导致训练精度突变的问题，并给出了解决方案</li>
-</ul>
-</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p>&emsp;&emsp;MoCo 实际上只是提出了一种网络架构，并没有规定在这个架构中具体的网络是什么，在 MoCo 刚提出的时候还是 CNN 时代，因此最初选取的骨干网络是 ResNet50，之后 MoCoV2 对 ResNet50 进行了一点小改动，在 MoCoV3 的时候已经是 transformer 盛行时代了，因此 MoCoV3 把骨干网络换成了 VIT，但是在实际操作的过程中发现了效果并没有太好，因此作者认真探究了为何会变差，得到了很有意思的结论。</p>
-<h4 id="MoCo"><a href="#MoCo" class="headerlink" title="MoCo"></a>MoCo</h4><p><img src="/MoCo/image-20220929180009533.png" alt="image-20220929180009533" style="zoom:50%;"></p>
-<p>&emsp;&emsp;对于 MoCo，所有的问题被重新表述了，在选用个体判别的代理任务的情况下，现在我们认为同一个 batch 内的所有图像中，由某一个图像数据增强得到的两个图像其中一个为 $x^q$，其他的都是 $x^k$，在所有的 $x^k$ 之中，只有 $x^{k_0}$ 的正样本，其他的都是负样本。对于 $x^q$ 和 $x^k$ 做转置乘，得到他们的相似性，这就相当于构造了一个字典，所有的 $x^k$ 就是字典中的键，原本的两个困难就可以被重新描述为 1. 字典的键要尽可能多，2. 字典的键要尽可能一致。为了解决这两个问题，MoCo 提出了两个方案：1.使用队列存储字典，2.不训练 key 的编码器</p>
-<h5 id="队列和动量更新"><a href="#队列和动量更新" class="headerlink" title="队列和动量更新"></a>队列和动量更新</h5><p>&emsp;&emsp;对于刚刚提出的两个改进策略，1.将每次 batch 得到的所有 $x^k$ 都存储在一个队列里面，当队列满了之后就每次剔除队列头的元素，通过这种方式就可以保证负样本的数量。2.不训练 key 的编码器，而是每次直接从 query 的编码器中 copy 参数过来，通过一个公式进行动量更新，在保证 key 编码器在逐渐变化的情况下不失去 key 的一致性。</p>
-<p>&emsp;&emsp;在每个 batch 得到 query 和 key 之后，key 进入队列，此时如果队列满了，就将队头移出。对于很多的 key，这之中有的是正样本，有的是负样本，总共约有 6W 多个，将这些 key 和 query 计算 loss，具体的 loss 这里选择 $\rm InfoNCELoss$，其具体计算公式如下：</p>
-<script type="math/tex; mode=display">
-\zeta_q=-\log\frac{\exp(q·k_+/\tau)}{\sum_{i=0}^{K}\exp(q·k_i/\tau)}</script><p>&emsp;&emsp;这里其实和 NCELoss 几乎没区别，加了个 $\tau$，目的是使模型更加好训练，据说是因为要控制 $q·k_+$ 的分布，咱也不太懂原理是啥。</p>
-<p>&emsp;&emsp;总之，现在我们计算出来了 loss，接下来就可以进行反向传播了，但是要注意的是，这里的反向传播只能传播到 query 的编码器之中，我们切断了向 key 的梯度。然后更新 query 的编码器，更新完 query 的编码器之后我们同样要更新 key 的编码器，我们记 query 的编码器参数为 $\theta_q$，key 前一时刻编码器参数为 $\theta_k^{i-1}$，则当前时刻的 key 编码器参数由如下公式更新：</p>
-<script type="math/tex; mode=display">
-\theta_k^i=m\times\theta_k^{i-1}+(1-m)\times\theta_q</script><p>&emsp;&emsp;这个式子也就是所谓的动量更新，这里的 $m$ 就是动量，$m$ 越大代表 key 编码器更新越慢，而事实上 $m$ 在 MoCo 中选择非常之大，为 0.999，也就是每次 query 的编码器参数对 key 编码器参数的影响只占 $0.1\%$。</p>
-<p>&emsp;&emsp;据此策略，MoCo 就可以展开训练了，作者选取 ResNet50 作为骨干网络，取得了很好的结果，并且给出了训练时的 pytorch 风格的伪代码：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># f_q, f_k: encoder networks for query and key</span></span><br><span class="line"><span class="comment"># queue: dictionary as a queue of K keys (CxK)</span></span><br><span class="line"><span class="comment"># m: momentum</span></span><br><span class="line"><span class="comment"># t: temperature</span></span><br><span class="line">f_k.params = f_q.params <span class="comment"># initialize</span></span><br><span class="line"><span class="keyword">for</span> x <span class="keyword">in</span> loader: <span class="comment"># load a minibatch x with N samples</span></span><br><span class="line">    x_q = aug(x) <span class="comment"># a randomly augmented version</span></span><br><span class="line">    x_k = aug(x) <span class="comment"># another randomly augmented version</span></span><br><span class="line">    q = f_q.forward(x_q) <span class="comment"># queries: NxC</span></span><br><span class="line">    k = f_k.forward(x_k) <span class="comment"># keys: NxC</span></span><br><span class="line">    k = k.detach() <span class="comment"># no gradient to keys</span></span><br><span class="line">    <span class="comment"># positive logits: Nx1</span></span><br><span class="line">    l_pos = bmm(q.view(N,<span class="number">1</span>,C), k.view(N,C,<span class="number">1</span>))</span><br><span class="line">    <span class="comment"># negative logits: NxK</span></span><br><span class="line">    l_neg = mm(q.view(N,C), queue.view(C,K))</span><br><span class="line">    <span class="comment"># logits: Nx(1+K)</span></span><br><span class="line">    logits = cat([l_pos, l_neg], dim=<span class="number">1</span>)</span><br><span class="line">    <span class="comment"># contrastive loss, Eqn.(1)</span></span><br><span class="line">    labels = zeros(N) <span class="comment"># positives are the 0-th</span></span><br><span class="line">    loss = CrossEntropyLoss(logits/t, labels)</span><br><span class="line">    <span class="comment"># SGD update: query network</span></span><br><span class="line">    loss.backward()</span><br><span class="line">    update(f_q.params)</span><br><span class="line">    <span class="comment"># momentum update: key network</span></span><br><span class="line">    f_k.params = m*f_k.params+(<span class="number">1</span>-m)*f_q.params</span><br><span class="line">    <span class="comment"># update dictionary</span></span><br><span class="line">    enqueue(queue, k) <span class="comment"># enqueue the current minibatch</span></span><br><span class="line">    dequeue(queue) <span class="comment"># dequeue the earliest minibatch</span></span><br></pre></td></tr></table></figure>
-<h5 id="MoCo和其他对比学习框架"><a href="#MoCo和其他对比学习框架" class="headerlink" title="MoCo和其他对比学习框架"></a>MoCo和其他对比学习框架</h5><p>&emsp;&emsp;MoCo 在之前提到，以往的工作往往受限于字典大小和表征一致性，那么具体是如何受限的呢，MoCo 给出了对比，在 MoCo 的动量更新、队列存储之前，对比学习往往才有两种训练方式，一种是端到端的训练，另一种是使用 memory bank 存储较多 key 的训练。</p>
-<p><img src="/MoCo/image-20220929185622211.png" alt="image-20220929185622211"></p>
-<p>&emsp;&emsp;对于端到端的训练，我们将 query 和 key 分别输入同样的 encoder，并且得到的 loss 直接反向传播到两个编码器，这两个编码器既可以共享参数也可以不共享参数，这样做的好处是每次我们得到的 $k$ 都是通过同一个编码器得到的，缺点就是每次一个 batch 得到的 $k$ 的个数太少了。</p>
-<p>&emsp;&emsp;对于基于 memory bank 的方法，为了解决单个 batch 得到的 $k$ 的个数太少的问题，将预先将很多负样本通过一个 encoder 存储起来，这个就叫做 memory bank，每次计算时，从 memory bank 里面随机抽取几个负样本进行计算，并梯度回传更新 query 的 encoder，此时将我们抽取出来的负样本重新走一遍更新之后的 encoder，并更新这些样本然后再放回 memory bank。这样做的问题就是，memory bank 里面的 $k$ 不够一致，他们是由不同的 encoder 得到的，虽然为了解决这个问题，memory bank 方法采用了动量更新的方式更新改动的负样本，但是仍然无法从根本上解决一致性问题。</p>
-<h4 id="MoCoV2"><a href="#MoCoV2" class="headerlink" title="MoCoV2"></a>MoCoV2</h4><p><a href="https://arxiv.org/pdf/2003.04297.pdf">Improved Baselines with Momentum Contrastive Learning</a></p>
-<p>&emsp;&emsp;在 MoCo 发表的同一年，SimCLR 也发表了出来，因此 FAIR 团队把 SimCLR 的技术关键点移植到了 MoCo，提出了 MoCoV2，在指标上超越了 SimCLR，但是因为实在没有什么创新，因此也没有发表，作者写了个三页的小报告挂在了 arxiv 上，具体来说，改动分为这两个方面。</p>
-<p>&emsp;&emsp;1.加入一个预测头，也就是解码器，这个解码器由后接 RELU 的两层 MLP 组成，这个解码器只在训练的时候使用，而在训练完成之后将这个 linear projection 扔掉，这实际上是 SimCLRV1 的策略。2.加入了一个更加有效的数据增强方式，blur augmentation，即模糊图像。之后可以专门写一篇总结基于 torchvision.transforms 的数据增强 API。</p>
-<h4 id="MoCoV3"><a href="#MoCoV3" class="headerlink" title="MoCoV3"></a>MoCoV3</h4><p><a href="https://arxiv.org/pdf/2104.02057.pdf">An Empirical Study of Training Self-Supervised Vision Transformers</a></p>
-<p>&emsp;&emsp;MoCoV3 是 VIT 提出之后作者将骨干网络换成 VIT 之后的续写，是在 MoCoV2 的改进基础上的续写，实际上如果仅仅如此，有可能 MoCoV3 也变成一篇技术报告，但是作者在替换骨干网络之后发现了奇怪的事情。</p>
-<p>&emsp;&emsp;作者发现在将骨干网络替换为 VIT 之后出现了训练不稳定的问题，具体的不稳定体现在训练时的准确率会在某些时刻突然下降又升高。这和很多因素有关，作者做了一些实验，包括 batchsize，学习率，优化器。</p>
-<p><img src="/MoCo/image-20220929230910284.png" alt="image-20220929230910284" style="zoom:57%;"></p>
-<p><img src="/MoCo/image-20220929231009289.png" alt="image-20220929231009289" style="zoom:64%;"></p>
-<p><img src="/MoCo/image-20220929231210763.png" alt="image-20220929231210763" style="zoom:100%;"></p>
-<p>&emsp;&emsp;通过上面三张图像，我们可以发现，batchsize 和学习率都属于适中最好。这没啥说的，但问题就在于无论是选择了不太好的 batchsize 还是不太好的学习率，这些不稳定是有规律可循的。另外就是优化器，作者默认AdamW 作为优化器（常用于 ViT model），而另一方面，最近的工作经常使用 LARS 优化器处理大的 batchsize，作者对 LAMB 优化器进行实验，其是 LARS 中 AdamW 对应版本。这些优化器说实话不太理解，只知道最基础的 SGD、Adam 之类的，之后可以写一篇总结各种优化器及其优劣。总之，作者通过测试，发现 LAMB 优化器不太好，不如 AdamW。</p>
-<p>&emsp;&emsp;在发现有规律可循之后，作者尝试探索了一下，打印出了网络的第一层和最后一层的参数梯度变化图像如下</p>
-<p><img src="/MoCo/image-20220929231717516.png" alt="image-20220929231717516" style="zoom:80%;"></p>
-<p>&emsp;&emsp;作者认为，这些突起的梯度，是因为在 MoCoV2 中加入的 linear projection 的训练问题，因此作者提出了一种策略：不训练 linear projection，仅做随机初始化。这是很离谱的想法，这样就让人很难理解为什么这样一个随机初始化又不更新的线性层对原本的 MoCo 有辅助作用，但实际上是有的，并且使用不训练策略之后梯度变化真的稳定了，而且在不同的学习率之下都是更稳定了。</p>
-<p><img src="/MoCo/image-20220929232042931.png" alt="image-20220929232042931" style="zoom:80%;"></p>
-<p>&emsp;&emsp;甚至不仅如此，作者还贴心地测试了 SimCLR 和 BYOL，将 SimCLR 和 BYOL 的线性层也改成随机初始化不训练的方式，神奇的是得到的训练结果真的上了几个点，并且没有了准确率的突变。</p>
-<p><img src="/MoCo/image-20220929232245194.png" alt="image-20220929232245194" style="zoom:70%;"></p>
-<p>&emsp;&emsp;总之，这就是 MoCoV3 的贡献，其不仅成功将 VIT 应用于 MoCo 的骨干网络，并且提升了结果，最关键的是其找到了新对比学习框架中常见的准确率突变问题的解决方案，并且在多个框架中验证了其有效性。同样地，这是 MoCoV3 的伪代码：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># f_q: encoder: backbone + proj mlp + pred mlp</span></span><br><span class="line"><span class="comment"># f_k: momentum encoder: backbone + proj mlp</span></span><br><span class="line"><span class="comment"># m: momentum coefficient</span></span><br><span class="line"><span class="comment"># tau: temperature</span></span><br><span class="line"><span class="keyword">for</span> x <span class="keyword">in</span> loader: <span class="comment"># load a minibatch x with N samples</span></span><br><span class="line">    x1, x2 = aug(x), aug(x) <span class="comment"># augmentation</span></span><br><span class="line">    q1, q2 = f_q(x1), f_q(x2) <span class="comment"># queries: [N, C] each</span></span><br><span class="line">    k1, k2 = f_k(x1), f_k(x2) <span class="comment"># keys: [N, C] each</span></span><br><span class="line">    loss = ctr(q1, k2) + ctr(q2, k1) <span class="comment"># symmetrized</span></span><br><span class="line">    loss.backward()</span><br><span class="line">    update(f_q) <span class="comment"># optimizer update: f_q</span></span><br><span class="line">    f_k = m*f_k + (<span class="number">1</span>-m)*f_q <span class="comment"># momentum update: f_k</span></span><br><span class="line"><span class="comment"># contrastive loss</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">ctr</span>(<span class="params">q, k</span>):</span><br><span class="line">    logits = mm(q, k.t()) <span class="comment"># [N, N] pairs</span></span><br><span class="line">    labels = <span class="built_in">range</span>(N) <span class="comment"># positives are in diagonal</span></span><br><span class="line">    loss = CrossEntropyLoss(logits/tau, labels)</span><br><span class="line">    <span class="keyword">return</span> <span class="number">2</span> * tau * loss</span><br></pre></td></tr></table></figure>
-<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;$\rm InfoNCELoss$ 已经说过，不再赘述，之后可以专门写一篇总结$\rm MSE, RMSE, NCE,InfoNCE,BCE,CE$ 等的区别和联系。</p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>Orthogonal_VQGAN</title>
-    <url>/Orthogonal_VQGAN/</url>
-    <content><![CDATA[<h2><center> Exploration into Translation-Equivariant Image Quantization </center></h2>
-
-<p>【VQGAN探索】【ICASSP<strong>(CCF_B)</strong>】【<a href="arXiv:2112.00384">paper</a>】【<a href>code</a>未开源】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了在 VQ 的时候由于码本中不同编码的堆叠，可能导致性能的下降以及平移等变性的缺失，因此以一种很简单的方式消除了堆叠，具体来说，即加入正交化损失，通过强制 codebook 正交化减少堆叠。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Orthogonal_VQGAN/image-20230330092831822.png" alt="image-20230330092831822" style="zoom:50%;"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>正交化损失，用于减少堆叠以及保持平移等变性</li>
-<li>正交初始化，用于减少堆叠（以本文为经验可以得出的结果，具备明显的合理性）</li>
-</ul>
-<h3 id="为什么要正交？"><a href="#为什么要正交？" class="headerlink" title="为什么要正交？"></a>为什么要正交？</h3><p>&emsp;&emsp;图像经过 CNN 之后的平移等变性缺失是老生常谈的话题，以可视化的例子如下所示，下图中随着图像主体的平移，普通的 CNN 结构（baseline）的置信度变化方差很大，而抗堆叠的方法会好很多。</p>
-<p><img src="/Orthogonal_VQGAN/video_00810.gif" alt></p>
-<p>&emsp;&emsp;所谓平移等变，事实上在分类任务中要求的应该是平移不变性，就是平移之后输出不变，对应在分割等任务上应该是平移等变，就是平移之后输出的 box 等跟随平移。但是我觉得在分类任务其实也得要求平移等变，并非以结果和输入等变，而是以特征图和输入等变，如下图所示。而平移不变性则是在等变的特征图的基础上后续预测网络的要求。</p>
-<p><img src="/Orthogonal_VQGAN/v2-73708d7f00e07e836bd63a96baad638e_1440w.webp" alt="img" style="zoom:50%;"></p>
-<p>&emsp;&emsp;之所以会缺失平移等变性，主要是因为在降采样的过程中，无论是卷积降采样还是池化降采样，都会损失相对位置信息，以 MaxPooling 为例，第一步取 max 实际上只是在一定程度上做了平均，算是一种信息的压缩，但是这里的压缩损失的只是细节信息，但是第二步的池化操作会把原本离得或近或远的 max 的 index 放在相邻位置。这种降采样导致在周期性平移（平移长度为步长整数倍）时可以获得平移等变的结果，而除此之外就会产生较大的误差。因此可以看出 baseline 并不是一直都差，而是周期性地好坏。</p>
-<h3 id="如何保证码本正交？"><a href="#如何保证码本正交？" class="headerlink" title="如何保证码本正交？"></a>如何保证码本正交？</h3><p>&emsp;&emsp;码本的正交可以最大限度地消除码本的冗余性，从而在特征向量少量移动时保证量化之后的向量尽可能不变。</p>
-<p>&emsp;&emsp;至于做法包含两个层面：</p>
-<ul>
-<li>初始化的时候将随机初始化的变量进行正交化处理</li>
-<li>使用正交化损失进行强制 codebook 正交化，orthogonality loss 写作：</li>
-</ul>
-<script type="math/tex; mode=display">
-\mathcal L_{REG}(e)=\lambda\frac{1}{K^2}||l_2(e)^Tl_2(e)-I_K||_2^2</script><p>&emsp;&emsp;即，对码表的编码进行 l2_normlize 之后计算正交矩阵，使其和单位矩阵尽可能接近，$K^2$ 用以消除尺度误差，$\lambda$ 用以平衡权重。</p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-      </categories>
-  </entry>
-  <entry>
     <title>NUWA</title>
     <url>/NUWA/</url>
     <content><![CDATA[<h2><center> NUWA: Visual Synthesis Pre-training for Neural visUal World creAtion </center></h2>
@@ -2129,6 +2096,39 @@ z^{proto}=\gamma z^{proto}+(1-\gamma) \mathbb E_{x^{(i)}\sim p(\mathcal T)}\frac
 <li>视频预测结果（FVD）</li>
 </ul>
 <p><img src="/NUWA/image-20230412113018082.png" alt="image-20230412113018082" style="zoom:40%;"></p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Orthogonal_VQGAN</title>
+    <url>/Orthogonal_VQGAN/</url>
+    <content><![CDATA[<h2><center> Exploration into Translation-Equivariant Image Quantization </center></h2>
+
+<p>【VQGAN探索】【ICASSP<strong>(CCF_B)</strong>】【<a href="arXiv:2112.00384">paper</a>】【<a href>code</a>未开源】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了在 VQ 的时候由于码本中不同编码的堆叠，可能导致性能的下降以及平移等变性的缺失，因此以一种很简单的方式消除了堆叠，具体来说，即加入正交化损失，通过强制 codebook 正交化减少堆叠。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Orthogonal_VQGAN/image-20230330092831822.png" alt="image-20230330092831822" style="zoom:50%;"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>正交化损失，用于减少堆叠以及保持平移等变性</li>
+<li>正交初始化，用于减少堆叠（以本文为经验可以得出的结果，具备明显的合理性）</li>
+</ul>
+<h3 id="为什么要正交？"><a href="#为什么要正交？" class="headerlink" title="为什么要正交？"></a>为什么要正交？</h3><p>&emsp;&emsp;图像经过 CNN 之后的平移等变性缺失是老生常谈的话题，以可视化的例子如下所示，下图中随着图像主体的平移，普通的 CNN 结构（baseline）的置信度变化方差很大，而抗堆叠的方法会好很多。</p>
+<p><img src="/Orthogonal_VQGAN/video_00810.gif" alt></p>
+<p>&emsp;&emsp;所谓平移等变，事实上在分类任务中要求的应该是平移不变性，就是平移之后输出不变，对应在分割等任务上应该是平移等变，就是平移之后输出的 box 等跟随平移。但是我觉得在分类任务其实也得要求平移等变，并非以结果和输入等变，而是以特征图和输入等变，如下图所示。而平移不变性则是在等变的特征图的基础上后续预测网络的要求。</p>
+<p><img src="/Orthogonal_VQGAN/v2-73708d7f00e07e836bd63a96baad638e_1440w.webp" alt="img" style="zoom:50%;"></p>
+<p>&emsp;&emsp;之所以会缺失平移等变性，主要是因为在降采样的过程中，无论是卷积降采样还是池化降采样，都会损失相对位置信息，以 MaxPooling 为例，第一步取 max 实际上只是在一定程度上做了平均，算是一种信息的压缩，但是这里的压缩损失的只是细节信息，但是第二步的池化操作会把原本离得或近或远的 max 的 index 放在相邻位置。这种降采样导致在周期性平移（平移长度为步长整数倍）时可以获得平移等变的结果，而除此之外就会产生较大的误差。因此可以看出 baseline 并不是一直都差，而是周期性地好坏。</p>
+<h3 id="如何保证码本正交？"><a href="#如何保证码本正交？" class="headerlink" title="如何保证码本正交？"></a>如何保证码本正交？</h3><p>&emsp;&emsp;码本的正交可以最大限度地消除码本的冗余性，从而在特征向量少量移动时保证量化之后的向量尽可能不变。</p>
+<p>&emsp;&emsp;至于做法包含两个层面：</p>
+<ul>
+<li>初始化的时候将随机初始化的变量进行正交化处理</li>
+<li>使用正交化损失进行强制 codebook 正交化，orthogonality loss 写作：</li>
+</ul>
+<script type="math/tex; mode=display">
+\mathcal L_{REG}(e)=\lambda\frac{1}{K^2}||l_2(e)^Tl_2(e)-I_K||_2^2</script><p>&emsp;&emsp;即，对码表的编码进行 l2_normlize 之后计算正交矩阵，使其和单位矩阵尽可能接近，$K^2$ 用以消除尺度误差，$\lambda$ 用以平衡权重。</p>
 ]]></content>
       <categories>
         <category>paper</category>
@@ -2311,6 +2311,47 @@ p=\lceil\delta_c(n)\rceil-\delta_c(n)</script><p>&emsp;&emsp;故而在所有的�
       </categories>
   </entry>
   <entry>
+    <title>SiNC</title>
+    <url>/SiNC/</url>
+    <content><![CDATA[<h2><center> Non-Contrastive Unsupervised Learning of Physiological Signals from Video </center></h2>
+
+<p>【rPPG】【CVPR2023】【<a href="http://arxiv.org/abs/2303.07944">paper</a>】【<a href="https://github.com/CVRL/SiNC-rPPG">code</a>】</p>
+<h3 id="abstract"><a href="#abstract" class="headerlink" title="abstract"></a>abstract</h3><p>&emsp;&emsp;本文基于 PPG 信号的三个特征，提出了一种非对比学习的自监督方法用于 rPPG 测量，虽然作者强调了没有针对 rPPG 进行独特的网络设计，但是三种特征均为 PPG 信号强相关的，并且这项工作实际上可以看做“基于负样本和先验约束的对比学习”。需要指出：作者认为在同 batch 内的 PSD 之和应当分布均匀，这是显然不成立的，即使考虑 batch size 可以很大并且视频经过数据增强，在统计学意义上 PSD 之和仍应该服从正态分布。</p>
+<h3 id="overview"><a href="#overview" class="headerlink" title="overview"></a>overview</h3><p><img src="/SiNC/image-20231109105443684.png" alt="image-20231109105443684"></p>
+<span id="more"></span>
+<hr>
+<h3 id="contribution"><a href="#contribution" class="headerlink" title="contribution"></a>contribution</h3><ul>
+<li>“非对比学习”的无监督结构（事实上可以看做是对比学习的变体）</li>
+<li>三个针对“频率任务”进行优化的损失函数：sparsely，bandlimits，variance</li>
+</ul>
+<h3 id="formulation"><a href="#formulation" class="headerlink" title="formulation"></a>formulation</h3><p>&emsp;&emsp;输入 video $x_i\in\mathbb{R}^{T\times W\times H\times C}$；数据增强的操作集合 $\Phi$；来自 SOTA（physnet）的模型 $f$；波形 $y_i=f(x_i)$；波形频率 PSD $F=\mathrm{FFT}(y)$；$F_i$ 表示 $F$ 在频率为 $i$ 的分量；正常人的 PPG 信号频率在 $a=0.66\mathrm{Hz}\rightarrow b=3\mathrm{Hz}$ 之间变化。</p>
+<h3 id="framework"><a href="#framework" class="headerlink" title="framework"></a>framework</h3><p>&emsp;&emsp;本文的关键不在于网络而是损失函数的设计，在模型上选取了简单的 physnet。</p>
+<ul>
+<li>Sparsity Loss：此损失防止频率的带宽过分散</li>
+</ul>
+<script type="math/tex; mode=display">
+L_s=\frac{\sum\limits_{i=a}^{\arg max(F)-\Delta F}F_i+\sum\limits_{i=\arg max(F)+\Delta F}^{b}F_i}{\sum\limits_{i=a}^{b}F_i}</script><p>&emsp;&emsp;其中，$\arg max(F)$ 即为心率，而 $\Delta F$ 表示 $\pm0.1\mathrm{Hz}$ 范围内的频率。也就是说，这个损失函数的意义为：在 $\arg max(F)\pm0.1\mathrm{Hz}$ 之外的频率图面积和总频率图面积之比，优化方向为：使 PSD 更集中在 $0.1\mathrm{Hz}$ 之内。</p>
+<ul>
+<li>Bandwidth Loss：此损失防止带宽离开心率频率范围之外</li>
+</ul>
+<script type="math/tex; mode=display">
+L_b=\frac{\sum\limits_{i=-\infty}^{a}F_i+\sum\limits_{i=b}^{\infty}F_i}{\sum\limits_{i=-\infty}^{\infty}F_i}</script><p>&emsp;&emsp;这个损失函数的意义为：小于 $a$ 或大于 $b$ 的频率图面积和所有可能的频率面积之比。优化方向为：使 PSD 集中在 $[a,b]$ 之内（事实上就是 IPR 越小越好）</p>
+<ul>
+<li>Variance Loss：此损失防止模型 collapse</li>
+</ul>
+<p>&emsp;&emsp;在只有前面两个损失函数的情况下，仅仅能限制模型输出“正确”的信号而非“对应”的信号，<em>本文通过将同一个 batch 内输出的 PSD 方差增大期望模型学到正确信号</em>。</p>
+<script type="math/tex; mode=display">
+L_v=\frac1d\sum\limits_{i=1}^{d}(\mathrm{CDF}_i(Q)-\mathrm{CDF}_i(P))^2</script><p>&emsp;&emsp;其中 CDF 是累计分布函数，$\mathrm{CDF}_i$ 就表示 Q 分布在第 i 个频率的分量，这里 Q 和 P 都是 (1, d=140) 的 tensor。可以这样理解：Q 表示对一个 batch 内所有的 PSD 直接求和的结果，而 P 则是单纯的均匀分布。使 Q 靠近 P 即为：在同一个 batch 内，PSD 的峰值应当分散一些，从而让整个 batch 的 PSD 求和等于均匀分布。</p>
+<h3 id="experiment"><a href="#experiment" class="headerlink" title="experiment"></a>experiment</h3><p>&emsp;&emsp;intra- 中规中矩，cross- 效果比较差，但是本文列出的其他 SOTA 实验结果也差，也就是说实际上本文重新跑了其他 SOTA 的跨数据集。</p>
+<p><img src="/SiNC/image-20231109131002347.png" alt="image-20231109131002347"></p>
+<p><img src="/SiNC/image-20231109131243482.png" alt="image-20231109131243482" style="zoom:50%;"></p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
     <title>PulseGAN</title>
     <url>/PulseGAN/</url>
     <content><![CDATA[<h2><center> PulseGAN: Learning to generate realistic pulse
@@ -2354,47 +2395,6 @@ waveforms in remote photoplethysmography </center></h2>
       </categories>
   </entry>
   <entry>
-    <title>SiNC</title>
-    <url>/SiNC/</url>
-    <content><![CDATA[<h2><center> Non-Contrastive Unsupervised Learning of Physiological Signals from Video </center></h2>
-
-<p>【rPPG】【CVPR2023】【<a href="http://arxiv.org/abs/2303.07944">paper</a>】【<a href="https://github.com/CVRL/SiNC-rPPG">code</a>】</p>
-<h3 id="abstract"><a href="#abstract" class="headerlink" title="abstract"></a>abstract</h3><p>&emsp;&emsp;本文基于 PPG 信号的三个特征，提出了一种非对比学习的自监督方法用于 rPPG 测量，虽然作者强调了没有针对 rPPG 进行独特的网络设计，但是三种特征均为 PPG 信号强相关的，并且这项工作实际上可以看做“基于负样本和先验约束的对比学习”。需要指出：作者认为在同 batch 内的 PSD 之和应当分布均匀，这是显然不成立的，即使考虑 batch size 可以很大并且视频经过数据增强，在统计学意义上 PSD 之和仍应该服从正态分布。</p>
-<h3 id="overview"><a href="#overview" class="headerlink" title="overview"></a>overview</h3><p><img src="/SiNC/image-20231109105443684.png" alt="image-20231109105443684"></p>
-<span id="more"></span>
-<hr>
-<h3 id="contribution"><a href="#contribution" class="headerlink" title="contribution"></a>contribution</h3><ul>
-<li>“非对比学习”的无监督结构（事实上可以看做是对比学习的变体）</li>
-<li>三个针对“频率任务”进行优化的损失函数：sparsely，bandlimits，variance</li>
-</ul>
-<h3 id="formulation"><a href="#formulation" class="headerlink" title="formulation"></a>formulation</h3><p>&emsp;&emsp;输入 video $x_i\in\mathbb{R}^{T\times W\times H\times C}$；数据增强的操作集合 $\Phi$；来自 SOTA（physnet）的模型 $f$；波形 $y_i=f(x_i)$；波形频率 PSD $F=\mathrm{FFT}(y)$；$F_i$ 表示 $F$ 在频率为 $i$ 的分量；正常人的 PPG 信号频率在 $a=0.66\mathrm{Hz}\rightarrow b=3\mathrm{Hz}$ 之间变化。</p>
-<h3 id="framework"><a href="#framework" class="headerlink" title="framework"></a>framework</h3><p>&emsp;&emsp;本文的关键不在于网络而是损失函数的设计，在模型上选取了简单的 physnet。</p>
-<ul>
-<li>Sparsity Loss：此损失防止频率的带宽过分散</li>
-</ul>
-<script type="math/tex; mode=display">
-L_s=\frac{\sum\limits_{i=a}^{\arg max(F)-\Delta F}F_i+\sum\limits_{i=\arg max(F)+\Delta F}^{b}F_i}{\sum\limits_{i=a}^{b}F_i}</script><p>&emsp;&emsp;其中，$\arg max(F)$ 即为心率，而 $\Delta F$ 表示 $\pm0.1\mathrm{Hz}$ 范围内的频率。也就是说，这个损失函数的意义为：在 $\arg max(F)\pm0.1\mathrm{Hz}$ 之外的频率图面积和总频率图面积之比，优化方向为：使 PSD 更集中在 $0.1\mathrm{Hz}$ 之内。</p>
-<ul>
-<li>Bandwidth Loss：此损失防止带宽离开心率频率范围之外</li>
-</ul>
-<script type="math/tex; mode=display">
-L_b=\frac{\sum\limits_{i=-\infty}^{a}F_i+\sum\limits_{i=b}^{\infty}F_i}{\sum\limits_{i=-\infty}^{\infty}F_i}</script><p>&emsp;&emsp;这个损失函数的意义为：小于 $a$ 或大于 $b$ 的频率图面积和所有可能的频率面积之比。优化方向为：使 PSD 集中在 $[a,b]$ 之内（事实上就是 IPR 越小越好）</p>
-<ul>
-<li>Variance Loss：此损失防止模型 collapse</li>
-</ul>
-<p>&emsp;&emsp;在只有前面两个损失函数的情况下，仅仅能限制模型输出“正确”的信号而非“对应”的信号，<em>本文通过将同一个 batch 内输出的 PSD 方差增大期望模型学到正确信号</em>。</p>
-<script type="math/tex; mode=display">
-L_v=\frac1d\sum\limits_{i=1}^{d}(\mathrm{CDF}_i(Q)-\mathrm{CDF}_i(P))^2</script><p>&emsp;&emsp;其中 CDF 是累计分布函数，$\mathrm{CDF}_i$ 就表示 Q 分布在第 i 个频率的分量，这里 Q 和 P 都是 (1, d=140) 的 tensor。可以这样理解：Q 表示对一个 batch 内所有的 PSD 直接求和的结果，而 P 则是单纯的均匀分布。使 Q 靠近 P 即为：在同一个 batch 内，PSD 的峰值应当分散一些，从而让整个 batch 的 PSD 求和等于均匀分布。</p>
-<h3 id="experiment"><a href="#experiment" class="headerlink" title="experiment"></a>experiment</h3><p>&emsp;&emsp;intra- 中规中矩，cross- 效果比较差，但是本文列出的其他 SOTA 实验结果也差，也就是说实际上本文重新跑了其他 SOTA 的跨数据集。</p>
-<p><img src="/SiNC/image-20231109131002347.png" alt="image-20231109131002347"></p>
-<p><img src="/SiNC/image-20231109131243482.png" alt="image-20231109131243482" style="zoom:50%;"></p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-      </categories>
-  </entry>
-  <entry>
     <title>Siamese-rPPG</title>
     <url>/Siamese-rPPG/</url>
     <content><![CDATA[<h2><center> Siamese-rPPG network: remote photoplethysmography signal estimation from face videos </center></h2>
@@ -2422,50 +2422,6 @@ L_v=\frac1d\sum\limits_{i=1}^{d}(\mathrm{CDF}_i(Q)-\mathrm{CDF}_i(P))^2</script>
 <p><img src="/Siamese-rPPG/image-20221202105303143.png" alt="image-20221202105303143" style="zoom:67%;"></p>
 <hr>
 <h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3><p>&emsp;&emsp;本文总共采用了三个简单化处理的策略：1. 使用每个 clip 的第一帧标定 ROI，其余帧不再检测，2. 使用加法做 late fusion，而不是基于学习的方法，3. 使用 ftt 提取 HR，而不是用 PSD。有意思的是在这种设置下效果反而不错，有这么一种可能，虽然心率监测的任务看起来玄学一些，但是对于稀疏编码了生理信号的视频，也许提取 ppg 信号不太需要模型具备复杂的高维映射能力。</p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-        <category>hr</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>SimPer</title>
-    <url>/SimPER/</url>
-    <content><![CDATA[<h2><center> SIMPER: SIMPLE SELF-SUPERVISED LEARNING OF PERIODIC TARGETS </center></h2>
-
-<p>【周期性信号对比学习】【arxiv】【<a href="https://arxiv.org/pdf/2210.03115.pdf">paper</a>】【<a href="https://github.com/YyzHarry/SimPer">code</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文探索了旧有对比学习方法在周期性任务学习中的局限性，提出了一种新的周期性对比学习的代理任务，并且改进了 InfoNCE，测试了六个周期性变化的对比学习任务，和 MoCo，SimCLR，BYOL 等对比学习方法相比取得了较大的进步。（其实是个实验详实的水文，对比的这些 SOTA 都是学 ID 或者 ACTION 语义的，和 HR 等目标完全不一样）</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/SimPER/image-20221104103618517.png" alt="image-20221104103618517" style="zoom:80%;"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>提出周期性任务对比学习的内在特性</li>
-<li>提出了一种周期性任务对比学习的框架 SimPer</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/SimPER/image-20221104105331714.png" alt="image-20221104105331714" style="zoom:67%;"></p>
-<p>&emsp;&emsp;对于网络结构，参考 <a href="https://bnucsy.github.io/HR_CL_the_way_to_my_heart/">The Way to My Heart</a> 是一目了然的，也就是提了一些更加准确性的定义：</p>
-<ul>
-<li>$\tau$：周期改变的数据增强</li>
-<li>$\sigma$：周期不变的数据增强</li>
-</ul>
-<p>&emsp;&emsp;因此对于输入 $x$ 首先进行周期改变的数据增强，得到 $\tau_i(x),i\in [1,k]$，对于得到的 $k$ 个视频，将其逐个进行周期不变的增强，每个视频进行两次增强作为 pos 对，得到 $2k$ 个样本 $\sigma_i(\tau_j(x)),i\in [1,2],j\in[1,k]$。对于所有的样本通过 backbone $f$，$\tau $ 下标一致的接近，不一致的远离。</p>
-<p>&emsp;&emsp;其中 backbone 针对不同的六个任务选取不同，RotatingDigits 和 SCAMPS 上，采用了 CNN 的简单 3D 变体。采用 TS-CAN 模型的变体对 UBFC 和 PURE 进行实验。最后，在 Countix 和 LST 上，使用ResNet-3D-18。</p>
-<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;对于损失函数，为了度量周期性信号的相似度，不可以使用普通的 cos 方式测量，而是需要能够测量周期的损失，绝对误差和周期误差的区别如下图所示。</p>
-<p><img src="/SimPER/image-20221104115127418.png" alt="image-20221104115127418" style="zoom:80%;"></p>
-<p>&emsp;&emsp;因此本文尝试了 MXCorr（最大互相关）和 nPSD（归一化功率谱密度）对周期性信号进行建模，并且提出了一种基于 InfoNCE 的广义 InfoNCE。</p>
-<ul>
-<li>InfoNCE</li>
-</ul>
-<script type="math/tex; mode=display">
-\rm \mathcal L_{InfoNCE}=-log\frac{exp(sim(z,\hat z)/\nu)}{\sum_{z'\in \mathcal Z/\{z\}}exp(sim(z,z')/\nu)}</script><ul>
-<li>Generalized InfoNCE</li>
-</ul>
-<script type="math/tex; mode=display">
-\rm\mathcal L_{SimPer } = \mathop\sum\limits_i \mathcal l_{SimPer}^i</script><script type="math/tex; mode=display">
-\rm \mathcal l_{SimPer}^i=\mathop\sum\limits_i-\mathop\sum\limits_{j=1}^M\frac{exp(w_{i,j})}{\sum_{k=1}^Mexp(w_{i,k})}log\frac{exp(sim(z_i,\hat z_j)/\nu)}{\sum_{k=1}^Mexp(sim(z_i,z_k')/\nu)}</script><p>&emsp;&emsp;综合来看，其本身没有和 InfoNCE 的太大区别，区别在于对于高频采样的信号，GInfoNCE 可以将其视为连续信号计算误差，这样在实验中可以得到更好的优化。</p>
-<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;结果相对于 SIMCLR、MoCo，BYOL，CVRL 等都好很多，但是和正儿八经做周期性对比学习的方法差很多，以心率检测为例：其中 FFT 和 1-NN 是分别以傅立叶变换和最近邻分类器直接评估学习到的特征。虽然这样做由于没有进行特殊设计相比于 The Way to My Heart 略有劣势，但结果也差了不少，和 physnet 都差很多，更不用提 physformer 和 Dual-GAN 了。</p>
-<p><img src="/SimPER/image-20221104133719823.png" alt="image-20221104133719823"></p>
 ]]></content>
       <categories>
         <category>paper</category>
@@ -2545,6 +2501,50 @@ L_v=\frac1d\sum\limits_{i=1}^{d}(\mathrm{CDF}_i(Q)-\mathrm{CDF}_i(P))^2</script>
       </categories>
   </entry>
   <entry>
+    <title>SimPer</title>
+    <url>/SimPER/</url>
+    <content><![CDATA[<h2><center> SIMPER: SIMPLE SELF-SUPERVISED LEARNING OF PERIODIC TARGETS </center></h2>
+
+<p>【周期性信号对比学习】【arxiv】【<a href="https://arxiv.org/pdf/2210.03115.pdf">paper</a>】【<a href="https://github.com/YyzHarry/SimPer">code</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文探索了旧有对比学习方法在周期性任务学习中的局限性，提出了一种新的周期性对比学习的代理任务，并且改进了 InfoNCE，测试了六个周期性变化的对比学习任务，和 MoCo，SimCLR，BYOL 等对比学习方法相比取得了较大的进步。（其实是个实验详实的水文，对比的这些 SOTA 都是学 ID 或者 ACTION 语义的，和 HR 等目标完全不一样）</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/SimPER/image-20221104103618517.png" alt="image-20221104103618517" style="zoom:80%;"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>提出周期性任务对比学习的内在特性</li>
+<li>提出了一种周期性任务对比学习的框架 SimPer</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/SimPER/image-20221104105331714.png" alt="image-20221104105331714" style="zoom:67%;"></p>
+<p>&emsp;&emsp;对于网络结构，参考 <a href="https://bnucsy.github.io/HR_CL_the_way_to_my_heart/">The Way to My Heart</a> 是一目了然的，也就是提了一些更加准确性的定义：</p>
+<ul>
+<li>$\tau$：周期改变的数据增强</li>
+<li>$\sigma$：周期不变的数据增强</li>
+</ul>
+<p>&emsp;&emsp;因此对于输入 $x$ 首先进行周期改变的数据增强，得到 $\tau_i(x),i\in [1,k]$，对于得到的 $k$ 个视频，将其逐个进行周期不变的增强，每个视频进行两次增强作为 pos 对，得到 $2k$ 个样本 $\sigma_i(\tau_j(x)),i\in [1,2],j\in[1,k]$。对于所有的样本通过 backbone $f$，$\tau $ 下标一致的接近，不一致的远离。</p>
+<p>&emsp;&emsp;其中 backbone 针对不同的六个任务选取不同，RotatingDigits 和 SCAMPS 上，采用了 CNN 的简单 3D 变体。采用 TS-CAN 模型的变体对 UBFC 和 PURE 进行实验。最后，在 Countix 和 LST 上，使用ResNet-3D-18。</p>
+<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;对于损失函数，为了度量周期性信号的相似度，不可以使用普通的 cos 方式测量，而是需要能够测量周期的损失，绝对误差和周期误差的区别如下图所示。</p>
+<p><img src="/SimPER/image-20221104115127418.png" alt="image-20221104115127418" style="zoom:80%;"></p>
+<p>&emsp;&emsp;因此本文尝试了 MXCorr（最大互相关）和 nPSD（归一化功率谱密度）对周期性信号进行建模，并且提出了一种基于 InfoNCE 的广义 InfoNCE。</p>
+<ul>
+<li>InfoNCE</li>
+</ul>
+<script type="math/tex; mode=display">
+\rm \mathcal L_{InfoNCE}=-log\frac{exp(sim(z,\hat z)/\nu)}{\sum_{z'\in \mathcal Z/\{z\}}exp(sim(z,z')/\nu)}</script><ul>
+<li>Generalized InfoNCE</li>
+</ul>
+<script type="math/tex; mode=display">
+\rm\mathcal L_{SimPer } = \mathop\sum\limits_i \mathcal l_{SimPer}^i</script><script type="math/tex; mode=display">
+\rm \mathcal l_{SimPer}^i=\mathop\sum\limits_i-\mathop\sum\limits_{j=1}^M\frac{exp(w_{i,j})}{\sum_{k=1}^Mexp(w_{i,k})}log\frac{exp(sim(z_i,\hat z_j)/\nu)}{\sum_{k=1}^Mexp(sim(z_i,z_k')/\nu)}</script><p>&emsp;&emsp;综合来看，其本身没有和 InfoNCE 的太大区别，区别在于对于高频采样的信号，GInfoNCE 可以将其视为连续信号计算误差，这样在实验中可以得到更好的优化。</p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;结果相对于 SIMCLR、MoCo，BYOL，CVRL 等都好很多，但是和正儿八经做周期性对比学习的方法差很多，以心率检测为例：其中 FFT 和 1-NN 是分别以傅立叶变换和最近邻分类器直接评估学习到的特征。虽然这样做由于没有进行特殊设计相比于 The Way to My Heart 略有劣势，但结果也差了不少，和 physnet 都差很多，更不用提 physformer 和 Dual-GAN 了。</p>
+<p><img src="/SimPER/image-20221104133719823.png" alt="image-20221104133719823"></p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+        <category>hr</category>
+      </categories>
+  </entry>
+  <entry>
     <title>Two_stream_CNN</title>
     <url>/Two_stream_CNN/</url>
     <content><![CDATA[<h2 id="Two-stream-convolutional-networks-for-action-recognition-in-videos-【视频动作识别】-NIPS2014"><a href="#Two-stream-convolutional-networks-for-action-recognition-in-videos-【视频动作识别】-NIPS2014" class="headerlink" title="Two-stream convolutional networks for action recognition in videos 【视频动作识别】 NIPS2014"></a><a href="https://proceedings.neurips.cc/paper/2014/file/00ec53c4682d36f5c4359f4ae7bd7ba1-Paper.pdf">Two-stream convolutional networks for action recognition in videos</a> 【视频动作识别】 NIPS2014</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;双流网络是卷积神经网络在视频理解领域的第一个应用，在这之前的视频理解都是基于手工制作的特征，正是从这项工作开始，视频理解领域步入 CNN 时代。虽然早就有人尝试使用 CNN 做视频，但是效果很差，主要原因是 CNN 难以理解视频帧之间的时间变化。双流网络克服了这个问题，提出了使用光流信息代替时间变化的思路，将空间帧和光流帧按顺序输入两个不同的 CNN 网络，将得到的输出通过一个 SVM 分类器进行分类。</p>
@@ -2570,6 +2570,101 @@ L_v=\frac1d\sum\limits_{i=1}^{d}(\mathrm{CDF}_i(Q)-\mathrm{CDF}_i(P))^2</script>
         <category>paper</category>
         <category>cv</category>
         <category>video</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Video-based_rppg_SSL</title>
+    <url>/Video-based_rppg_SSL/</url>
+    <content><![CDATA[<h2><center> Video-based Remote Physiological Measurement via Self-supervised Learning </center></h2>
+
+<p>【心率监测】【arxiv2022】【<a href="http://arxiv.org/abs/2210.15401">paper</a>】【<a href="https://github.com/yuezijie/Video-based-Remote-Physiological-Measurement-via-Self-supervised-Learning">code</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文是基于对比学习进行 rppg 信号估计的又一 SOTA，在 UBFC、PURE、DEAP、MMVS 上展示了最好的性能。鉴于目前的 rppg 对比学习网络结构基本都基于孪生网络，在数据增强和代理任务上进行创新，本文主要采样的方法有：正样本：来自空间增强的 anchor $p_1$ 和 anchor 在同一个 video 的邻居 $p_2$，负样本：来自 LFA 模块 $n$，该模块可以在视觉不变的基础上进行频率重采样，代理任务：对比 $p_1$ 和 $p_2$ 拉进距离，对比 $p_1$ 和 $n$ 拉远距离，backbone：基于混合专家模型的 ResNet3D。并且对于多样的样本提出了多样的损失。</p>
+<p>&emsp;&emsp;整体来说起作用的我认为最可能是 LFA，该模块可以生成大量的负样本，或许负样本的数量是 CL 的关键。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Video-based_rppg_SSL/image-20221202123712050.png" alt="image-20221202123712050" style="zoom:80%;"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>一种新的正样本获取策略：时间上的邻居</li>
+<li>一种新的负样本获取策略：基于学习的 LFA 模块，用于生成不同频率但人物一致的视频</li>
+<li>一种基于混合专家模型的 backbone</li>
+<li>对正样本间、正负样本间的不同损失函数 CFAL、FCL、FRCL</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/Video-based_rppg_SSL/image-20221202123712050.png" alt="image-20221202123712050" style="zoom:80%;"></p>
+<h4 id="前向过程"><a href="#前向过程" class="headerlink" title="前向过程"></a>前向过程</h4><ul>
+<li>对于输入的视频 $X$，首先将其裁剪为多个 clip，每个 $T$ 帧，然后随机选择其中一个 clip 作为主 clip $X^a$，而其他的 clip 作为邻居 $X^b$，此时的 $X^b$ 也是正样本的一员<ul>
+<li>在实现的过程中，每个输入产生三个邻居，这些正样本之间互相不重合帧，记为 $X^b_1,\ X^b_2,\ X^b_3$</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">load_img</span>(<span class="params">filepath, scale, video_length</span>):</span><br><span class="line">    <span class="built_in">list</span> = os.listdir(filepath)</span><br><span class="line">    imglen = <span class="built_in">len</span>(<span class="built_in">list</span>)</span><br><span class="line">    begin = random.randrange(<span class="number">0</span>, <span class="built_in">int</span>(imglen-(video_length*<span class="number">4</span>)))</span><br><span class="line">    whole_video = []</span><br><span class="line">    count = [<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(begin, begin + (video_length*<span class="number">4</span>)):</span><br><span class="line"></span><br><span class="line">        img = cv2.imread(os.path.join(filepath, <span class="string">&#x27;face_&#123;0&#125;.png&#x27;</span>.<span class="built_in">format</span>(i)))</span><br><span class="line">        img = cv2.resize(img, (scale, scale))</span><br><span class="line"></span><br><span class="line">        whole_video.append(img)</span><br><span class="line">    whole_video = np.array(whole_video)</span><br><span class="line"></span><br><span class="line">    whole_video = whole_video.reshape(</span><br><span class="line">        (<span class="number">4</span>, video_length, whole_video.shape[<span class="number">1</span>], whole_video.shape[<span class="number">2</span>], whole_video.shape[<span class="number">3</span>]))</span><br><span class="line">    a = random.choice(count)</span><br><span class="line">    <span class="built_in">input</span> = whole_video[a]</span><br><span class="line">    count.remove(a)</span><br><span class="line">    neighbor1 = whole_video[count[<span class="number">0</span>]]</span><br><span class="line">    neighbor2 = whole_video[count[<span class="number">1</span>]]</span><br><span class="line">    neighbor3 = whole_video[count[<span class="number">2</span>]]</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">input</span>, neighbor1, neighbor2, neighbor3</span><br></pre></td></tr></table></figure>
+<ul>
+<li>同时输入的还有一系列的频率 $R$，这个频率数组控制了期望 LFA 模块后的 video 与原 clip 的频率比，$R$ 中的值随机在 $(0.3,0.8)\cup(1.2,1.7)$ 之中产生</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">frequency_ratio</span>():</span><br><span class="line">  ratio_interval1 = np.random.uniform(<span class="number">0.3</span>, <span class="number">0.8</span>)</span><br><span class="line">  ratio_interval2 = np.random.uniform(<span class="number">1.2</span>, <span class="number">1.7</span>)</span><br><span class="line">  full_interval = np.stack((ratio_interval1, ratio_interval2))</span><br><span class="line">  random_ratio = np.random.choice(full_interval)</span><br><span class="line">  <span class="keyword">return</span> random_ratio</span><br></pre></td></tr></table></figure>
+<ul>
+<li>对于 $X^a$，执行以下两种增强策略：<ul>
+<li>将 $X^a$ 和 $R$ 输入 LFA 模块，得到负样本 $X^n$，这应当是本文的关键，即大量的有效负样本<ul>
+<li>重建之后为了保证视觉一致性，需要通过重建损失 $L_{rec}=\mathrm {MSE}(X^a,X^n)$</li>
+</ul>
+</li>
+<li>将 $X^a$ 进行空间上的数据增强，具体来说就只包括旋转和反转，得到正样本 $X^p$<ul>
+<li>在实现的过程中，每个 $X^a$ 生成两个正样本，记为 $X^p_1,\ X^p_2$</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>对于之前得到的所有正负样本：$X^b,\ X^p,\ X^n$，将他们全部通过 rppg 估计网络 REA 模块，分别得到输出 $Y^b,\ Y^p,\ Y^n$</li>
+<li>为了拉进正样本之间的距离以及拉远正负样本之间的距离，同时限制 LFA 的学习，需要过以下 3 个损失<ul>
+<li>用于拉进同视频增强后的正样本距离，同时与负样本拉远距离，需要通过 $L_{FCL}=f_1(Y^p_1,\ Y^p_2,\ Y^n)$<ul>
+<li>有一说一，其他的两个 loss 算是新的，这个 loss 最多算是重写了一下 InfoNCE</li>
+</ul>
+</li>
+<li>用于拉进增强后正样本与邻域正样本的距离，需要通过 $L_{CFAL}=f_2(Y^p_1,\ Y^p_2,\ Y^b_1,\ Y^b_2,\ Y^b_3)$</li>
+<li>用于限制正负样本对之间的信号比与 $R$ 一致，也就是为了 LFA 的学习，需要通过 $L_{FRCL}=f_3(R,\ Y^p_1,\ Y^p_2,\ Y^n)$</li>
+</ul>
+</li>
+<li>将所有 loss 求和之后进行梯度回传，loss 之间不设权重调整项</li>
+</ul>
+<h4 id="LFA-模块"><a href="#LFA-模块" class="headerlink" title="LFA 模块"></a>LFA 模块</h4><p><img src="/Video-based_rppg_SSL/image-20221202124426153.png" alt="image-20221202124426153" style="zoom:50%;"></p>
+<p>&emsp;&emsp;LFA 模块是生成负样本的关键，其正向过程如下：</p>
+<ul>
+<li>对于输入的 $X^a$，首先经过 3D 卷积和 Res3D，得到 $s^a_1$</li>
+<li>再将 $s^a_1$ 进行降采样两次分别得到 $s^a_2,\ s^a_3$，所有的 $s_i^a$ 和从 $R$ 中 sample 出的 $r_i$ 共同输入 FMB 模块<ul>
+<li>对于每个 FMB 模块，首先将 $s^a$ 进行全局池化和卷积得到 $z$，然后将 $r_i$ 填充至和 $z$ 等长（其实输入的时候就是等长）</li>
+<li>然后 cat $r_i$ 和 $z$，并经过一个 Res 块和 LSTM，输出之后和之前的输入 $s^a$ 做按位乘法后输出</li>
+<li>FMB 的伪代码如下：</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">FMB</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, s_a, ratio, video_length</span>):</span><br><span class="line">        <span class="built_in">super</span>(FMB, self).__init__()</span><br><span class="line">        self.mod_gap = nn.AdaptiveAvgPool3d((video_length, <span class="number">1</span>, <span class="number">1</span>))</span><br><span class="line">        self.mod_conv1d = nn.Conv1d(</span><br><span class="line">            in_channels=base_filter, out_channels=<span class="number">1</span>, kernel_size=<span class="number">3</span>, stride=<span class="number">1</span>, padding=<span class="number">1</span>)</span><br><span class="line">        self.mod_res1d = ResnetBlock1D(</span><br><span class="line">            <span class="number">2</span>, kernel_size=<span class="number">3</span>, stride=<span class="number">1</span>, padding=<span class="number">1</span>, bias=<span class="literal">True</span>, activation=<span class="string">&#x27;relu&#x27;</span>, norm=<span class="literal">None</span>)</span><br><span class="line">        self.mod_lstm = nn.LSTM(<span class="number">2</span>, <span class="number">1</span>, num_layers=<span class="number">1</span>, batch_first=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, <span class="built_in">input</span>, ratio</span>):</span><br><span class="line">        s_a = self.mod_gap(s_a)</span><br><span class="line">        s_a = s_a.squeeze(<span class="number">3</span>)</span><br><span class="line">        s_a = s_a.squeeze(<span class="number">3</span>)</span><br><span class="line">        z = self.mod_conv1d(s_a)</span><br><span class="line">        r_i = ratio.unsqueeze(<span class="number">1</span>)</span><br><span class="line">        fuse = torch.cat((z, r_i), <span class="number">1</span>)</span><br><span class="line">        m_i = self.mod_res1d(fuse)</span><br><span class="line">        m_i = m_i.transpose(<span class="number">1</span>, <span class="number">2</span>)</span><br><span class="line">        m_i = self.mod_lstm(m_i)[<span class="number">0</span>]</span><br><span class="line">        m_i = m_i.view(B, <span class="number">1</span>, T, <span class="number">1</span>, <span class="number">1</span>)</span><br><span class="line">        s_n = torch.mul(s_a, m_i)</span><br><span class="line">        <span class="keyword">return</span> s_n</span><br></pre></td></tr></table></figure>
+<ul>
+<li>对于三个 FMB 模块的输出分别按照降采样的程度进行上采样，整体上算是个类 U-net 的结构</li>
+</ul>
+<h4 id="REA-模块"><a href="#REA-模块" class="headerlink" title="REA 模块"></a>REA 模块</h4><p><img src="/Video-based_rppg_SSL/image-20221202124505577.png" alt="image-20221202124505577" style="zoom:80%;"></p>
+<p>&emsp;&emsp;REA 模块是一个基于混合专家模型的 rppg 估计网络，所谓混合专家模型（MOE），本质上像是集成学习一样的策略，即对不同的子问题有不同的网络（专家模型）进行拟合，最终给各个网络（专家模型）赋值权重得到输出。</p>
+<p>&emsp;&emsp;对于 REA 模块，其将输入的视频经过一个 resnet 之后进行分割，将一个 clip 按照空间区域划分为 L 个子空间（L=4），每个空间经过同样结构但不共享参数的局部专家模型得到对应空间的输出，并且给每个专家模型赋值不同的权重，这些权重来自于另一个模型 $\cal G$，整个模型的前向过程由上图给出，蛮清晰的，实现也比较简单。</p>
+<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;上述前向过程之中总共出现了四个损失函数 $\cal L_{vr},\ L_{fc},\ L_{fr},\ L_{fa}$，分别对应：Video reconstruction loss，Frequency contrastive loss，Frequency ratio consistency loss，Cross-video frequency agreement loss，他们的表达式分别如下：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&\rm \mathcal L_{vr}=MSE(X^n, X^a)\tag 1\\
+&\rm \mathcal L_{fc}=\log (1+\frac{\exp(d(y_1^p,y_2^p)/\tau)}{\sum_{i=1}^k(\exp(d(y_1^p,y_i^n)/\tau)+\exp(d(y_2^p,y_i^n)/\tau))})\tag 2\\
+&\rm \mathcal L_{fr}=\frac1{2k}\sum_{i=1}^k\left|\frac{P(y_i^n)}{P(y_1^p)}-r_i \right|+\left|\frac{P(y_i^n)}{P(y_2^p)}-r_i \right|\tag 3\\
+&\rm\mathcal L_{fa} =\frac 1 {2J} ∑^J_{j=1} d(y^p_1 , y^b_ j ) + d(y^p_ 2 , y^b_ j )\tag 4
+\end{align}</script><p>&emsp;&emsp;其中，$(2)$ 是对 InfoNCE 损失的重写，基本的表示方式也参考了 InfoNCE（$-\log\frac{\exp(q·k_+/\tau)}{\sum_{i=0}^{K}\exp(q·k_i/\tau)}$），$(3)$ 是度量两个正样本和负样本的频率比是否和预设的 $R$ 一致，用来限制 LFA 的学习，$(4)$ 是用来拉进正样本之间距离的。</p>
+<p>&emsp;&emsp;总体来说 $\mathcal L=\mathcal L_{vr} +\mathcal L_{fc}+\mathcal L_{fr}+\mathcal L_{fa}$，需要注意的是，这里的正样本包括增强样本和邻居样本，但是和负样本拉远距离的只包括增强样本，邻居样本不和负样本拉远距离，作者在文中提到如果都拉远的话效果会变差，结果上来说这有点反直觉，也难以解释。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">FRCL</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, Fs, min_hr, max_hr</span>):</span><br><span class="line">        <span class="built_in">super</span>(FRCL, self).__init__()</span><br><span class="line">        self.Fs = Fs</span><br><span class="line">        self.min_hr = min_hr</span><br><span class="line">        self.max_hr = max_hr</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, neg_rppgarr, pos_rppg1, pos_rppg2, ratio_array</span>):</span><br><span class="line">        loss = <span class="number">0</span></span><br><span class="line">        count = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">        poshr1 = predict_heart_rate(pos_rppg1[<span class="number">0</span>].detach(</span><br><span class="line">        ).cpu().numpy(), self.Fs, self.min_hr, self.max_hr)</span><br><span class="line"></span><br><span class="line">        poshr2 = predict_heart_rate(pos_rppg2[<span class="number">0</span>].detach(</span><br><span class="line">        ).cpu().numpy(), self.Fs, self.min_hr, self.max_hr)</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(neg_rppgarr)):</span><br><span class="line">            neghr = predict_heart_rate(neg_rppgarr[i][<span class="number">0</span>].detach().cpu().numpy(), self.Fs, self.min_hr, self.max_hr)</span><br><span class="line"></span><br><span class="line">            loss += np.<span class="built_in">abs</span>(neghr/poshr1-ratio_array[<span class="number">0</span>][i][<span class="number">0</span>].detach().cpu().numpy()) +\</span><br><span class="line">                np.<span class="built_in">abs</span>(neghr/poshr2-ratio_array[<span class="number">0</span>][i][<span class="number">0</span>].detach().cpu().numpy())</span><br><span class="line">            count += <span class="number">2</span></span><br><span class="line">        loss = loss/count</span><br><span class="line">        <span class="keyword">return</span> loss</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">CFAL</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, Fs, high_pass=<span class="number">2.5</span>, low_pass=<span class="number">0.4</span></span>):</span><br><span class="line">        <span class="built_in">super</span>(CFAL, self).__init__()</span><br><span class="line">        <span class="comment"># PSD_MSE</span></span><br><span class="line">        self.norm_psd = CalculateNormPSD(Fs, high_pass, low_pass)</span><br><span class="line">        self.distance_func = nn.MSELoss()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, pos_rppg1, pos_rppg2, neighbor_rppg1, neighbor_rppg2, neighbor_rppg3</span>):</span><br><span class="line">        posfre1 = self.norm_psd(pos_rppg1)</span><br><span class="line">        posfre2 = self.norm_psd(pos_rppg2)</span><br><span class="line">        neifre1 = self.norm_psd(neighbor_rppg1)</span><br><span class="line">        neifre2 = self.norm_psd(neighbor_rppg2)</span><br><span class="line">        neifre3 = self.norm_psd(neighbor_rppg3)</span><br><span class="line"></span><br><span class="line">        loss = self.distance_func(posfre1, neifre1)+self.distance_func(posfre1, neifre2)+self.distance_func(posfre1, neifre3)\</span><br><span class="line">            + self.distance_func(posfre2, neifre1)+self.distance_func(posfre2, neifre2)+self.distance_func(posfre2, neifre3)</span><br><span class="line">        loss = loss/<span class="number">6</span></span><br><span class="line">        <span class="keyword">return</span> loss</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">FCL</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, Fs, high_pass=<span class="number">2.5</span>, low_pass=<span class="number">0.4</span>, tau=<span class="number">0.08</span></span>):</span><br><span class="line">        <span class="built_in">super</span>(FCL, self).__init__()</span><br><span class="line">        <span class="comment"># PSD_MSE</span></span><br><span class="line">        self.norm_psd = CalculateNormPSD(Fs, high_pass, low_pass)</span><br><span class="line">        self.distance_func = nn.MSELoss()</span><br><span class="line">        self.tau = tau</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, neg_rppgarr, pos_rppg1, pos_rppg2</span>):</span><br><span class="line"></span><br><span class="line">        posfre1 = self.norm_psd(pos_rppg1)</span><br><span class="line">        posfre2 = self.norm_psd(pos_rppg2)</span><br><span class="line">        pos_dis = torch.exp(self.distance_func(posfre1, posfre2)/self.tau)</span><br><span class="line">        neg_dis_total = <span class="number">0</span></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(neg_rppgarr)):</span><br><span class="line">            negfre = self.norm_psd(neg_rppgarr[i])</span><br><span class="line">            neg_dis = torch.exp(self.distance_func(posfre1, negfre) / self.tau)+torch.exp(self.distance_func(posfre2, negfre) / self.tau)</span><br><span class="line">            neg_dis_total += neg_dis</span><br><span class="line"></span><br><span class="line">        loss = torch.log10(pos_dis/neg_dis_total+<span class="number">1</span>)</span><br><span class="line">        <span class="keyword">return</span> loss</span><br></pre></td></tr></table></figure>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文总共在 UBFC，PURE，DEAP，MMVS 上测试了效果，结果如下图所示，可以看出相比于 the way to my heart 好了不少，现在比较有竞争力的 SSL 方法也就是这一篇以及 oulu 的一篇 contrast phys，可以看出慢慢地在追赶上有监督的方法了。</p>
+<p><img src="/Video-based_rppg_SSL/image-20221203155035139.png" alt="image-20221203155035139"></p>
+<p>&emsp;&emsp;除了心率实验之外，本文也延续在 UBFC 上测试了基于 rppg 信号的各个指标的估计值</p>
+<p><img src="/Video-based_rppg_SSL/image-20221203155556125.png" alt="image-20221203155556125"></p>
+<p>&emsp;&emsp;以及跨数据集测试</p>
+<p><img src="/Video-based_rppg_SSL/image-20221203155536102.png" alt="image-20221203155536102"></p>
+<p>&emsp;&emsp;总体来说，本文的效果非常地好，虽然还没发，不过应该很快就能见会，问题在于：不论是这一篇还是之前的对比学习任务，以及简单化处理的 Siamese rppg，似乎都偏爱于 UBFC、PURE 这一类简单的数据集，而这篇文章做出来的时候已经有更难的 VIPL 数据集了，但是却完全没有在 VIPL 上做测试，让人不得不怀疑 SSL 方法是否仅能适用于简单的数据集。</p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+        <category>hr</category>
       </categories>
   </entry>
   <entry>
@@ -2672,98 +2767,30 @@ L_v=\frac1d\sum\limits_{i=1}^{d}(\mathrm{CDF}_i(Q)-\mathrm{CDF}_i(P))^2</script>
       </categories>
   </entry>
   <entry>
-    <title>Video-based_rppg_SSL</title>
-    <url>/Video-based_rppg_SSL/</url>
-    <content><![CDATA[<h2><center> Video-based Remote Physiological Measurement via Self-supervised Learning </center></h2>
+    <title>layered-neural-atlases</title>
+    <url>/layered-neural-atlases/</url>
+    <content><![CDATA[<h2><center> Layered Neural Atlases for Consistent Video Editing </center></h2>
 
-<p>【心率监测】【arxiv2022】【<a href="http://arxiv.org/abs/2210.15401">paper</a>】【<a href="https://github.com/yuezijie/Video-based-Remote-Physiological-Measurement-via-Self-supervised-Learning">code</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文是基于对比学习进行 rppg 信号估计的又一 SOTA，在 UBFC、PURE、DEAP、MMVS 上展示了最好的性能。鉴于目前的 rppg 对比学习网络结构基本都基于孪生网络，在数据增强和代理任务上进行创新，本文主要采样的方法有：正样本：来自空间增强的 anchor $p_1$ 和 anchor 在同一个 video 的邻居 $p_2$，负样本：来自 LFA 模块 $n$，该模块可以在视觉不变的基础上进行频率重采样，代理任务：对比 $p_1$ 和 $p_2$ 拉进距离，对比 $p_1$ 和 $n$ 拉远距离，backbone：基于混合专家模型的 ResNet3D。并且对于多样的样本提出了多样的损失。</p>
-<p>&emsp;&emsp;整体来说起作用的我认为最可能是 LFA，该模块可以生成大量的负样本，或许负样本的数量是 CL 的关键。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Video-based_rppg_SSL/image-20221202123712050.png" alt="image-20221202123712050" style="zoom:80%;"></p>
+<p>【视频编辑】【SIGA2021】【<a href="https://arxiv.org/pdf/2109.11418.pdf">paper</a>】【<a href="https://github.com/ykasten/layered-neural-atlases">code</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>ds；本文使用基于 NeRF 的进行了视频编辑的工作。得到的模型将输入视频分为前景和背景并分别映射到两个图层。允许对背景图层或者前景图层的编辑并且一致性地传播到整个视频之中从而达到编辑视频的效果。本文除了 PSNR 之外没有其他数据指标，多为定性研究与消融实验。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/layered-neural-atlases/image-20221212163203372.png" alt="image-20221212163203372"></p>
 <span id="more"></span>
 <hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>一种新的正样本获取策略：时间上的邻居</li>
-<li>一种新的负样本获取策略：基于学习的 LFA 模块，用于生成不同频率但人物一致的视频</li>
-<li>一种基于混合专家模型的 backbone</li>
-<li>对正样本间、正负样本间的不同损失函数 CFAL、FCL、FRCL</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/Video-based_rppg_SSL/image-20221202123712050.png" alt="image-20221202123712050" style="zoom:80%;"></p>
-<h4 id="前向过程"><a href="#前向过程" class="headerlink" title="前向过程"></a>前向过程</h4><ul>
-<li>对于输入的视频 $X$，首先将其裁剪为多个 clip，每个 $T$ 帧，然后随机选择其中一个 clip 作为主 clip $X^a$，而其他的 clip 作为邻居 $X^b$，此时的 $X^b$ 也是正样本的一员<ul>
-<li>在实现的过程中，每个输入产生三个邻居，这些正样本之间互相不重合帧，记为 $X^b_1,\ X^b_2,\ X^b_3$</li>
-</ul>
-</li>
-</ul>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">load_img</span>(<span class="params">filepath, scale, video_length</span>):</span><br><span class="line">    <span class="built_in">list</span> = os.listdir(filepath)</span><br><span class="line">    imglen = <span class="built_in">len</span>(<span class="built_in">list</span>)</span><br><span class="line">    begin = random.randrange(<span class="number">0</span>, <span class="built_in">int</span>(imglen-(video_length*<span class="number">4</span>)))</span><br><span class="line">    whole_video = []</span><br><span class="line">    count = [<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(begin, begin + (video_length*<span class="number">4</span>)):</span><br><span class="line"></span><br><span class="line">        img = cv2.imread(os.path.join(filepath, <span class="string">&#x27;face_&#123;0&#125;.png&#x27;</span>.<span class="built_in">format</span>(i)))</span><br><span class="line">        img = cv2.resize(img, (scale, scale))</span><br><span class="line"></span><br><span class="line">        whole_video.append(img)</span><br><span class="line">    whole_video = np.array(whole_video)</span><br><span class="line"></span><br><span class="line">    whole_video = whole_video.reshape(</span><br><span class="line">        (<span class="number">4</span>, video_length, whole_video.shape[<span class="number">1</span>], whole_video.shape[<span class="number">2</span>], whole_video.shape[<span class="number">3</span>]))</span><br><span class="line">    a = random.choice(count)</span><br><span class="line">    <span class="built_in">input</span> = whole_video[a]</span><br><span class="line">    count.remove(a)</span><br><span class="line">    neighbor1 = whole_video[count[<span class="number">0</span>]]</span><br><span class="line">    neighbor2 = whole_video[count[<span class="number">1</span>]]</span><br><span class="line">    neighbor3 = whole_video[count[<span class="number">2</span>]]</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">input</span>, neighbor1, neighbor2, neighbor3</span><br></pre></td></tr></table></figure>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><p>（视频编辑第一次接触，都挺新的）</p>
 <ul>
-<li>同时输入的还有一系列的频率 $R$，这个频率数组控制了期望 LFA 模块后的 video 与原 clip 的频率比，$R$ 中的值随机在 $(0.3,0.8)\cup(1.2,1.7)$ 之中产生</li>
+<li>仅使用四个 MLP 作为整个网络的 backbone</li>
+<li>对不同的数据来说，测试集和训练集一致，并且模型不可泛化</li>
+<li>设计了多个损失函数，针对可能出现的不同问题进行特有的限制</li>
 </ul>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">frequency_ratio</span>():</span><br><span class="line">  ratio_interval1 = np.random.uniform(<span class="number">0.3</span>, <span class="number">0.8</span>)</span><br><span class="line">  ratio_interval2 = np.random.uniform(<span class="number">1.2</span>, <span class="number">1.7</span>)</span><br><span class="line">  full_interval = np.stack((ratio_interval1, ratio_interval2))</span><br><span class="line">  random_ratio = np.random.choice(full_interval)</span><br><span class="line">  <span class="keyword">return</span> random_ratio</span><br></pre></td></tr></table></figure>
-<ul>
-<li>对于 $X^a$，执行以下两种增强策略：<ul>
-<li>将 $X^a$ 和 $R$ 输入 LFA 模块，得到负样本 $X^n$，这应当是本文的关键，即大量的有效负样本<ul>
-<li>重建之后为了保证视觉一致性，需要通过重建损失 $L_{rec}=\mathrm {MSE}(X^a,X^n)$</li>
-</ul>
-</li>
-<li>将 $X^a$ 进行空间上的数据增强，具体来说就只包括旋转和反转，得到正样本 $X^p$<ul>
-<li>在实现的过程中，每个 $X^a$ 生成两个正样本，记为 $X^p_1,\ X^p_2$</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>对于之前得到的所有正负样本：$X^b,\ X^p,\ X^n$，将他们全部通过 rppg 估计网络 REA 模块，分别得到输出 $Y^b,\ Y^p,\ Y^n$</li>
-<li>为了拉进正样本之间的距离以及拉远正负样本之间的距离，同时限制 LFA 的学习，需要过以下 3 个损失<ul>
-<li>用于拉进同视频增强后的正样本距离，同时与负样本拉远距离，需要通过 $L_{FCL}=f_1(Y^p_1,\ Y^p_2,\ Y^n)$<ul>
-<li>有一说一，其他的两个 loss 算是新的，这个 loss 最多算是重写了一下 InfoNCE</li>
-</ul>
-</li>
-<li>用于拉进增强后正样本与邻域正样本的距离，需要通过 $L_{CFAL}=f_2(Y^p_1,\ Y^p_2,\ Y^b_1,\ Y^b_2,\ Y^b_3)$</li>
-<li>用于限制正负样本对之间的信号比与 $R$ 一致，也就是为了 LFA 的学习，需要通过 $L_{FRCL}=f_3(R,\ Y^p_1,\ Y^p_2,\ Y^n)$</li>
-</ul>
-</li>
-<li>将所有 loss 求和之后进行梯度回传，loss 之间不设权重调整项</li>
-</ul>
-<h4 id="LFA-模块"><a href="#LFA-模块" class="headerlink" title="LFA 模块"></a>LFA 模块</h4><p><img src="/Video-based_rppg_SSL/image-20221202124426153.png" alt="image-20221202124426153" style="zoom:50%;"></p>
-<p>&emsp;&emsp;LFA 模块是生成负样本的关键，其正向过程如下：</p>
-<ul>
-<li>对于输入的 $X^a$，首先经过 3D 卷积和 Res3D，得到 $s^a_1$</li>
-<li>再将 $s^a_1$ 进行降采样两次分别得到 $s^a_2,\ s^a_3$，所有的 $s_i^a$ 和从 $R$ 中 sample 出的 $r_i$ 共同输入 FMB 模块<ul>
-<li>对于每个 FMB 模块，首先将 $s^a$ 进行全局池化和卷积得到 $z$，然后将 $r_i$ 填充至和 $z$ 等长（其实输入的时候就是等长）</li>
-<li>然后 cat $r_i$ 和 $z$，并经过一个 Res 块和 LSTM，输出之后和之前的输入 $s^a$ 做按位乘法后输出</li>
-<li>FMB 的伪代码如下：</li>
-</ul>
-</li>
-</ul>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">FMB</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, s_a, ratio, video_length</span>):</span><br><span class="line">        <span class="built_in">super</span>(FMB, self).__init__()</span><br><span class="line">        self.mod_gap = nn.AdaptiveAvgPool3d((video_length, <span class="number">1</span>, <span class="number">1</span>))</span><br><span class="line">        self.mod_conv1d = nn.Conv1d(</span><br><span class="line">            in_channels=base_filter, out_channels=<span class="number">1</span>, kernel_size=<span class="number">3</span>, stride=<span class="number">1</span>, padding=<span class="number">1</span>)</span><br><span class="line">        self.mod_res1d = ResnetBlock1D(</span><br><span class="line">            <span class="number">2</span>, kernel_size=<span class="number">3</span>, stride=<span class="number">1</span>, padding=<span class="number">1</span>, bias=<span class="literal">True</span>, activation=<span class="string">&#x27;relu&#x27;</span>, norm=<span class="literal">None</span>)</span><br><span class="line">        self.mod_lstm = nn.LSTM(<span class="number">2</span>, <span class="number">1</span>, num_layers=<span class="number">1</span>, batch_first=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, <span class="built_in">input</span>, ratio</span>):</span><br><span class="line">        s_a = self.mod_gap(s_a)</span><br><span class="line">        s_a = s_a.squeeze(<span class="number">3</span>)</span><br><span class="line">        s_a = s_a.squeeze(<span class="number">3</span>)</span><br><span class="line">        z = self.mod_conv1d(s_a)</span><br><span class="line">        r_i = ratio.unsqueeze(<span class="number">1</span>)</span><br><span class="line">        fuse = torch.cat((z, r_i), <span class="number">1</span>)</span><br><span class="line">        m_i = self.mod_res1d(fuse)</span><br><span class="line">        m_i = m_i.transpose(<span class="number">1</span>, <span class="number">2</span>)</span><br><span class="line">        m_i = self.mod_lstm(m_i)[<span class="number">0</span>]</span><br><span class="line">        m_i = m_i.view(B, <span class="number">1</span>, T, <span class="number">1</span>, <span class="number">1</span>)</span><br><span class="line">        s_n = torch.mul(s_a, m_i)</span><br><span class="line">        <span class="keyword">return</span> s_n</span><br></pre></td></tr></table></figure>
-<ul>
-<li>对于三个 FMB 模块的输出分别按照降采样的程度进行上采样，整体上算是个类 U-net 的结构</li>
-</ul>
-<h4 id="REA-模块"><a href="#REA-模块" class="headerlink" title="REA 模块"></a>REA 模块</h4><p><img src="/Video-based_rppg_SSL/image-20221202124505577.png" alt="image-20221202124505577" style="zoom:80%;"></p>
-<p>&emsp;&emsp;REA 模块是一个基于混合专家模型的 rppg 估计网络，所谓混合专家模型（MOE），本质上像是集成学习一样的策略，即对不同的子问题有不同的网络（专家模型）进行拟合，最终给各个网络（专家模型）赋值权重得到输出。</p>
-<p>&emsp;&emsp;对于 REA 模块，其将输入的视频经过一个 resnet 之后进行分割，将一个 clip 按照空间区域划分为 L 个子空间（L=4），每个空间经过同样结构但不共享参数的局部专家模型得到对应空间的输出，并且给每个专家模型赋值不同的权重，这些权重来自于另一个模型 $\cal G$，整个模型的前向过程由上图给出，蛮清晰的，实现也比较简单。</p>
-<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><p>&emsp;&emsp;上述前向过程之中总共出现了四个损失函数 $\cal L_{vr},\ L_{fc},\ L_{fr},\ L_{fa}$，分别对应：Video reconstruction loss，Frequency contrastive loss，Frequency ratio consistency loss，Cross-video frequency agreement loss，他们的表达式分别如下：</p>
-<script type="math/tex; mode=display">
-\begin{align}
-&\rm \mathcal L_{vr}=MSE(X^n, X^a)\tag 1\\
-&\rm \mathcal L_{fc}=\log (1+\frac{\exp(d(y_1^p,y_2^p)/\tau)}{\sum_{i=1}^k(\exp(d(y_1^p,y_i^n)/\tau)+\exp(d(y_2^p,y_i^n)/\tau))})\tag 2\\
-&\rm \mathcal L_{fr}=\frac1{2k}\sum_{i=1}^k\left|\frac{P(y_i^n)}{P(y_1^p)}-r_i \right|+\left|\frac{P(y_i^n)}{P(y_2^p)}-r_i \right|\tag 3\\
-&\rm\mathcal L_{fa} =\frac 1 {2J} ∑^J_{j=1} d(y^p_1 , y^b_ j ) + d(y^p_ 2 , y^b_ j )\tag 4
-\end{align}</script><p>&emsp;&emsp;其中，$(2)$ 是对 InfoNCE 损失的重写，基本的表示方式也参考了 InfoNCE（$-\log\frac{\exp(q·k_+/\tau)}{\sum_{i=0}^{K}\exp(q·k_i/\tau)}$），$(3)$ 是度量两个正样本和负样本的频率比是否和预设的 $R$ 一致，用来限制 LFA 的学习，$(4)$ 是用来拉进正样本之间距离的。</p>
-<p>&emsp;&emsp;总体来说 $\mathcal L=\mathcal L_{vr} +\mathcal L_{fc}+\mathcal L_{fr}+\mathcal L_{fa}$，需要注意的是，这里的正样本包括增强样本和邻居样本，但是和负样本拉远距离的只包括增强样本，邻居样本不和负样本拉远距离，作者在文中提到如果都拉远的话效果会变差，结果上来说这有点反直觉，也难以解释。</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">FRCL</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, Fs, min_hr, max_hr</span>):</span><br><span class="line">        <span class="built_in">super</span>(FRCL, self).__init__()</span><br><span class="line">        self.Fs = Fs</span><br><span class="line">        self.min_hr = min_hr</span><br><span class="line">        self.max_hr = max_hr</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, neg_rppgarr, pos_rppg1, pos_rppg2, ratio_array</span>):</span><br><span class="line">        loss = <span class="number">0</span></span><br><span class="line">        count = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">        poshr1 = predict_heart_rate(pos_rppg1[<span class="number">0</span>].detach(</span><br><span class="line">        ).cpu().numpy(), self.Fs, self.min_hr, self.max_hr)</span><br><span class="line"></span><br><span class="line">        poshr2 = predict_heart_rate(pos_rppg2[<span class="number">0</span>].detach(</span><br><span class="line">        ).cpu().numpy(), self.Fs, self.min_hr, self.max_hr)</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(neg_rppgarr)):</span><br><span class="line">            neghr = predict_heart_rate(neg_rppgarr[i][<span class="number">0</span>].detach().cpu().numpy(), self.Fs, self.min_hr, self.max_hr)</span><br><span class="line"></span><br><span class="line">            loss += np.<span class="built_in">abs</span>(neghr/poshr1-ratio_array[<span class="number">0</span>][i][<span class="number">0</span>].detach().cpu().numpy()) +\</span><br><span class="line">                np.<span class="built_in">abs</span>(neghr/poshr2-ratio_array[<span class="number">0</span>][i][<span class="number">0</span>].detach().cpu().numpy())</span><br><span class="line">            count += <span class="number">2</span></span><br><span class="line">        loss = loss/count</span><br><span class="line">        <span class="keyword">return</span> loss</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">CFAL</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, Fs, high_pass=<span class="number">2.5</span>, low_pass=<span class="number">0.4</span></span>):</span><br><span class="line">        <span class="built_in">super</span>(CFAL, self).__init__()</span><br><span class="line">        <span class="comment"># PSD_MSE</span></span><br><span class="line">        self.norm_psd = CalculateNormPSD(Fs, high_pass, low_pass)</span><br><span class="line">        self.distance_func = nn.MSELoss()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, pos_rppg1, pos_rppg2, neighbor_rppg1, neighbor_rppg2, neighbor_rppg3</span>):</span><br><span class="line">        posfre1 = self.norm_psd(pos_rppg1)</span><br><span class="line">        posfre2 = self.norm_psd(pos_rppg2)</span><br><span class="line">        neifre1 = self.norm_psd(neighbor_rppg1)</span><br><span class="line">        neifre2 = self.norm_psd(neighbor_rppg2)</span><br><span class="line">        neifre3 = self.norm_psd(neighbor_rppg3)</span><br><span class="line"></span><br><span class="line">        loss = self.distance_func(posfre1, neifre1)+self.distance_func(posfre1, neifre2)+self.distance_func(posfre1, neifre3)\</span><br><span class="line">            + self.distance_func(posfre2, neifre1)+self.distance_func(posfre2, neifre2)+self.distance_func(posfre2, neifre3)</span><br><span class="line">        loss = loss/<span class="number">6</span></span><br><span class="line">        <span class="keyword">return</span> loss</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">FCL</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, Fs, high_pass=<span class="number">2.5</span>, low_pass=<span class="number">0.4</span>, tau=<span class="number">0.08</span></span>):</span><br><span class="line">        <span class="built_in">super</span>(FCL, self).__init__()</span><br><span class="line">        <span class="comment"># PSD_MSE</span></span><br><span class="line">        self.norm_psd = CalculateNormPSD(Fs, high_pass, low_pass)</span><br><span class="line">        self.distance_func = nn.MSELoss()</span><br><span class="line">        self.tau = tau</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, neg_rppgarr, pos_rppg1, pos_rppg2</span>):</span><br><span class="line"></span><br><span class="line">        posfre1 = self.norm_psd(pos_rppg1)</span><br><span class="line">        posfre2 = self.norm_psd(pos_rppg2)</span><br><span class="line">        pos_dis = torch.exp(self.distance_func(posfre1, posfre2)/self.tau)</span><br><span class="line">        neg_dis_total = <span class="number">0</span></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(neg_rppgarr)):</span><br><span class="line">            negfre = self.norm_psd(neg_rppgarr[i])</span><br><span class="line">            neg_dis = torch.exp(self.distance_func(posfre1, negfre) / self.tau)+torch.exp(self.distance_func(posfre2, negfre) / self.tau)</span><br><span class="line">            neg_dis_total += neg_dis</span><br><span class="line"></span><br><span class="line">        loss = torch.log10(pos_dis/neg_dis_total+<span class="number">1</span>)</span><br><span class="line">        <span class="keyword">return</span> loss</span><br></pre></td></tr></table></figure>
-<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文总共在 UBFC，PURE，DEAP，MMVS 上测试了效果，结果如下图所示，可以看出相比于 the way to my heart 好了不少，现在比较有竞争力的 SSL 方法也就是这一篇以及 oulu 的一篇 contrast phys，可以看出慢慢地在追赶上有监督的方法了。</p>
-<p><img src="/Video-based_rppg_SSL/image-20221203155035139.png" alt="image-20221203155035139"></p>
-<p>&emsp;&emsp;除了心率实验之外，本文也延续在 UBFC 上测试了基于 rppg 信号的各个指标的估计值</p>
-<p><img src="/Video-based_rppg_SSL/image-20221203155556125.png" alt="image-20221203155556125"></p>
-<p>&emsp;&emsp;以及跨数据集测试</p>
-<p><img src="/Video-based_rppg_SSL/image-20221203155536102.png" alt="image-20221203155536102"></p>
-<p>&emsp;&emsp;总体来说，本文的效果非常地好，虽然还没发，不过应该很快就能见会，问题在于：不论是这一篇还是之前的对比学习任务，以及简单化处理的 Siamese rppg，似乎都偏爱于 UBFC、PURE 这一类简单的数据集，而这篇文章做出来的时候已经有更难的 VIPL 数据集了，但是却完全没有在 VIPL 上做测试，让人不得不怀疑 SSL 方法是否仅能适用于简单的数据集。</p>
-]]></content>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/layered-neural-atlases/image-20221214093448979.png" alt="image-20221214093448979" style="zoom:67%;"></p>
+<p>ds；本文含参的网络模块只有四个，分别对应上图的：$\mathbb M_b, \mathbb M_f, \mathbb M_\alpha, \mathbb A$，这四个网络都是 MLP 结构，具体参数量不同</p>
+<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><script type="math/tex; mode=display">
+math\_express</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><hr>
+<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3>]]></content>
       <categories>
         <category>paper</category>
         <category>cv</category>
-        <category>hr</category>
+        <category>video</category>
       </categories>
   </entry>
   <entry>
@@ -2794,33 +2821,6 @@ L_v=\frac1d\sum\limits_{i=1}^{d}(\mathrm{CDF}_i(Q)-\mathrm{CDF}_i(P))^2</script>
 ]]></content>
       <categories>
         <category>docx</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>layered-neural-atlases</title>
-    <url>/layered-neural-atlases/</url>
-    <content><![CDATA[<h2><center> Layered Neural Atlases for Consistent Video Editing </center></h2>
-
-<p>【视频编辑】【SIGA2021】【<a href="https://arxiv.org/pdf/2109.11418.pdf">paper</a>】【<a href="https://github.com/ykasten/layered-neural-atlases">code</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>ds；本文使用基于 NeRF 的进行了视频编辑的工作。得到的模型将输入视频分为前景和背景并分别映射到两个图层。允许对背景图层或者前景图层的编辑并且一致性地传播到整个视频之中从而达到编辑视频的效果。本文除了 PSNR 之外没有其他数据指标，多为定性研究与消融实验。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/layered-neural-atlases/image-20221212163203372.png" alt="image-20221212163203372"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><p>（视频编辑第一次接触，都挺新的）</p>
-<ul>
-<li>仅使用四个 MLP 作为整个网络的 backbone</li>
-<li>对不同的数据来说，测试集和训练集一致，并且模型不可泛化</li>
-<li>设计了多个损失函数，针对可能出现的不同问题进行特有的限制</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/layered-neural-atlases/image-20221214093448979.png" alt="image-20221214093448979" style="zoom:67%;"></p>
-<p>ds；本文含参的网络模块只有四个，分别对应上图的：$\mathbb M_b, \mathbb M_f, \mathbb M_\alpha, \mathbb A$，这四个网络都是 MLP 结构，具体参数量不同</p>
-<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><script type="math/tex; mode=display">
-math\_express</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><hr>
-<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3>]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-        <category>video</category>
       </categories>
   </entry>
   <entry>
