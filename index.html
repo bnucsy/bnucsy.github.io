@@ -195,7 +195,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/%E5%AE%9E%E9%AA%8C%E5%AE%A4%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/" class="post-title-link" itemprop="url">Sever Docx</a>
+            <a href="/%E5%AE%9E%E9%AA%8C%E5%AE%A4%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/" class="post-title-link" itemprop="url">实验室服务器使用指南</a>
         </h2>
 
         <div class="post-meta">
@@ -206,7 +206,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2023-11-15 09:31:37 / 修改时间：15:34:27" itemprop="dateCreated datePublished" datetime="2023-11-15T09:31:37+08:00">2023-11-15</time>
+              <time title="创建时间：2023-11-15 09:31:37 / 修改时间：16:01:33" itemprop="dateCreated datePublished" datetime="2023-11-15T09:31:37+08:00">2023-11-15</time>
             </span>
 
           
@@ -248,183 +248,21 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="实验室服务器使用指南"><a href="#实验室服务器使用指南" class="headerlink" title="实验室服务器使用指南"></a>实验室服务器使用指南</h1><h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
-<li><a href="#1018417160服务器数据集">10.184.17.160服务器数据集</a><ul>
-<li><a href="#超分">超分</a></li>
-<li><a href="#rPPG">rPPG</a></li>
-<li><a href="#滑坡分割">滑坡分割</a></li>
-<li><a href="#语义实例分割">语义/实例分割</a></li>
-</ul>
-</li>
-<li><a href="#1018417161服务器数据集">10.184.17.161服务器数据集</a><ul>
-<li><a href="#超分">超分</a></li>
-<li><a href="#rPPG">rPPG</a></li>
-</ul>
-</li>
-</ul>
-<blockquote>
+          <blockquote>
 <p>📌home目录下只放代码源程序；训练日志、模型权重文件、数据集放在data目录下<br>每个服务器可能有data，data1，data2目录，使用<code>df -h</code>查询剩余空间大的目录，创建自己的“姓名”目录使用。</p>
 <p>📌自行安装使用miniconda管理自己的python环境</p>
 <p>📌<code>pip install gpustat</code>，使用gpustat查看无人使用的卡进行使用，每个人最多使用两张卡，投稿期间和特殊情况除外；<br>尽量避免别人在使用，但是在显存没有占满的卡上跑实验，会严重影响速度。</p>
 <p>📌使用vscode登录使用服务器，参考：<a target="_blank" rel="noopener" href="https://blog.csdn.net/zhuwenyan1234567/article/details/126928074" title="https://blog.csdn.net/zhuwenyan1234567/article/details/126928074">https://blog.csdn.net/zhuwenyan1234567/article/details/126928074</a></p>
 <p>自己下载的研究方向内原始数据集联系吴瑞泽更新此页面。</p>
 </blockquote>
-<h1 id="10-184-17-160服务器数据集"><a href="#10-184-17-160服务器数据集" class="headerlink" title="10.184.17.160服务器数据集"></a>10.184.17.160服务器数据集</h1><h2 id="超分"><a href="#超分" class="headerlink" title="超分"></a>超分</h2><div class="table-container">
-<table>
-<thead>
-<tr>
-<th>数据集名称</th>
-<th>原始路径</th>
-<th>预处理路径</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>FFHQ</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>VFHQ</td>
-<td>/data2/chushuyang/VFHQ</td>
-<td>平滑预处理之后：/data2/chushuyang/VFHQ_preprocessed</td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-</tr>
-</tbody>
-</table>
-</div>
-<h2 id="rPPG"><a href="#rPPG" class="headerlink" title="rPPG"></a>rPPG</h2><div class="table-container">
-<table>
-<thead>
-<tr>
-<th>数据集名称</th>
-<th>原始路径</th>
-<th>预处理路径</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>VIPL</td>
-<td>/data2/chushuyang/VIPL</td>
-<td></td>
-</tr>
-<tr>
-<td>UBFC</td>
-<td>/data/chushuyang/UBFC_RAW</td>
-<td></td>
-</tr>
-<tr>
-<td>PURE</td>
-<td>/data/chushuyang/pure</td>
-<td></td>
-</tr>
-<tr>
-<td>COHFACE</td>
-<td>/data/chushuyang/COHFACE/cohface</td>
-<td></td>
-</tr>
-<tr>
-<td>MMSE-HR</td>
-<td>/data3/wuruize/MMSE-HR/MMSE_HR</td>
-<td>/data3/wuruize/MMSE-HR_process</td>
-</tr>
-</tbody>
-</table>
-</div>
-<h2 id="滑坡分割"><a href="#滑坡分割" class="headerlink" title="滑坡分割"></a>滑坡分割</h2><div class="table-container">
-<table>
-<thead>
-<tr>
-<th>数据集名称</th>
-<th>原始路径</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Gansu滑坡</td>
-<td>/data1/wanyuming/papers/landslideGansu</td>
-</tr>
-<tr>
-<td>HR-GLDD</td>
-<td>/data1/wanyuming/HR_GLDD</td>
-</tr>
-</tbody>
-</table>
-</div>
-<h2 id="语义-实例分割"><a href="#语义-实例分割" class="headerlink" title="语义/实例分割"></a>语义/实例分割</h2><div class="table-container">
-<table>
-<thead>
-<tr>
-<th>数据集名称</th>
-<th>原始路径</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>CoCo数据集</td>
-<td>/data2/chushuyang/CoCo_stuff</td>
-</tr>
-</tbody>
-</table>
-</div>
-<h1 id="10-184-17-161服务器数据集"><a href="#10-184-17-161服务器数据集" class="headerlink" title="10.184.17.161服务器数据集"></a>10.184.17.161服务器数据集</h1><h2 id="超分-1"><a href="#超分-1" class="headerlink" title="超分"></a>超分</h2><div class="table-container">
-<table>
-<thead>
-<tr>
-<th>数据集名称</th>
-<th>原始路径</th>
-<th>预处理路径</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>FFHQ</td>
-<td>/data/fangbochen/datasets/FFHQ/imgs1024</td>
-</tr>
-</tbody>
-</table>
-</div>
-<h2 id="rPPG-1"><a href="#rPPG-1" class="headerlink" title="rPPG"></a>rPPG</h2><div class="table-container">
-<table>
-<thead>
-<tr>
-<th>数据集名称</th>
-<th>原始路径</th>
-<th>预处理路径</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>VIPL</td>
-<td>/data/public_dataset/VIPL/</td>
-<td></td>
-</tr>
-<tr>
-<td>UBFC</td>
-<td>/data/public_dataset/UBFC_PIC/</td>
-<td></td>
-</tr>
-<tr>
-<td>PURE</td>
-<td>/data/public_dataset/PURE_PIC/</td>
-<td></td>
-</tr>
-<tr>
-<td>BUAA</td>
-<td>/data/public_dataset/BUAA-MIHR/</td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-</tr>
-</tbody>
-</table>
-</div>
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/%E5%AE%9E%E9%AA%8C%E5%AE%A4%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 

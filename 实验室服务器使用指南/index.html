@@ -20,15 +20,15 @@
     var CONFIG = {"hostname":"bnucsy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="实验室服务器使用指南目录 10.184.17.160服务器数据集 超分 rPPG 滑坡分割 语义&#x2F;实例分割   10.184.17.161服务器数据集 超分 rPPG     📌home目录下只放代码源程序；训练日志、模型权重文件、数据集放在data目录下每个服务器可能有data，data1，data2目录，使用df -h查询剩余空间大的目录，创建自己的“姓名”目录使用。 📌自行安装使用min">
+  <meta name="description" content="📌home目录下只放代码源程序；训练日志、模型权重文件、数据集放在data目录下每个服务器可能有data，data1，data2目录，使用df -h查询剩余空间大的目录，创建自己的“姓名”目录使用。 📌自行安装使用miniconda管理自己的python环境 📌pip install gpustat，使用gpustat查看无人使用的卡进行使用，每个人最多使用两张卡，投稿期间和特殊情况除外；">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Sever Docx">
+<meta property="og:title" content="实验室服务器使用指南">
 <meta property="og:url" content="http://bnucsy.github.io/%E5%AE%9E%E9%AA%8C%E5%AE%A4%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/index.html">
 <meta property="og:site_name" content="CSY&#39;s blog">
-<meta property="og:description" content="实验室服务器使用指南目录 10.184.17.160服务器数据集 超分 rPPG 滑坡分割 语义&#x2F;实例分割   10.184.17.161服务器数据集 超分 rPPG     📌home目录下只放代码源程序；训练日志、模型权重文件、数据集放在data目录下每个服务器可能有data，data1，data2目录，使用df -h查询剩余空间大的目录，创建自己的“姓名”目录使用。 📌自行安装使用min">
+<meta property="og:description" content="📌home目录下只放代码源程序；训练日志、模型权重文件、数据集放在data目录下每个服务器可能有data，data1，data2目录，使用df -h查询剩余空间大的目录，创建自己的“姓名”目录使用。 📌自行安装使用miniconda管理自己的python环境 📌pip install gpustat，使用gpustat查看无人使用的卡进行使用，每个人最多使用两张卡，投稿期间和特殊情况除外；">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2023-11-15T01:31:37.000Z">
-<meta property="article:modified_time" content="2023-11-15T07:34:27.007Z">
+<meta property="article:modified_time" content="2023-11-15T08:01:33.632Z">
 <meta property="article:author" content="ShuYang Chu">
 <meta name="twitter:card" content="summary">
 
@@ -45,7 +45,7 @@
   };
 </script>
 
-  <title>Sever Docx | CSY's blog</title>
+  <title>实验室服务器使用指南 | CSY's blog</title>
   
 
 
@@ -199,7 +199,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Sever Docx
+          实验室服务器使用指南
         </h1>
 
         <div class="post-meta">
@@ -210,7 +210,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2023-11-15 09:31:37 / 修改时间：15:34:27" itemprop="dateCreated datePublished" datetime="2023-11-15T09:31:37+08:00">2023-11-15</time>
+              <time title="创建时间：2023-11-15 09:31:37 / 修改时间：16:01:33" itemprop="dateCreated datePublished" datetime="2023-11-15T09:31:37+08:00">2023-11-15</time>
             </span>
 
           
@@ -259,7 +259,16 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h1 id="实验室服务器使用指南"><a href="#实验室服务器使用指南" class="headerlink" title="实验室服务器使用指南"></a>实验室服务器使用指南</h1><h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+        <blockquote>
+<p>📌home目录下只放代码源程序；训练日志、模型权重文件、数据集放在data目录下<br>每个服务器可能有data，data1，data2目录，使用<code>df -h</code>查询剩余空间大的目录，创建自己的“姓名”目录使用。</p>
+<p>📌自行安装使用miniconda管理自己的python环境</p>
+<p>📌<code>pip install gpustat</code>，使用gpustat查看无人使用的卡进行使用，每个人最多使用两张卡，投稿期间和特殊情况除外；<br>尽量避免别人在使用，但是在显存没有占满的卡上跑实验，会严重影响速度。</p>
+<p>📌使用vscode登录使用服务器，参考：<a target="_blank" rel="noopener" href="https://blog.csdn.net/zhuwenyan1234567/article/details/126928074" title="https://blog.csdn.net/zhuwenyan1234567/article/details/126928074">https://blog.csdn.net/zhuwenyan1234567/article/details/126928074</a></p>
+<p>自己下载的研究方向内原始数据集联系吴瑞泽更新此页面。</p>
+</blockquote>
+<span id="more"></span>
+<hr>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
 <li><a href="#1018417160服务器数据集">10.184.17.160服务器数据集</a><ul>
 <li><a href="#超分">超分</a></li>
 <li><a href="#rPPG">rPPG</a></li>
@@ -273,13 +282,6 @@
 </ul>
 </li>
 </ul>
-<blockquote>
-<p>📌home目录下只放代码源程序；训练日志、模型权重文件、数据集放在data目录下<br>每个服务器可能有data，data1，data2目录，使用<code>df -h</code>查询剩余空间大的目录，创建自己的“姓名”目录使用。</p>
-<p>📌自行安装使用miniconda管理自己的python环境</p>
-<p>📌<code>pip install gpustat</code>，使用gpustat查看无人使用的卡进行使用，每个人最多使用两张卡，投稿期间和特殊情况除外；<br>尽量避免别人在使用，但是在显存没有占满的卡上跑实验，会严重影响速度。</p>
-<p>📌使用vscode登录使用服务器，参考：<a target="_blank" rel="noopener" href="https://blog.csdn.net/zhuwenyan1234567/article/details/126928074" title="https://blog.csdn.net/zhuwenyan1234567/article/details/126928074">https://blog.csdn.net/zhuwenyan1234567/article/details/126928074</a></p>
-<p>自己下载的研究方向内原始数据集联系吴瑞泽更新此页面。</p>
-</blockquote>
 <h1 id="10-184-17-160服务器数据集"><a href="#10-184-17-160服务器数据集" class="headerlink" title="10.184.17.160服务器数据集"></a>10.184.17.160服务器数据集</h1><h2 id="超分"><a href="#超分" class="headerlink" title="超分"></a>超分</h2><div class="table-container">
 <table>
 <thead>
@@ -450,7 +452,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="http://bnucsy.github.io/%E5%AE%9E%E9%AA%8C%E5%AE%A4%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/" title="Sever Docx">http://bnucsy.github.io/实验室服务器使用指南/</a>
+    <a href="http://bnucsy.github.io/%E5%AE%9E%E9%AA%8C%E5%AE%A4%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/" title="实验室服务器使用指南">http://bnucsy.github.io/实验室服务器使用指南/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -530,7 +532,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E5%AE%A4%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97"><span class="nav-text">实验室服务器使用指南</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%AE%E5%BD%95"><span class="nav-text">目录</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-184-17-160%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%95%B0%E6%8D%AE%E9%9B%86"><span class="nav-text">10.184.17.160服务器数据集</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B6%85%E5%88%86"><span class="nav-text">超分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rPPG"><span class="nav-text">rPPG</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BB%91%E5%9D%A1%E5%88%86%E5%89%B2"><span class="nav-text">滑坡分割</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%AD%E4%B9%89-%E5%AE%9E%E4%BE%8B%E5%88%86%E5%89%B2"><span class="nav-text">语义&#x2F;实例分割</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-184-17-161%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%95%B0%E6%8D%AE%E9%9B%86"><span class="nav-text">10.184.17.161服务器数据集</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B6%85%E5%88%86-1"><span class="nav-text">超分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rPPG-1"><span class="nav-text">rPPG</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%AE%E5%BD%95"><span class="nav-text">目录</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-184-17-160%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%95%B0%E6%8D%AE%E9%9B%86"><span class="nav-text">10.184.17.160服务器数据集</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B6%85%E5%88%86"><span class="nav-text">超分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rPPG"><span class="nav-text">rPPG</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BB%91%E5%9D%A1%E5%88%86%E5%89%B2"><span class="nav-text">滑坡分割</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%AD%E4%B9%89-%E5%AE%9E%E4%BE%8B%E5%88%86%E5%89%B2"><span class="nav-text">语义&#x2F;实例分割</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-184-17-161%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%95%B0%E6%8D%AE%E9%9B%86"><span class="nav-text">10.184.17.161服务器数据集</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B6%85%E5%88%86-1"><span class="nav-text">超分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rPPG-1"><span class="nav-text">rPPG</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
