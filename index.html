@@ -181,6 +181,268 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://bnucsy.github.io/%E5%AE%9E%E9%AA%8C%E5%AE%A4%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ShuYang Chu">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CSY's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/%E5%AE%9E%E9%AA%8C%E5%AE%A4%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/" class="post-title-link" itemprop="url">Sever Docx</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2023-11-15 09:31:37 / 修改时间：15:34:27" itemprop="dateCreated datePublished" datetime="2023-11-15T09:31:37+08:00">2023-11-15</time>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/%E5%AE%9E%E9%AA%8C%E5%AE%A4%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/%E5%AE%9E%E9%AA%8C%E5%AE%A4%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="实验室服务器使用指南"><a href="#实验室服务器使用指南" class="headerlink" title="实验室服务器使用指南"></a>实验室服务器使用指南</h1><h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#1018417160服务器数据集">10.184.17.160服务器数据集</a><ul>
+<li><a href="#超分">超分</a></li>
+<li><a href="#rPPG">rPPG</a></li>
+<li><a href="#滑坡分割">滑坡分割</a></li>
+<li><a href="#语义实例分割">语义/实例分割</a></li>
+</ul>
+</li>
+<li><a href="#1018417161服务器数据集">10.184.17.161服务器数据集</a><ul>
+<li><a href="#超分">超分</a></li>
+<li><a href="#rPPG">rPPG</a></li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>📌home目录下只放代码源程序；训练日志、模型权重文件、数据集放在data目录下<br>每个服务器可能有data，data1，data2目录，使用<code>df -h</code>查询剩余空间大的目录，创建自己的“姓名”目录使用。</p>
+<p>📌自行安装使用miniconda管理自己的python环境</p>
+<p>📌<code>pip install gpustat</code>，使用gpustat查看无人使用的卡进行使用，每个人最多使用两张卡，投稿期间和特殊情况除外；<br>尽量避免别人在使用，但是在显存没有占满的卡上跑实验，会严重影响速度。</p>
+<p>📌使用vscode登录使用服务器，参考：<a target="_blank" rel="noopener" href="https://blog.csdn.net/zhuwenyan1234567/article/details/126928074" title="https://blog.csdn.net/zhuwenyan1234567/article/details/126928074">https://blog.csdn.net/zhuwenyan1234567/article/details/126928074</a></p>
+<p>自己下载的研究方向内原始数据集联系吴瑞泽更新此页面。</p>
+</blockquote>
+<h1 id="10-184-17-160服务器数据集"><a href="#10-184-17-160服务器数据集" class="headerlink" title="10.184.17.160服务器数据集"></a>10.184.17.160服务器数据集</h1><h2 id="超分"><a href="#超分" class="headerlink" title="超分"></a>超分</h2><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>数据集名称</th>
+<th>原始路径</th>
+<th>预处理路径</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FFHQ</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>VFHQ</td>
+<td>/data2/chushuyang/VFHQ</td>
+<td>平滑预处理之后：/data2/chushuyang/VFHQ_preprocessed</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="rPPG"><a href="#rPPG" class="headerlink" title="rPPG"></a>rPPG</h2><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>数据集名称</th>
+<th>原始路径</th>
+<th>预处理路径</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>VIPL</td>
+<td>/data2/chushuyang/VIPL</td>
+<td></td>
+</tr>
+<tr>
+<td>UBFC</td>
+<td>/data/chushuyang/UBFC_RAW</td>
+<td></td>
+</tr>
+<tr>
+<td>PURE</td>
+<td>/data/chushuyang/pure</td>
+<td></td>
+</tr>
+<tr>
+<td>COHFACE</td>
+<td>/data/chushuyang/COHFACE/cohface</td>
+<td></td>
+</tr>
+<tr>
+<td>MMSE-HR</td>
+<td>/data3/wuruize/MMSE-HR/MMSE_HR</td>
+<td>/data3/wuruize/MMSE-HR_process</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="滑坡分割"><a href="#滑坡分割" class="headerlink" title="滑坡分割"></a>滑坡分割</h2><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>数据集名称</th>
+<th>原始路径</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Gansu滑坡</td>
+<td>/data1/wanyuming/papers/landslideGansu</td>
+</tr>
+<tr>
+<td>HR-GLDD</td>
+<td>/data1/wanyuming/HR_GLDD</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="语义-实例分割"><a href="#语义-实例分割" class="headerlink" title="语义/实例分割"></a>语义/实例分割</h2><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>数据集名称</th>
+<th>原始路径</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CoCo数据集</td>
+<td>/data2/chushuyang/CoCo_stuff</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h1 id="10-184-17-161服务器数据集"><a href="#10-184-17-161服务器数据集" class="headerlink" title="10.184.17.161服务器数据集"></a>10.184.17.161服务器数据集</h1><h2 id="超分-1"><a href="#超分-1" class="headerlink" title="超分"></a>超分</h2><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>数据集名称</th>
+<th>原始路径</th>
+<th>预处理路径</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FFHQ</td>
+<td>/data/fangbochen/datasets/FFHQ/imgs1024</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="rPPG-1"><a href="#rPPG-1" class="headerlink" title="rPPG"></a>rPPG</h2><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>数据集名称</th>
+<th>原始路径</th>
+<th>预处理路径</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>VIPL</td>
+<td>/data/public_dataset/VIPL/</td>
+<td></td>
+</tr>
+<tr>
+<td>UBFC</td>
+<td>/data/public_dataset/UBFC_PIC/</td>
+<td></td>
+</tr>
+<tr>
+<td>PURE</td>
+<td>/data/public_dataset/PURE_PIC/</td>
+<td></td>
+</tr>
+<tr>
+<td>BUAA</td>
+<td>/data/public_dataset/BUAA-MIHR/</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://bnucsy.github.io/SSPD/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -204,10 +466,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2023-11-13 09:31:37 / 修改时间：14:24:28" itemprop="dateCreated datePublished" datetime="2023-11-13T09:31:37+08:00">2023-11-13</time>
+              <time title="创建时间：2023-11-13 09:31:37" itemprop="dateCreated datePublished" datetime="2023-11-13T09:31:37+08:00">2023-11-13</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-11-15 11:04:30" itemprop="dateModified" datetime="2023-11-15T11:04:30+08:00">2023-11-15</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -242,7 +510,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>2.3k</span>
+              <span>2.4k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -264,7 +532,7 @@
           <h2><center> Self-similarity Prior Distillation for Unsupervised Remote Physiological Measurement </center></h2>
 
 <p>【rPPG】【arxiv】【<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2311.05100.pdf">paper</a>】【<a target="_blank" rel="noopener" href="https://github.com/LinXi1C/SSPD">code</a>】</p>
-<h3 id="abstract"><a href="#abstract" class="headerlink" title="abstract"></a>abstract</h3><p>ds；本文提出了一种新的 rPPG 自监督结构，相对于对比学习强调的正负样本，本文更关注 rPPG 信号的自相似性，这种自相似性可以看做周期性，所谓的“分层蒸馏”也是正样本对的一种形式。尽管对比学习本身没有明确的缺点，但有些文章喜欢通过和对比学习划清界限显得自己很 novel。事实上本文也用到了正样本对，并且由于没有负样本的有效性监督，需要指出本文提出的 SSPD 结构在逻辑上无法避免模型的模式崩溃。</p>
+<h3 id="abstract"><a href="#abstract" class="headerlink" title="abstract"></a>abstract</h3><p>&emsp;&emsp;本文提出了一种新的 rPPG 自监督结构，相对于对比学习强调的正负样本，本文更关注 rPPG 信号的自相似性，这种自相似性可以看做周期性，所谓的“分层蒸馏”也是正样本对的一种形式。尽管对比学习本身没有明确的缺点，但有些文章喜欢通过和对比学习划清界限显得自己很 novel。事实上本文也用到了正样本对，并且由于没有负样本的有效性监督，需要指出本文提出的 SSPD 结构在逻辑上无法避免模型的模式崩溃。</p>
 <h3 id="overview"><a href="#overview" class="headerlink" title="overview"></a>overview</h3><p><img src="/SSPD/image-20231113120946140.png" alt="image-20231113120946140" style="zoom:50%;"></p>
           <!--noindex-->
             <div class="post-button">
@@ -1210,127 +1478,10 @@ Uniform and Re-balanced Samplings </center></h2>
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://bnucsy.github.io/MAGVIT/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="ShuYang Chu">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="CSY's blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/MAGVIT/" class="post-title-link" itemprop="url">MAGVIT</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2023-04-17 09:31:37" itemprop="dateCreated datePublished" datetime="2023-04-17T09:31:37+08:00">2023-04-17</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-04-18 17:08:24" itemprop="dateModified" datetime="2023-04-18T17:08:24+08:00">2023-04-18</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/paper/" itemprop="url" rel="index"><span itemprop="name">paper</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/paper/cv/" itemprop="url" rel="index"><span itemprop="name">cv</span></a>
-                </span>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="far fa-comment"></i>
-      </span>
-      <span class="post-meta-item-text">Valine：</span>
-    
-    <a title="valine" href="/MAGVIT/#valine-comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/MAGVIT/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>2.6k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>2 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2><center> MAGVIT: Masked Generative Video Transformer </center></h2>
-
-<p>【视频生成】【arxiv】【<a target="_blank" rel="noopener" href="http://arxiv.org/abs/2212.05199">paper</a>】【<a target="_blank" rel="noopener" href="https://github.com/MAGVIT/magvit">code</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种基于 3DCNN 的 VQGAN 和多任务优化的视频生成器。其中 3DCNN 的网络由图像预训练的 2D 网络中心膨胀而来。所谓多任务优化，即通过不同的 mask 模拟不同的<strong>条件任务</strong>（包括帧插值、帧预测等十种），另外加上<strong>自重建任务</strong>进行联合优化。其中<strong>条件任务</strong>又分为：1.预测完全不存在的帧，2.预测部分存在的帧。因此第二部分可以描述为使用多任务构造损失函数联合优化 VQGAN 的下标重建 transformer。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/MAGVIT/image-20230417203930207.png" alt="image-20230417203930207"></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/MAGVIT/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1396,7 +1547,7 @@ Uniform and Re-balanced Samplings </center></h2>
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">60</span>
+          <span class="site-state-item-count">61</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

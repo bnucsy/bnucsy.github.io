@@ -20,12 +20,12 @@
     var CONFIG = {"hostname":"bnucsy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="Self-similarity Prior Distillation for Unsupervised Remote Physiological Measurement   【rPPG】【arxiv】【paper】【code】 abstractds；本文提出了一种新的 rPPG 自监督结构，相对于对比学习强调的正负样本，本文更关注 rPPG 信号的自相似性，这种自相似性可以看做周期性，所谓的“分">
+  <meta name="description" content="Self-similarity Prior Distillation for Unsupervised Remote Physiological Measurement   【rPPG】【arxiv】【paper】【code】 abstract&amp;emsp;&amp;emsp;本文提出了一种新的 rPPG 自监督结构，相对于对比学习强调的正负样本，本文更关注 rPPG 信号的自相似性，这种自相似性可以看做">
 <meta property="og:type" content="article">
 <meta property="og:title" content="SSPD">
 <meta property="og:url" content="http://bnucsy.github.io/SSPD/index.html">
 <meta property="og:site_name" content="CSY&#39;s blog">
-<meta property="og:description" content="Self-similarity Prior Distillation for Unsupervised Remote Physiological Measurement   【rPPG】【arxiv】【paper】【code】 abstractds；本文提出了一种新的 rPPG 自监督结构，相对于对比学习强调的正负样本，本文更关注 rPPG 信号的自相似性，这种自相似性可以看做周期性，所谓的“分">
+<meta property="og:description" content="Self-similarity Prior Distillation for Unsupervised Remote Physiological Measurement   【rPPG】【arxiv】【paper】【code】 abstract&amp;emsp;&amp;emsp;本文提出了一种新的 rPPG 自监督结构，相对于对比学习强调的正负样本，本文更关注 rPPG 信号的自相似性，这种自相似性可以看做">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://bnucsy.github.io/SSPD/image-20231113120946140.png">
 <meta property="og:image" content="http://bnucsy.github.io/SSPD/image-20231113123714947.png">
@@ -33,7 +33,7 @@
 <meta property="og:image" content="http://bnucsy.github.io/SSPD/image-20231113131042807.png">
 <meta property="og:image" content="http://bnucsy.github.io/SSPD/image-20231113141144653.png">
 <meta property="article:published_time" content="2023-11-13T01:31:37.000Z">
-<meta property="article:modified_time" content="2023-11-13T06:24:28.187Z">
+<meta property="article:modified_time" content="2023-11-15T03:04:30.339Z">
 <meta property="article:author" content="ShuYang Chu">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://bnucsy.github.io/SSPD/image-20231113120946140.png">
@@ -214,10 +214,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2023-11-13 09:31:37 / 修改时间：14:24:28" itemprop="dateCreated datePublished" datetime="2023-11-13T09:31:37+08:00">2023-11-13</time>
+              <time title="创建时间：2023-11-13 09:31:37" itemprop="dateCreated datePublished" datetime="2023-11-13T09:31:37+08:00">2023-11-13</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-11-15 11:04:30" itemprop="dateModified" datetime="2023-11-15T11:04:30+08:00">2023-11-15</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -259,7 +265,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>2.3k</span>
+              <span>2.4k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -281,7 +287,7 @@
         <h2><center> Self-similarity Prior Distillation for Unsupervised Remote Physiological Measurement </center></h2>
 
 <p>【rPPG】【arxiv】【<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2311.05100.pdf">paper</a>】【<a target="_blank" rel="noopener" href="https://github.com/LinXi1C/SSPD">code</a>】</p>
-<h3 id="abstract"><a href="#abstract" class="headerlink" title="abstract"></a>abstract</h3><p>ds；本文提出了一种新的 rPPG 自监督结构，相对于对比学习强调的正负样本，本文更关注 rPPG 信号的自相似性，这种自相似性可以看做周期性，所谓的“分层蒸馏”也是正样本对的一种形式。尽管对比学习本身没有明确的缺点，但有些文章喜欢通过和对比学习划清界限显得自己很 novel。事实上本文也用到了正样本对，并且由于没有负样本的有效性监督，需要指出本文提出的 SSPD 结构在逻辑上无法避免模型的模式崩溃。</p>
+<h3 id="abstract"><a href="#abstract" class="headerlink" title="abstract"></a>abstract</h3><p>&emsp;&emsp;本文提出了一种新的 rPPG 自监督结构，相对于对比学习强调的正负样本，本文更关注 rPPG 信号的自相似性，这种自相似性可以看做周期性，所谓的“分层蒸馏”也是正样本对的一种形式。尽管对比学习本身没有明确的缺点，但有些文章喜欢通过和对比学习划清界限显得自己很 novel。事实上本文也用到了正样本对，并且由于没有负样本的有效性监督，需要指出本文提出的 SSPD 结构在逻辑上无法避免模型的模式崩溃。</p>
 <h3 id="overview"><a href="#overview" class="headerlink" title="overview"></a>overview</h3><p><img src="/SSPD/image-20231113120946140.png" alt="image-20231113120946140" style="zoom:50%;"></p>
 <span id="more"></span>
 <hr>
@@ -290,7 +296,7 @@
 <li>一种自相似性（周期性）的度量方法</li>
 </ul>
 <h3 id="framework"><a href="#framework" class="headerlink" title="framework"></a>framework</h3><p><img src="/SSPD/image-20231113123714947.png" alt="image-20231113123714947" style="zoom:50%;"></p>
-<p>ds；由于整个模型架构是蒸馏的体系，因此所有的损失函数都不更新 target 部分，而是通过更新 online 部分之后再 EMA 同步到 target 分支。</p>
+<p>&emsp;&emsp;由于整个模型架构是蒸馏的体系，因此所有的损失函数都不更新 target 部分，而是通过更新 online 部分之后再 EMA 同步到 target 分支。</p>
 <ul>
 <li>对于 input clip $X$，其分别在 online 分支和 target 分支进行数据增强得到 $V_m,\ V_o$<ul>
 <li>$V_m=M\odot\Delta V_l,\ V_l=\mathrm{Crop \&amp; Flip}(X)$，其中 $M=\{m_i\}_{i=1}^T,\ m_i\in\{0,1\}$，对每一帧随机采样。也就是裁剪、翻转、差分、随机 mask</li>
@@ -323,10 +329,10 @@
 </ul>
 </li>
 </ul>
-<p>ds；总体来说，SSPD 的损失定义为：$\mathcal{L}_{SSPD}=\mathcal{L}_{RPD}+\mathcal{L}_{TSPD}$，$\mathcal{L}_{RPD}$ 只更新 online 分支的 predictpr，$\mathcal{L}_{TSPD}$ 更新 online 分支的其他。target 分支由 EMA 更新。</p>
+<p>&emsp;&emsp;总体来说，SSPD 的损失定义为：$\mathcal{L}_{SSPD}=\mathcal{L}_{RPD}+\mathcal{L}_{TSPD}$，$\mathcal{L}_{RPD}$ 只更新 online 分支的 predictpr，$\mathcal{L}_{TSPD}$ 更新 online 分支的其他。target 分支由 EMA 更新。</p>
 <p><img src="/SSPD/image-20231113141144653.png" alt="image-20231113141144653" style="zoom:50%;"></p>
-<p>ds；必须指出，在现在的损失函数下，模型存在寻找捷径的可能，模型可以通过无论什么输入都输出相同的 rPPG 信号让损失降到最低。无论实验结果如何，模型的模式崩溃并没有在设计上得到解决。</p>
-<h3 id="experiment"><a href="#experiment" class="headerlink" title="experiment"></a>experiment</h3><p>ds；rPPG community dddd</p>
+<p>&emsp;&emsp;必须指出，在现在的损失函数下，模型存在寻找捷径的可能，模型可以通过无论什么输入都输出相同的 rPPG 信号让损失降到最低。无论实验结果如何，模型的模式崩溃并没有在设计上得到解决。</p>
+<h3 id="experiment"><a href="#experiment" class="headerlink" title="experiment"></a>experiment</h3><p>&emsp;&emsp;rPPG community dddd</p>
 
     </div>
 
@@ -362,7 +368,10 @@
     <a href="/BoxSnake/" rel="prev" title="BoxSnake">
       <i class="fa fa-chevron-left"></i> BoxSnake
     </a></div>
-      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/%E5%AE%9E%E9%AA%8C%E5%AE%A4%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/" rel="next" title="Sever Docx">
+      Sever Docx <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
       </footer>
     
@@ -436,7 +445,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">60</span>
+          <span class="site-state-item-count">61</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
