@@ -1,6 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>A Learned Compact and Editable Light Field Representation</title>
+    <url>/A%20Learned%20Compact%20and%20Editable%20Light%20Field%20Representation/</url>
+    <content><![CDATA[<h2 id="A-Learned-Compact-and-Editable-Light-Field-Representation【光场压缩、编辑传播】【arxiv】"><a href="#A-Learned-Compact-and-Editable-Light-Field-Representation【光场压缩、编辑传播】【arxiv】" class="headerlink" title="A Learned Compact and Editable Light Field Representation【光场压缩、编辑传播】【arxiv】"></a><a href="https://arxiv.org/abs/2103.11314">A Learned Compact and Editable Light Field Representation</a>【光场压缩、编辑传播】【arxiv】</h2><center>P.S. 本文为自己重述，不完全忠实于原paper，难免出现错误</center>
+
+<p>&emsp;&emsp;该论文完成了光场数据的压缩表示，使用自编码器的方法将光场数据压缩为一个深度图和一个中央视觉图，并且支持编辑之后的中央视觉图和原深度图进行光场重建。</p>
+<p><img src="https://img-blog.csdnimg.cn/f7655d1624894b87a117e25801a7b14d.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" align="center" style="zoom: 80%;"></p>
+<span id="more"></span>
+<h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p> &emsp; &emsp; 所谓光场，即记录光线位置和方向的数据结构，这种数据表示方式经历了很大的变化历程，相关的介绍中<a href="https://www.leiphone.com/category/arvr/N14i2K6UmZzK5TcE.html">这个介绍</a>最为清晰和全面。<br>&emsp; &emsp;本文对于这种数据结构进行了自编码器的学习，综合考虑解码后与原图的结构差异，编码的中间层中央视觉图部分的RGB相似度，编辑后的中央视觉图的重建程度，完成了一种支持编辑的光场重建。这项工作的压缩部分解决了光场数据结构较大的问题，可编辑重建部分解决了二维图像处理到三维图像处理的迁移问题，总体来说意义重大。目前本文发布于<a href="https://arxiv.org/abs/2103.11314"> arxiv</a>，也许在不久之后会登上SIGGRAPH。</p>
+<h3 id="相关工作"><a href="#相关工作" class="headerlink" title="相关工作"></a>相关工作</h3><ul>
+<li><p>光场重建相关<br>&emsp; &emsp; 以往的光场重建工作主要集中于：①<a href="https://dl.acm.org/doi/10.1145/2682631#d32752538e1">从稀疏样本合成密集光场。</a>②<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6574844">通过光场估计视差。</a>③<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7406366">对光场合成的深度学习方法——该方法可以估计扭曲的视差，并更细致地描绘颜色。</a>④<a href="https://arxiv.org/pdf/1708.03292.pdf">通过单张照片合成光场。</a>⑤<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8953925">多平面图像表示光场。</a><br>&emsp; &emsp;这些工作尽管能够解决部分问题，但仍有局限，如前几个工作会出现某些伪影、重影。最后一类工作引出一个新的问题——如何通过编辑这种多平面图象进行光场编辑。<br>&emsp; &emsp;我认为本文的工作在某种程度上重复了④的工作内容，类似于AE和GAN之间的联系。在完成④的基础上，本文解决了⑤引出的可编辑性问题——通过分离特征和视图的方法。</p>
+</li>
+<li><p>光场编辑相关<br>&emsp; &emsp;以往的这些工作集中于：①目标重定位。②目标变形。③目标补充。④<a href="http://citeseerx.ist.psu.edu/viewdoc/download;jsessionid=36554C114E54C1449058A76D6684D6AB?doi=10.1.1.644.3384&rep=rep1&type=pdf">将稀疏编辑传播至全光场。</a>⑤<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7414488">将中心视图分解为不同深度的图层，通过图层进行光场编辑。</a><br>&emsp; &emsp;上述工作中④，⑤两个工作相比而言较为接近本文工作，因此没有给出①②③的原文链接，尤其是④，④最关键的难度在于进行光场编辑的一致性传播，与本文想法接近。有较强的借鉴意义。</p>
+<p>&emsp; </p>
+<h3 id="本文的工作"><a href="#本文的工作" class="headerlink" title="本文的工作"></a>本文的工作</h3><p>&emsp; &emsp;总体来说，本文能够对一个给定的4D光场，将其表示为一个元通道<code>在没有限制元通道的视觉形态的情况下，为什么它长得这么像一个灰度图？</code>和一个RGB图（视觉通道），这实现了4D光场数据的压缩，另一方面，针对视觉通道的编辑可以通过和元通道的结合重建光场，并一致性地传播到新的光场之中。<br>本文设计的网络结构：<img src="https://img-blog.csdnimg.cn/a35c15d6728748e487dc22097d88cf4c.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" width="50%" align="center"></p>
+</li>
+</ul>
+<ol>
+<li><h4 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h4><p>&emsp; &emsp;输入的4D光场视图即为$M\times N$张RGB图像，我们描述为$L = \{I_i\}_{i=1}^{M\times N}$，对于这个光场$L$,$L(u,v)$也就表示了某一个像素，其中$u$表示图片，$v$表示像素，也就是说$I_i$即为$L(u_i)$。</p>
+<p>&emsp; &emsp;在整个自编码器的设计过程之中，我们记编码器为$E$，解码器为$D$。</p>
+<p>&emsp; &emsp;一方面，对于输入的光场$L$，我们通过编码器生成一个元通道$Z$，即$Z = E(L)$，有$sizeof(Z) = sizeof(I_i)$。另一方面，对于传入的光场数据，我们获取中央视图$I_c$ <code>Ic具体是如何得到的呢？是L(x,0)么？</code>。对$I_c$进行编辑之后我们获得$\widetilde{I}_c$，接着我们把两者结合，通过解码网络获得编辑后光场$\widetilde L$，即 $\widetilde L = D(Z, \widetilde I _c)$。</p>
+</li>
+<li><h4 id="表示方式的选取"><a href="#表示方式的选取" class="headerlink" title="表示方式的选取"></a>表示方式的选取</h4><p>&emsp; &emsp;本节实际上主要阐述了为什么要选取元通道和视觉通道。</p>
+<p>&emsp; &emsp;中心视图 $I_c$ 捕获了光场的参考视觉内容，因此自编码器只需要学习表示元通道即可。元通道作为视觉通道互补的部分，意味着包括深度、视差、纹理、遮挡等等信息被隐式地编码到元通道之中。事实上本文做了<a href="https://blog.csdn.net/flyfish1986/article/details/104812229#:~:text=%E6%B6%88%E8%9E%8D%E5%AE%9E%E9%AA%8C%20%EF%BC%88%20ablation%20experiment%EF%BC%89,%E5%9C%A8%E6%9C%BA%E5%99%A8%20%E5%AD%A6%E4%B9%A0%20%EF%BC%8C%E7%89%B9%E5%88%AB%E6%98%AF%E5%A4%8D%E6%9D%82%E7%9A%84%E6%B7%B1%E5%BA%A6%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E7%9A%84%E8%83%8C%E6%99%AF%E4%B8%8B%EF%BC%8C%E5%B7%B2%E7%BB%8F%E9%87%87%E7%94%A8%E2%80%9C%20%E6%B6%88%E8%9E%8D%E7%A0%94%E7%A9%B6%20%E2%80%9D%E6%9D%A5%E6%8F%8F%E8%BF%B0%E5%8E%BB%E9%99%A4%E7%BD%91%E7%BB%9C%E7%9A%84%E6%9F%90%E4%BA%9B%E9%83%A8%E5%88%86%E7%9A%84%E8%BF%87%E7%A8%8B%EF%BC%8C%E4%BB%A5%E4%BE%BF%E6%9B%B4%E5%A5%BD%E5%9C%B0%E7%90%86%E8%A7%A3%E7%BD%91%E7%BB%9C%E7%9A%84%E8%A1%8C%E4%B8%BA%E3%80%82">消融实验</a>，使用深度图代替了元通道，取得了较差的结果。</p>
+<p>中央视觉图、元通道、深度图：<img src="https://img-blog.csdnimg.cn/ae4a919d4c164d27b71ae77dd83e9f50.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" width="50%" align="center"></p>
+<p>&emsp; &emsp;关于元通道的个数和是否必须存在的问题，本文解释道，当图片数目（角度分辨率）和图片大小（空间分辨率）增加的时候，单个元通道可能无法编码全部信息，这时候我们可以增加元通道的数目。至于和视觉图分离的原因，主要是考虑到光场的重建过程中对于编辑的视觉通道，我们需要原光场的结构，如果将元通道编码到视觉通道之中形成 $I^z$，那么编辑的过程就会破坏结构，光场不再能够重建。</p>
+<p>&emsp; &emsp;事实上，如果我们不考虑光场的重建问题，我们是可以将视觉通道和元通道合二为一的，此时我们只考虑数据压缩和光场生成的任务，该方法仍旧是一个很好的想法。这也将作为我的毕业设计的主要思想。</p>
+</li>
+<li><h4 id="编辑敏感的光场重建（解码器网络实现）"><a href="#编辑敏感的光场重建（解码器网络实现）" class="headerlink" title="编辑敏感的光场重建（解码器网络实现）"></a>编辑敏感的光场重建（解码器网络实现）</h4><p>&emsp; &emsp;本文将解码器的解释信息的方式分为两类：视图间视差图，以及其他信息（遮挡图和<a href="https://www.cnblogs.com/qingsunny/archive/2013/03/07/2947572.html#:~:text=%E5%AF%B9%E9%9D%9E%E6%9C%97%E4%BC%AF%E4%BD%93%E8%80%8C%E8%A8%80%EF%BC%8C%E5%AE%83%E5%AF%B9%E5%A4%AA%E9%98%B3%E7%9F%AD%E6%B3%A2%E8%BE%90%E5%B0%84%E7%9A%84%E5%8F%8D%E5%B0%84%E3%80%81%E6%95%A3%E5%B0%84%E8%83%BD%E5%8A%9B%E4%B8%8D%E4%BB%85%E9%9A%8F%E6%B3%A2%E9%95%BF%E8%80%8C%E5%8F%98%EF%BC%8C%E5%90%8C%E6%97%B6%E4%BA%A6%E9%9A%8F%E7%A9%BA%E9%97%B4%E6%96%B9%E5%90%91%E8%80%8C%E5%8F%98%E3%80%82%20%E6%89%80%E8%B0%93%E5%9C%B0%E7%89%A9%E7%9A%84%E6%B3%A2%E8%B0%B1%E7%89%B9%E5%BE%81%E6%98%AF%E6%8C%87%E8%AF%A5%E5%9C%B0%E7%89%A9%E5%AF%B9%E5%A4%AA%E9%98%B3%E8%BE%90%E5%B0%84%E7%9A%84%E5%8F%8D%E5%B0%84%E3%80%81%E6%95%A3%E5%B0%84%E8%83%BD%E5%8A%9B%E9%9A%8F%E6%B3%A2%E9%95%BF%E8%80%8C%E5%8F%98%E7%9A%84%E8%A7%84%E5%BE%8B%E3%80%82%20%E5%9C%B0%E7%89%A9%E6%B3%A2%E8%B0%B1%E7%89%B9%E5%BE%81%E4%B8%8E%E5%9C%B0%E7%89%A9%E7%9A%84%E7%BB%84%E6%88%90%E6%88%90%E4%BB%BD%EF%BC%8C%E7%89%A9%E4%BD%93%E5%86%85%E9%83%A8%E7%9A%84%E7%BB%93%E6%9E%84%E5%85%B3%E7%B3%BB%E5%AF%86%E5%88%87%EF%BC%8C%E9%80%9A%E4%BF%97%E8%AE%B2%E5%9C%B0%E7%89%A9%E6%B3%A2%E8%B0%B1%E7%89%B9%E5%BE%81%E4%B9%9F%E5%B0%B1%E6%98%AF%E5%9C%B0%E7%89%A9%E7%9A%84%E9%A2%9C%E8%89%B2%E7%89%B9%E5%BE%81%E3%80%82%20%E8%80%8C%E5%9C%B0%E7%89%A9%E7%9A%84%E6%96%B9%E5%90%91%E7%89%B9%E5%BE%81%E6%98%AF%E7%94%A8%E6%9D%A5%E6%8F%8F%E8%BF%B0%E5%9C%B0%E7%89%A9%E5%AF%B9%E5%A4%AA%E9%98%B3%E8%BE%90%E5%B0%84%E5%8F%8D%E5%B0%84%E3%80%81%E6%95%A3%E5%B0%84%E8%83%BD%E5%8A%9B%E5%9C%A8%E6%96%B9%E5%90%91%E7%A9%BA%E9%97%B4%E5%8F%98%E5%8C%96%E7%9A%84%EF%BC%8C%E8%BF%99%E7%A7%8D%E7%A9%BA%E9%97%B4%E5%8F%98%E5%8C%96%E7%89%B9%E5%BE%81%E4%B8%BB%E8%A6%81%E5%86%B3%E5%AE%9A%E4%BA%8E%E4%B8%A4%E7%A7%8D%E5%9B%A0%E7%B4%A0%EF%BC%8C%E5%85%B6%E4%B8%80%E6%98%AF%E7%89%A9%E4%BD%93%E7%9A%84%E8%A1%A8%E9%9D%A2%E7%B2%97%E7%B3%99%E5%BA%A6%EF%BC%8C%E5%AE%83%E4%B8%8D%E4%BB%85%E5%8F%96%E5%86%B3%E4%BA%8E%E8%A1%A8%E9%9D%A2%E5%B9%B3%E5%9D%87%E7%B2%97%E7%B3%99%E9%AB%98%E5%BA%A6%E5%80%BC%E4%B8%8E%E7%94%B5%E7%A3%81%E6%B3%A2%E6%B3%A2%E9%95%BF%E4%B9%8B%E9%97%B4%E7%9A%84%E6%AF%94%E4%BE%8B%E5%85%B3%E7%B3%BB%EF%BC%8C%E8%80%8C%E4%B8%94%E8%BF%98%E4%B8%8E%E8%A7%86%E8%A7%92%E5%85%B3%E7%B3%BB%E5%AF%86%E5%88%87%E3%80%82%20%E8%AE%BE%E6%B3%A2%E9%95%BF%E4%B8%BA%CE%BB%EF%BC%8C%E7%A9%BA%E9%97%B4%E5%85%B7%E6%9C%89%CE%B4%E5%88%86%E5%B8%83%E5%87%BD%E6%95%B0%E7%9A%84%E5%85%A5%E5%B0%84%E8%BE%90%E5%B0%84%EF%BC%8C%E4%BB%8E%20%28%CE%B80%EF%BC%8C%CF%860%29%20%E6%96%B9%E5%90%91%EF%BC%8C%E4%BB%A5%E8%BE%90%E5%B0%84%E4%BA%AE%E5%BA%A6L0,%28%CE%B80%EF%BC%8C%CF%860%EF%BC%8C%CE%BB%29%E6%8A%95%E5%B0%84%E5%90%91%E7%82%B9%E7%9B%AE%E6%A0%87%EF%BC%8C%E9%80%A0%E6%88%90%E8%AF%A5%E7%82%B9%E7%9B%AE%E6%A0%87%E7%9A%84%E8%BE%90%E7%85%A7%E5%BA%A6%E5%A2%9E%E9%87%8F%E4%B8%BAdE%20%28%CE%B80%EF%BC%8C%CF%860%EF%BC%8C%CE%BB%29%20%3D%20L0%20%28%CE%B80%EF%BC%8C%CF%860%EF%BC%8C%CE%BB%29%20cos%CE%B80%20d%CE%A9%E3%80%82">非朗博效应</a>）</p>
+<p> 本文设计的解码器网络：<img src="https://img-blog.csdnimg.cn/e0504d3786df4b37ad59995d8c678ae5.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" align="center" width="70%"></p>
+<p>&emsp; &emsp;在图中我们可以看到，解码器由三个不同的网络共同构成。$SepNet, DispNet, FusionNet$ 三个网络各自有着对应的任务。同时也有着一些方法，如 $warping$，以及涉及到 $Occlusion _ map, Disparity _ map,Feature_map$<code>遮挡图是通过特征图得到的么？是的话为什么可以直接得到，是物理方法么？</code>等的获取，接下来我们将一一介绍。</p>
+</li>
+</ol>
+<ul>
+<li><p>$SepNet$：该网络的作用是特征分离，具体地说，这个模块将元通道 $Z$ 分解为一系列特征映射 $\{F_i\}$，其中每个 $F_i$ 包含视图 $i$ 的特征信息，和视觉通道独立，可以和视觉通道结合重建视图 $i$。</p>
+</li>
+<li><p>$DispNet$：该网络的作用是视差恢复。具体来说，从特征图 $F_i$ 中提取出 $I_i$ 视差图 $D(u_i)$。接着我们如果给出某一个光场视图$L(u_j)$，我们可以得到合成视图（即warped方法）$\bar{L}(u_i)$：</p>
+<script type="math/tex; mode=display">
+\bar{L}(u_i,x)=L(u_j, x+(u_j-u_i)\times D(u_i,x))</script><p>&emsp; &emsp;因此，我们可以明确认识到，对于任何一个视差图$D(u_i)$，我们将其与$I_c$进行合成得到 $\bar L(u_i)$。此时我们得到的图理论上和$\widehat L(u_i)$一致（其中$\widehat L=L$，作为重建光场的目标），但实际上由于遮挡和非朗博效应总会出现不同。为了解决这个问题，我们需要另一个网络修复他，但是网络的执行时间可以由 $D(u_i)$ 的遮挡情况自适应地确定，为了度量遮挡程度，我们记 </p>
+<script type="math/tex; mode=display">
+O(u_i, x) = ||D(u_i,x)-D(u_c,x+(u_c-u_i)\times D(u_i,x))||_1</script><p>&emsp;&emsp;其中$D(u_c)$ 表示 $I_c$ 的视差图。并且有 $O(u_i,x)$越大，接下来的网络需要的时间就越长。</p>
+</li>
+<li><p>$FusionNet$：该网络的目的是重建遮挡细节和非朗博效应，这个网络通过大规模的训练达到将视觉图和遮挡图变回光场图像的目的。大规模的训练遇到的关键问题是数据问题，为了解决这个问题，本文提出了一个算子 $G$，算子 $G$ 通过平均采样的方式更改光场，对于原本的IO组$\{\widetilde I_c,\widehat L\}$，我们更改为$\{G( I_c),G(L)\}$，从而得到大规模数据。</p>
+</li>
+</ul>
+<ol>
+<li><h4 id="损失函数"><a href="#损失函数" class="headerlink" title="损失函数"></a>损失函数</h4><p>&emsp; &emsp;网络通过最小化损失函数联合训练编码和解码子网络，本文的损失函数分为三个部分，扭曲一致性损失（也就是$warped$模块） $\zeta_W$，视差正则损失 $\zeta_D$ ，重建损失 $\zeta_R$。故而总损失为：</p>
+<script type="math/tex; mode=display">
+\zeta = \omega_1\zeta_W + \omega_2\zeta_D + \omega_3\zeta_R</script><p>&emsp; &emsp;在这里，我们设定$\omega_1 = 0.5,\omega_2 = 0.01, \omega_3 = 1.0$。接下来我们将逐一介绍三个损失。</p>
+<p>&emsp; &emsp;$\zeta_W$：扭曲一致性损失。该损失用来度量$warped$之后的光场$\bar L$ 和中央视觉通道 $I_c$之间的差别，使得视差能够更好地被还原。公式写作：</p>
+<script type="math/tex; mode=display">
+\zeta_W = E_{L_i \in S}\{||\bar L_i - L_i||_1\}</script><p>&emsp;&emsp;<code>warp是一个物理方法，这个方法由于不考虑遮挡理论上本身就和预期结果不同，如果使用这种损失有没有可能会让视差的生成网络过拟合呢？（也就是视差的生成网络不去生成视差，而是某种能和中央通道直接合成光场的图片【这并不是值得开心的，因为之后还要和遮挡图进行进一步的融合】）</code></p>
+<p>&emsp; &emsp;其中，$S$ 即为光场构成的数据集，这个损失即为所有光场的中央视觉通道与对应的$\bar L_i$的一阶范数。该损失限制了从$DispNet$中生成的视差图，使其更加接近于真实视差。</p>
+<p>&emsp; &emsp;但是仅仅由这个损失进行限制仍然是不够的，由于这个损失并不能度量到没有纹理的区域的扭曲视图是否相近，这种失误将会造成遮挡部分无法进行一致性地传播，将会加大 $FusionNet$ 的训练量。为了解决这个问题，我们引入正则损失 $\zeta_D$，加强相邻视图的视差一致性。</p>
+<script type="math/tex; mode=display">
+\zeta_D = E_{L_i \in S}\{||D(u_i,x)-D(u_i-1,x+D(u_i,x))||_1\}</script><p>&emsp;&emsp;这个损失函数实际上限制了在预测后的光场中，相邻视图需要尽可能地一致，保证相邻视图之间的视差一致性。每个视图在某种程度上都会受到其他视图的影响和制约。</p>
+<p>&emsp; &emsp;在最后，我们通过重建的光场和原本的光场相一致的限制构造重建损耗 $\zeta_R$：</p>
+<script type="math/tex; mode=display">
+\zeta_R = E_{L_i\in S}\{\alpha||\widetilde L_i-\widehat L_i||_1+\beta||SSIM(\widetilde L_i, \widehat L_i)||_1\}</script><p>&emsp;&emsp;实验中，$SSIM(L_1,L_2)$表示两个光场的所有视角的平均$SSIM$值，<a href="https://baike.baidu.com/item/SSIM/2091025">计算见此</a>。并且预设$\alpha=1.0,\beta=0.02$。选取$SSIM$度量将在模糊区域获得更精确的细节。</p>
+</li>
+</ol>
+<h3 id="实现的细节"><a href="#实现的细节" class="headerlink" title="实现的细节"></a>实现的细节</h3><ol>
+<li><p>数据集<br>&emsp; &emsp;本文的数据集来自两个公开数据集，斯坦福和MIT的相机光场数据，总共收集了406个光场，每个光场有14*14个角度和376*541个像素。在训练的过程中，随机选取326个作为训练集，剩余80个作为测试集，对每个光场裁取7*7个角度以及每个角度128*128个像素组成的照片。对训练集进行了数据增强，即水平翻转或者旋转。通过数据增强，最终得到14447个光场样本进行训练。</p>
+</li>
+<li><p>训练<br>&emsp; &emsp;训练时编码子网和解码子网是联合训练的，但是这种训练方式较慢，本文提出将这个训练分为两个部分。首先是进行除了 $FusionNet$ 之外的网络进行训练，这个阶段迭代10000次，这个训练的目的是加速以及预热$DispNet$ 。在第二阶段，包括 $FusionNet$ 在内 的所有网络进行 50000 次训练。训练中使用Adam优化器，第一阶段学习率为0.0002，第二阶段学习率下降为第一阶段学习率的1%。</p>
+<p>&emsp; &emsp;另外，本文采用pytorch实现了方法，这个实验在两台NVDIA GeForce GTX 1080 Ti 上运行了48个小时。完成的模型对于7*7的光场输入编码元通道约需要0.04秒，重建光场约需要2秒。</p>
+<p>&emsp; &emsp;源代码和数据尚未开源，等待本文正式发布将会开源代码和数据。</p>
+</li>
+</ol>
+<h3 id="实验的结果"><a href="#实验的结果" class="headerlink" title="实验的结果"></a>实验的结果</h3><p>&emsp; &emsp;我们可以看到，无论是颜色编辑、颜色转换、阴影去除、风格转换、对比增强等针对2D图片的编辑方法，在本模型的支持下均完成了对于重建光场的一致性传播。<br> <img src="https://img-blog.csdnimg.cn/f7655d1624894b87a117e25801a7b14d.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" width="110%" align="center"></p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
     <title>Anchor_based_colorization</title>
     <url>/Anchor_based_colorization/</url>
     <content><![CDATA[<h2><center> Disentangled Image Colorization via Global Anchors </center></h2>
@@ -90,82 +166,6 @@
 <p><img src="/Anchor_based_colorization/image-20230214105919533.png" alt="image-20230214105919533" style="zoom: 50%;"></p>
 <p>&emsp;&emsp;同时在是否存在锚点分支、是否进行软像素分割、是否进行基于像素级别的增强、是否进行特征聚类四个方面分别进行了消融实验。</p>
 <p><img src="/Anchor_based_colorization/image-20230214105953306.png" alt="image-20230214105953306" style="zoom: 67%;"></p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>A Learned Compact and Editable Light Field Representation</title>
-    <url>/A%20Learned%20Compact%20and%20Editable%20Light%20Field%20Representation/</url>
-    <content><![CDATA[<h2 id="A-Learned-Compact-and-Editable-Light-Field-Representation【光场压缩、编辑传播】【arxiv】"><a href="#A-Learned-Compact-and-Editable-Light-Field-Representation【光场压缩、编辑传播】【arxiv】" class="headerlink" title="A Learned Compact and Editable Light Field Representation【光场压缩、编辑传播】【arxiv】"></a><a href="https://arxiv.org/abs/2103.11314">A Learned Compact and Editable Light Field Representation</a>【光场压缩、编辑传播】【arxiv】</h2><center>P.S. 本文为自己重述，不完全忠实于原paper，难免出现错误</center>
-
-<p>&emsp;&emsp;该论文完成了光场数据的压缩表示，使用自编码器的方法将光场数据压缩为一个深度图和一个中央视觉图，并且支持编辑之后的中央视觉图和原深度图进行光场重建。</p>
-<p><img src="https://img-blog.csdnimg.cn/f7655d1624894b87a117e25801a7b14d.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" align="center" style="zoom: 80%;"></p>
-<span id="more"></span>
-<h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p> &emsp; &emsp; 所谓光场，即记录光线位置和方向的数据结构，这种数据表示方式经历了很大的变化历程，相关的介绍中<a href="https://www.leiphone.com/category/arvr/N14i2K6UmZzK5TcE.html">这个介绍</a>最为清晰和全面。<br>&emsp; &emsp;本文对于这种数据结构进行了自编码器的学习，综合考虑解码后与原图的结构差异，编码的中间层中央视觉图部分的RGB相似度，编辑后的中央视觉图的重建程度，完成了一种支持编辑的光场重建。这项工作的压缩部分解决了光场数据结构较大的问题，可编辑重建部分解决了二维图像处理到三维图像处理的迁移问题，总体来说意义重大。目前本文发布于<a href="https://arxiv.org/abs/2103.11314"> arxiv</a>，也许在不久之后会登上SIGGRAPH。</p>
-<h3 id="相关工作"><a href="#相关工作" class="headerlink" title="相关工作"></a>相关工作</h3><ul>
-<li><p>光场重建相关<br>&emsp; &emsp; 以往的光场重建工作主要集中于：①<a href="https://dl.acm.org/doi/10.1145/2682631#d32752538e1">从稀疏样本合成密集光场。</a>②<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6574844">通过光场估计视差。</a>③<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7406366">对光场合成的深度学习方法——该方法可以估计扭曲的视差，并更细致地描绘颜色。</a>④<a href="https://arxiv.org/pdf/1708.03292.pdf">通过单张照片合成光场。</a>⑤<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8953925">多平面图像表示光场。</a><br>&emsp; &emsp;这些工作尽管能够解决部分问题，但仍有局限，如前几个工作会出现某些伪影、重影。最后一类工作引出一个新的问题——如何通过编辑这种多平面图象进行光场编辑。<br>&emsp; &emsp;我认为本文的工作在某种程度上重复了④的工作内容，类似于AE和GAN之间的联系。在完成④的基础上，本文解决了⑤引出的可编辑性问题——通过分离特征和视图的方法。</p>
-</li>
-<li><p>光场编辑相关<br>&emsp; &emsp;以往的这些工作集中于：①目标重定位。②目标变形。③目标补充。④<a href="http://citeseerx.ist.psu.edu/viewdoc/download;jsessionid=36554C114E54C1449058A76D6684D6AB?doi=10.1.1.644.3384&rep=rep1&type=pdf">将稀疏编辑传播至全光场。</a>⑤<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7414488">将中心视图分解为不同深度的图层，通过图层进行光场编辑。</a><br>&emsp; &emsp;上述工作中④，⑤两个工作相比而言较为接近本文工作，因此没有给出①②③的原文链接，尤其是④，④最关键的难度在于进行光场编辑的一致性传播，与本文想法接近。有较强的借鉴意义。</p>
-<p>&emsp; </p>
-<h3 id="本文的工作"><a href="#本文的工作" class="headerlink" title="本文的工作"></a>本文的工作</h3><p>&emsp; &emsp;总体来说，本文能够对一个给定的4D光场，将其表示为一个元通道<code>在没有限制元通道的视觉形态的情况下，为什么它长得这么像一个灰度图？</code>和一个RGB图（视觉通道），这实现了4D光场数据的压缩，另一方面，针对视觉通道的编辑可以通过和元通道的结合重建光场，并一致性地传播到新的光场之中。<br>本文设计的网络结构：<img src="https://img-blog.csdnimg.cn/a35c15d6728748e487dc22097d88cf4c.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" width="50%" align="center"></p>
-</li>
-</ul>
-<ol>
-<li><h4 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h4><p>&emsp; &emsp;输入的4D光场视图即为$M\times N$张RGB图像，我们描述为$L = \{I_i\}_{i=1}^{M\times N}$，对于这个光场$L$,$L(u,v)$也就表示了某一个像素，其中$u$表示图片，$v$表示像素，也就是说$I_i$即为$L(u_i)$。</p>
-<p>&emsp; &emsp;在整个自编码器的设计过程之中，我们记编码器为$E$，解码器为$D$。</p>
-<p>&emsp; &emsp;一方面，对于输入的光场$L$，我们通过编码器生成一个元通道$Z$，即$Z = E(L)$，有$sizeof(Z) = sizeof(I_i)$。另一方面，对于传入的光场数据，我们获取中央视图$I_c$ <code>Ic具体是如何得到的呢？是L(x,0)么？</code>。对$I_c$进行编辑之后我们获得$\widetilde{I}_c$，接着我们把两者结合，通过解码网络获得编辑后光场$\widetilde L$，即 $\widetilde L = D(Z, \widetilde I _c)$。</p>
-</li>
-<li><h4 id="表示方式的选取"><a href="#表示方式的选取" class="headerlink" title="表示方式的选取"></a>表示方式的选取</h4><p>&emsp; &emsp;本节实际上主要阐述了为什么要选取元通道和视觉通道。</p>
-<p>&emsp; &emsp;中心视图 $I_c$ 捕获了光场的参考视觉内容，因此自编码器只需要学习表示元通道即可。元通道作为视觉通道互补的部分，意味着包括深度、视差、纹理、遮挡等等信息被隐式地编码到元通道之中。事实上本文做了<a href="https://blog.csdn.net/flyfish1986/article/details/104812229#:~:text=%E6%B6%88%E8%9E%8D%E5%AE%9E%E9%AA%8C%20%EF%BC%88%20ablation%20experiment%EF%BC%89,%E5%9C%A8%E6%9C%BA%E5%99%A8%20%E5%AD%A6%E4%B9%A0%20%EF%BC%8C%E7%89%B9%E5%88%AB%E6%98%AF%E5%A4%8D%E6%9D%82%E7%9A%84%E6%B7%B1%E5%BA%A6%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E7%9A%84%E8%83%8C%E6%99%AF%E4%B8%8B%EF%BC%8C%E5%B7%B2%E7%BB%8F%E9%87%87%E7%94%A8%E2%80%9C%20%E6%B6%88%E8%9E%8D%E7%A0%94%E7%A9%B6%20%E2%80%9D%E6%9D%A5%E6%8F%8F%E8%BF%B0%E5%8E%BB%E9%99%A4%E7%BD%91%E7%BB%9C%E7%9A%84%E6%9F%90%E4%BA%9B%E9%83%A8%E5%88%86%E7%9A%84%E8%BF%87%E7%A8%8B%EF%BC%8C%E4%BB%A5%E4%BE%BF%E6%9B%B4%E5%A5%BD%E5%9C%B0%E7%90%86%E8%A7%A3%E7%BD%91%E7%BB%9C%E7%9A%84%E8%A1%8C%E4%B8%BA%E3%80%82">消融实验</a>，使用深度图代替了元通道，取得了较差的结果。</p>
-<p>中央视觉图、元通道、深度图：<img src="https://img-blog.csdnimg.cn/ae4a919d4c164d27b71ae77dd83e9f50.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" width="50%" align="center"></p>
-<p>&emsp; &emsp;关于元通道的个数和是否必须存在的问题，本文解释道，当图片数目（角度分辨率）和图片大小（空间分辨率）增加的时候，单个元通道可能无法编码全部信息，这时候我们可以增加元通道的数目。至于和视觉图分离的原因，主要是考虑到光场的重建过程中对于编辑的视觉通道，我们需要原光场的结构，如果将元通道编码到视觉通道之中形成 $I^z$，那么编辑的过程就会破坏结构，光场不再能够重建。</p>
-<p>&emsp; &emsp;事实上，如果我们不考虑光场的重建问题，我们是可以将视觉通道和元通道合二为一的，此时我们只考虑数据压缩和光场生成的任务，该方法仍旧是一个很好的想法。这也将作为我的毕业设计的主要思想。</p>
-</li>
-<li><h4 id="编辑敏感的光场重建（解码器网络实现）"><a href="#编辑敏感的光场重建（解码器网络实现）" class="headerlink" title="编辑敏感的光场重建（解码器网络实现）"></a>编辑敏感的光场重建（解码器网络实现）</h4><p>&emsp; &emsp;本文将解码器的解释信息的方式分为两类：视图间视差图，以及其他信息（遮挡图和<a href="https://www.cnblogs.com/qingsunny/archive/2013/03/07/2947572.html#:~:text=%E5%AF%B9%E9%9D%9E%E6%9C%97%E4%BC%AF%E4%BD%93%E8%80%8C%E8%A8%80%EF%BC%8C%E5%AE%83%E5%AF%B9%E5%A4%AA%E9%98%B3%E7%9F%AD%E6%B3%A2%E8%BE%90%E5%B0%84%E7%9A%84%E5%8F%8D%E5%B0%84%E3%80%81%E6%95%A3%E5%B0%84%E8%83%BD%E5%8A%9B%E4%B8%8D%E4%BB%85%E9%9A%8F%E6%B3%A2%E9%95%BF%E8%80%8C%E5%8F%98%EF%BC%8C%E5%90%8C%E6%97%B6%E4%BA%A6%E9%9A%8F%E7%A9%BA%E9%97%B4%E6%96%B9%E5%90%91%E8%80%8C%E5%8F%98%E3%80%82%20%E6%89%80%E8%B0%93%E5%9C%B0%E7%89%A9%E7%9A%84%E6%B3%A2%E8%B0%B1%E7%89%B9%E5%BE%81%E6%98%AF%E6%8C%87%E8%AF%A5%E5%9C%B0%E7%89%A9%E5%AF%B9%E5%A4%AA%E9%98%B3%E8%BE%90%E5%B0%84%E7%9A%84%E5%8F%8D%E5%B0%84%E3%80%81%E6%95%A3%E5%B0%84%E8%83%BD%E5%8A%9B%E9%9A%8F%E6%B3%A2%E9%95%BF%E8%80%8C%E5%8F%98%E7%9A%84%E8%A7%84%E5%BE%8B%E3%80%82%20%E5%9C%B0%E7%89%A9%E6%B3%A2%E8%B0%B1%E7%89%B9%E5%BE%81%E4%B8%8E%E5%9C%B0%E7%89%A9%E7%9A%84%E7%BB%84%E6%88%90%E6%88%90%E4%BB%BD%EF%BC%8C%E7%89%A9%E4%BD%93%E5%86%85%E9%83%A8%E7%9A%84%E7%BB%93%E6%9E%84%E5%85%B3%E7%B3%BB%E5%AF%86%E5%88%87%EF%BC%8C%E9%80%9A%E4%BF%97%E8%AE%B2%E5%9C%B0%E7%89%A9%E6%B3%A2%E8%B0%B1%E7%89%B9%E5%BE%81%E4%B9%9F%E5%B0%B1%E6%98%AF%E5%9C%B0%E7%89%A9%E7%9A%84%E9%A2%9C%E8%89%B2%E7%89%B9%E5%BE%81%E3%80%82%20%E8%80%8C%E5%9C%B0%E7%89%A9%E7%9A%84%E6%96%B9%E5%90%91%E7%89%B9%E5%BE%81%E6%98%AF%E7%94%A8%E6%9D%A5%E6%8F%8F%E8%BF%B0%E5%9C%B0%E7%89%A9%E5%AF%B9%E5%A4%AA%E9%98%B3%E8%BE%90%E5%B0%84%E5%8F%8D%E5%B0%84%E3%80%81%E6%95%A3%E5%B0%84%E8%83%BD%E5%8A%9B%E5%9C%A8%E6%96%B9%E5%90%91%E7%A9%BA%E9%97%B4%E5%8F%98%E5%8C%96%E7%9A%84%EF%BC%8C%E8%BF%99%E7%A7%8D%E7%A9%BA%E9%97%B4%E5%8F%98%E5%8C%96%E7%89%B9%E5%BE%81%E4%B8%BB%E8%A6%81%E5%86%B3%E5%AE%9A%E4%BA%8E%E4%B8%A4%E7%A7%8D%E5%9B%A0%E7%B4%A0%EF%BC%8C%E5%85%B6%E4%B8%80%E6%98%AF%E7%89%A9%E4%BD%93%E7%9A%84%E8%A1%A8%E9%9D%A2%E7%B2%97%E7%B3%99%E5%BA%A6%EF%BC%8C%E5%AE%83%E4%B8%8D%E4%BB%85%E5%8F%96%E5%86%B3%E4%BA%8E%E8%A1%A8%E9%9D%A2%E5%B9%B3%E5%9D%87%E7%B2%97%E7%B3%99%E9%AB%98%E5%BA%A6%E5%80%BC%E4%B8%8E%E7%94%B5%E7%A3%81%E6%B3%A2%E6%B3%A2%E9%95%BF%E4%B9%8B%E9%97%B4%E7%9A%84%E6%AF%94%E4%BE%8B%E5%85%B3%E7%B3%BB%EF%BC%8C%E8%80%8C%E4%B8%94%E8%BF%98%E4%B8%8E%E8%A7%86%E8%A7%92%E5%85%B3%E7%B3%BB%E5%AF%86%E5%88%87%E3%80%82%20%E8%AE%BE%E6%B3%A2%E9%95%BF%E4%B8%BA%CE%BB%EF%BC%8C%E7%A9%BA%E9%97%B4%E5%85%B7%E6%9C%89%CE%B4%E5%88%86%E5%B8%83%E5%87%BD%E6%95%B0%E7%9A%84%E5%85%A5%E5%B0%84%E8%BE%90%E5%B0%84%EF%BC%8C%E4%BB%8E%20%28%CE%B80%EF%BC%8C%CF%860%29%20%E6%96%B9%E5%90%91%EF%BC%8C%E4%BB%A5%E8%BE%90%E5%B0%84%E4%BA%AE%E5%BA%A6L0,%28%CE%B80%EF%BC%8C%CF%860%EF%BC%8C%CE%BB%29%E6%8A%95%E5%B0%84%E5%90%91%E7%82%B9%E7%9B%AE%E6%A0%87%EF%BC%8C%E9%80%A0%E6%88%90%E8%AF%A5%E7%82%B9%E7%9B%AE%E6%A0%87%E7%9A%84%E8%BE%90%E7%85%A7%E5%BA%A6%E5%A2%9E%E9%87%8F%E4%B8%BAdE%20%28%CE%B80%EF%BC%8C%CF%860%EF%BC%8C%CE%BB%29%20%3D%20L0%20%28%CE%B80%EF%BC%8C%CF%860%EF%BC%8C%CE%BB%29%20cos%CE%B80%20d%CE%A9%E3%80%82">非朗博效应</a>）</p>
-<p> 本文设计的解码器网络：<img src="https://img-blog.csdnimg.cn/e0504d3786df4b37ad59995d8c678ae5.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" align="center" width="70%"></p>
-<p>&emsp; &emsp;在图中我们可以看到，解码器由三个不同的网络共同构成。$SepNet, DispNet, FusionNet$ 三个网络各自有着对应的任务。同时也有着一些方法，如 $warping$，以及涉及到 $Occlusion _ map, Disparity _ map,Feature_map$<code>遮挡图是通过特征图得到的么？是的话为什么可以直接得到，是物理方法么？</code>等的获取，接下来我们将一一介绍。</p>
-</li>
-</ol>
-<ul>
-<li><p>$SepNet$：该网络的作用是特征分离，具体地说，这个模块将元通道 $Z$ 分解为一系列特征映射 $\{F_i\}$，其中每个 $F_i$ 包含视图 $i$ 的特征信息，和视觉通道独立，可以和视觉通道结合重建视图 $i$。</p>
-</li>
-<li><p>$DispNet$：该网络的作用是视差恢复。具体来说，从特征图 $F_i$ 中提取出 $I_i$ 视差图 $D(u_i)$。接着我们如果给出某一个光场视图$L(u_j)$，我们可以得到合成视图（即warped方法）$\bar{L}(u_i)$：</p>
-<script type="math/tex; mode=display">
-\bar{L}(u_i,x)=L(u_j, x+(u_j-u_i)\times D(u_i,x))</script><p>&emsp; &emsp;因此，我们可以明确认识到，对于任何一个视差图$D(u_i)$，我们将其与$I_c$进行合成得到 $\bar L(u_i)$。此时我们得到的图理论上和$\widehat L(u_i)$一致（其中$\widehat L=L$，作为重建光场的目标），但实际上由于遮挡和非朗博效应总会出现不同。为了解决这个问题，我们需要另一个网络修复他，但是网络的执行时间可以由 $D(u_i)$ 的遮挡情况自适应地确定，为了度量遮挡程度，我们记 </p>
-<script type="math/tex; mode=display">
-O(u_i, x) = ||D(u_i,x)-D(u_c,x+(u_c-u_i)\times D(u_i,x))||_1</script><p>&emsp;&emsp;其中$D(u_c)$ 表示 $I_c$ 的视差图。并且有 $O(u_i,x)$越大，接下来的网络需要的时间就越长。</p>
-</li>
-<li><p>$FusionNet$：该网络的目的是重建遮挡细节和非朗博效应，这个网络通过大规模的训练达到将视觉图和遮挡图变回光场图像的目的。大规模的训练遇到的关键问题是数据问题，为了解决这个问题，本文提出了一个算子 $G$，算子 $G$ 通过平均采样的方式更改光场，对于原本的IO组$\{\widetilde I_c,\widehat L\}$，我们更改为$\{G( I_c),G(L)\}$，从而得到大规模数据。</p>
-</li>
-</ul>
-<ol>
-<li><h4 id="损失函数"><a href="#损失函数" class="headerlink" title="损失函数"></a>损失函数</h4><p>&emsp; &emsp;网络通过最小化损失函数联合训练编码和解码子网络，本文的损失函数分为三个部分，扭曲一致性损失（也就是$warped$模块） $\zeta_W$，视差正则损失 $\zeta_D$ ，重建损失 $\zeta_R$。故而总损失为：</p>
-<script type="math/tex; mode=display">
-\zeta = \omega_1\zeta_W + \omega_2\zeta_D + \omega_3\zeta_R</script><p>&emsp; &emsp;在这里，我们设定$\omega_1 = 0.5,\omega_2 = 0.01, \omega_3 = 1.0$。接下来我们将逐一介绍三个损失。</p>
-<p>&emsp; &emsp;$\zeta_W$：扭曲一致性损失。该损失用来度量$warped$之后的光场$\bar L$ 和中央视觉通道 $I_c$之间的差别，使得视差能够更好地被还原。公式写作：</p>
-<script type="math/tex; mode=display">
-\zeta_W = E_{L_i \in S}\{||\bar L_i - L_i||_1\}</script><p>&emsp;&emsp;<code>warp是一个物理方法，这个方法由于不考虑遮挡理论上本身就和预期结果不同，如果使用这种损失有没有可能会让视差的生成网络过拟合呢？（也就是视差的生成网络不去生成视差，而是某种能和中央通道直接合成光场的图片【这并不是值得开心的，因为之后还要和遮挡图进行进一步的融合】）</code></p>
-<p>&emsp; &emsp;其中，$S$ 即为光场构成的数据集，这个损失即为所有光场的中央视觉通道与对应的$\bar L_i$的一阶范数。该损失限制了从$DispNet$中生成的视差图，使其更加接近于真实视差。</p>
-<p>&emsp; &emsp;但是仅仅由这个损失进行限制仍然是不够的，由于这个损失并不能度量到没有纹理的区域的扭曲视图是否相近，这种失误将会造成遮挡部分无法进行一致性地传播，将会加大 $FusionNet$ 的训练量。为了解决这个问题，我们引入正则损失 $\zeta_D$，加强相邻视图的视差一致性。</p>
-<script type="math/tex; mode=display">
-\zeta_D = E_{L_i \in S}\{||D(u_i,x)-D(u_i-1,x+D(u_i,x))||_1\}</script><p>&emsp;&emsp;这个损失函数实际上限制了在预测后的光场中，相邻视图需要尽可能地一致，保证相邻视图之间的视差一致性。每个视图在某种程度上都会受到其他视图的影响和制约。</p>
-<p>&emsp; &emsp;在最后，我们通过重建的光场和原本的光场相一致的限制构造重建损耗 $\zeta_R$：</p>
-<script type="math/tex; mode=display">
-\zeta_R = E_{L_i\in S}\{\alpha||\widetilde L_i-\widehat L_i||_1+\beta||SSIM(\widetilde L_i, \widehat L_i)||_1\}</script><p>&emsp;&emsp;实验中，$SSIM(L_1,L_2)$表示两个光场的所有视角的平均$SSIM$值，<a href="https://baike.baidu.com/item/SSIM/2091025">计算见此</a>。并且预设$\alpha=1.0,\beta=0.02$。选取$SSIM$度量将在模糊区域获得更精确的细节。</p>
-</li>
-</ol>
-<h3 id="实现的细节"><a href="#实现的细节" class="headerlink" title="实现的细节"></a>实现的细节</h3><ol>
-<li><p>数据集<br>&emsp; &emsp;本文的数据集来自两个公开数据集，斯坦福和MIT的相机光场数据，总共收集了406个光场，每个光场有14*14个角度和376*541个像素。在训练的过程中，随机选取326个作为训练集，剩余80个作为测试集，对每个光场裁取7*7个角度以及每个角度128*128个像素组成的照片。对训练集进行了数据增强，即水平翻转或者旋转。通过数据增强，最终得到14447个光场样本进行训练。</p>
-</li>
-<li><p>训练<br>&emsp; &emsp;训练时编码子网和解码子网是联合训练的，但是这种训练方式较慢，本文提出将这个训练分为两个部分。首先是进行除了 $FusionNet$ 之外的网络进行训练，这个阶段迭代10000次，这个训练的目的是加速以及预热$DispNet$ 。在第二阶段，包括 $FusionNet$ 在内 的所有网络进行 50000 次训练。训练中使用Adam优化器，第一阶段学习率为0.0002，第二阶段学习率下降为第一阶段学习率的1%。</p>
-<p>&emsp; &emsp;另外，本文采用pytorch实现了方法，这个实验在两台NVDIA GeForce GTX 1080 Ti 上运行了48个小时。完成的模型对于7*7的光场输入编码元通道约需要0.04秒，重建光场约需要2秒。</p>
-<p>&emsp; &emsp;源代码和数据尚未开源，等待本文正式发布将会开源代码和数据。</p>
-</li>
-</ol>
-<h3 id="实验的结果"><a href="#实验的结果" class="headerlink" title="实验的结果"></a>实验的结果</h3><p>&emsp; &emsp;我们可以看到，无论是颜色编辑、颜色转换、阴影去除、风格转换、对比增强等针对2D图片的编辑方法，在本模型的支持下均完成了对于重建光场的一致性传播。<br> <img src="https://img-blog.csdnimg.cn/f7655d1624894b87a117e25801a7b14d.png?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAYm51Y3N5,size_20,color_FFFFFF,t_70,g_se,x_16" width="110%" align="center"></p>
 ]]></content>
       <categories>
         <category>paper</category>
@@ -319,52 +319,6 @@ mask = \begin{pmatrix}
       </categories>
   </entry>
   <entry>
-    <title>AutoHR</title>
-    <url>/AutoHR/</url>
-    <content><![CDATA[<h2><center> AutoHR: A Strong End-to-end Baseline for Remote Heart Rate Measurement with Neural Searching </center></h2>
-
-<p>【心率检测】【SPL2020】【<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&amp;arnumber=9133501">paper</a>】【<a href>code未开源</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种基于 NAS 的心率检测 backbone 设计策略，在操作域中加入了 TDC（时空差分卷积），同时提出了一种时域和频域的混合损失函数，在单数据集和跨数据集上的测试都取得了较好的结果，并且为了解决现有方法泛化能力弱的问题提出了新的数据增强策略，取得了端到端的 SOTA。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/AutoHR/image-20221106184645470.png" alt="image-20221106184645470"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>首次使用 NAS 搜索 HR 任务的网络，并且在 NAS 搜索中加入了 TDC</li>
-<li>提出了一种时域频域的 loss，提出两种数据增强策略</li>
-</ul>
-<h3 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h3><h4 id="NAS（神经结构搜索）"><a href="#NAS（神经结构搜索）" class="headerlink" title="NAS（神经结构搜索）"></a>NAS（神经结构搜索）</h4><p>&emsp;&emsp;NAS(Neural Architecture Search) 意图使用深度学习任务自主设计神经网络，其基本工作流程如下图所示。首先由人工给定搜索的空间以及搜索策略，由机器自主探索空间中的操作组成的网络结构，并根据其网络的表现更新网络架构和超参数。</p>
-<p><img src="/AutoHR/e082b8ba4993c229c993b7dfa19d4641.png" alt="img"></p>
-<p>&emsp;&emsp;但是 NAS 有着难以避免的问题：1.超参数和搜索空间的网络架构都是离散的，2.大量的超参数使得训练时间太长。为了解决这些问题，提出了层次化表示：Learning Transferable Architectures for Scalable Image Recognition，权重共享：Reinforcement Learning for Architecture Search by Network Transformation，表现预测：Progressive Neural Architecture Search 等方法。</p>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><h4 id="TDC"><a href="#TDC" class="headerlink" title="TDC"></a>TDC</h4><p>&emsp;&emsp;时空差分卷积（TDC）是一种新的卷积策略，其卷积过程大致如下图所示。具体来说，对第 $t$ 帧图像 $p_0$ 为位置的 3x3 卷积过程如下：对第 $t$ 帧图像的 $p_0$ 位置进行 expand 操作，扩展到整个 3x3 的大小，并且分别和 $t-1$，$t+1$ 帧的对应位置进行作差。注意这里的作差中 expand 的部分带有一个参数 $\theta$ 用来控制当前帧对临近帧的影响程度，对原位置直接进行卷积，并且将最终的结果相加。</p>
-<p><img src="/AutoHR/image-20221106184757405.png" alt="image-20221106184757405" style="zoom:50%;"></p>
-<p>&emsp;&emsp;上面的过程使用公式可以表示为：</p>
-<script type="math/tex; mode=display">
-O(p_0^t)=\mathop\sum\limits_{p_n^{t-1}\in\mathcal R_{t-1}}w(p_n^{t-1})·(I(p_0^{t-1}+p_n^{t-1})-\theta·I(p_0^t))</script><script type="math/tex; mode=display">
-+\mathop\sum\limits_{p_n^{t+1}\in\mathcal R_{t+1}}w(p_n^{t+1})·(I(p_0^{t+1}+p_n^{t+1})-\theta·I(p_0^t))</script><script type="math/tex; mode=display">
-+\mathop\sum\limits_{p_n^{t-1}\in\mathcal R_{t}}w(p_n^{t})·I(p_0^{t}+p_n^{t})</script><h4 id="前向过程"><a href="#前向过程" class="headerlink" title="前向过程"></a>前向过程</h4><p>&emsp;&emsp;正如概览图中所示，整个网络由一个有向无环图进行估计，记所有的操作空间为 $\mathcal O$，对于图中的每一个边 $(i,j)$，其输出为：$\tilde o^{(i,j)}(x_i)=\sum_{o\in\mathcal O}\eta_o^{(i,j)}·o(x_i)$，其中的 $o$  代表操作空间中的每一个操作，$\eta$ 由一个 softmax 的式子给出，$\eta_o^{(i,j)}=\frac{exp(\alpha_o^{(i,j)})}{\sum_{o’\in\mathcal O}exp(\alpha_{o’}^{(i,j)})}$，其中的 $\alpha_o^{(i,j)}$ 表示在边 $(i,j)$ 中操作 $o$ 的权重或系数。</p>
-<p>&emsp;&emsp;在这种表示下，可以通过如下式子进行训练从而找到最适合的 $\alpha$，在训练的过程中，由于有四个 block，这四个 block 可以以共享权重或不共享权重的方式训练，其中权重共享实际上是 NAS 的共识，这样不仅可以加速搜索，同样可以取得更好的结果。本文的消融实验也探讨了这部分。</p>
-<script type="math/tex; mode=display">
-\min\limits_\alpha \mathcal L_{val(\Phi^*(\alpha),\alpha)},\ s.t.\ \Phi^*(\alpha)=\arg \min\limits_\Phi\mathcal L_{train}(\Phi,\alpha)</script><p>&emsp;&emsp;通过这种方式找到的网络结构每个 cell 中的每一条边都含有所有的 $\mathcal O$ 中的网络算子，并且每一个算子都具备对应的权重，但是这样的网络结构太大，其中的多个算子中某些算子的权重其实非常低，因此作者采用这样的方法进行网络的剪枝以确定最终的网络：1.对于最终的输出 output 的入边，每个边选取一个权重最大的操作保留，2.对于其他的中间节点 B1,B2,B3 的入边，每个选取权重最大的两个操作保留。</p>
-<p><img src="/AutoHR/image-20221106195942710.png" alt="image-20221106195942710" style="zoom:50%;"></p>
-<h4 id="损失函数"><a href="#损失函数" class="headerlink" title="损失函数"></a>损失函数</h4><p>&emsp;&emsp;损失函数包括两个部分，分为时间和频率，其中时间部分就是所谓的线性相关性，具体由下式给出，并且这个函数在 rPPGNet 之中也用到了，不过 rPPGNet 更晚一些就是了。</p>
-<script type="math/tex; mode=display">
-\mathcal L_{np}=1-\frac{T\mathop\sum\limits_{i=1}^T y_iy_i^g-\mathop\sum\limits_{i=1}^Ty_i\mathop\sum\limits_{i=1}^Ty_i^g}{\sqrt{(T\mathop\sum\limits_{i=1}^Ty_i^2-(\mathop\sum\limits_{i=1}^Ty_i)^2)(T\mathop\sum\limits_{i=1}^T(y_i^g)^2-(\mathop\sum\limits_{i=1}^Ty_i^g)^2)}}</script><p>&emsp;&emsp;对于频率域，就是对 $y_i$ 求功率谱密度，然后和 GT 做比较，即：</p>
-<script type="math/tex; mode=display">
-\mathcal L_{fre}=\sum CE(PSD(y_i),y_i^g)</script><p>&emsp;&emsp;整体来说的损失函数由 $\mathcal L_{overall}=\lambda·\mathcal L_{time}+\mathcal L_{fre}$ 给出，其中 $\lambda$ 用于平衡损失。</p>
-<h4 id="数据增强"><a href="#数据增强" class="headerlink" title="数据增强"></a>数据增强</h4><p>&emsp;&emsp;本文针对现有数据集的两个问题提出了两个数据增强策略：1.头部运动可能导致 ROI 遮挡，2.HR 分布严重不平衡，呈倒 V 形。</p>
-<p>&emsp;&emsp;对于这两个问题的改进为：1.在随机时间片段（小于 20% 的空间大小和 20% 的时间长度）内随机擦除或切除部分时空管，模拟 ROI 遮挡的情况，2.对视频进行时间上采样和下采样，以生成具有极小或极大 HR 值的额外训练样本。具体来说，HR 值大于 90 bpm 的视频将被时间插值两次，而 HR 值小于 70 bpm 的视频将以采样率 2 下采样，分别模拟一半和两倍的心率。</p>
-<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文做了简单的消融实验，针对性地探究了 a）损失函数，b）TDC 中的 $\theta$ 值，c）是否具备 NAS / TDC 部分，d）是否使用数据增强策略。结果如下图所示，虽然基本上都没有提太多，但是每个方法都或多或少提了0.几 的点。</p>
-<p><img src="/AutoHR/image-20221106202041824.png" alt="image-20221106202041824" style="zoom:70%;"></p>
-<p>&emsp;&emsp;除了消融实验，本文还和目前的 SOTA 进行了比较，其中的△表示传统方法，◇表示非端到端的方法，☆表示端到端的深度学习方法。这里的 RhythmNet 是同年的论文，提出了 VIPL-HR，也是很棒的 SOTA 文章。</p>
-<p><img src="/AutoHR/image-20221106202146459.png" alt="image-20221106202146459" style="zoom:80%;"></p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-        <category>hr</category>
-      </categories>
-  </entry>
-  <entry>
     <title>BoxSnake</title>
     <url>/BoxSnake/</url>
     <content><![CDATA[<h2><center> BoxSnake: Polygonal Instance Segmentation with Box Supervision </center></h2>
@@ -423,6 +377,52 @@ u_{out}=\frac{\sum\limits_{(x,y)\in\Omega_c}\mathcal{I}(x,y)\cdot(1-\mathcal{U_C
       <categories>
         <category>paper</category>
         <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>AutoHR</title>
+    <url>/AutoHR/</url>
+    <content><![CDATA[<h2><center> AutoHR: A Strong End-to-end Baseline for Remote Heart Rate Measurement with Neural Searching </center></h2>
+
+<p>【心率检测】【SPL2020】【<a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&amp;arnumber=9133501">paper</a>】【<a href>code未开源</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种基于 NAS 的心率检测 backbone 设计策略，在操作域中加入了 TDC（时空差分卷积），同时提出了一种时域和频域的混合损失函数，在单数据集和跨数据集上的测试都取得了较好的结果，并且为了解决现有方法泛化能力弱的问题提出了新的数据增强策略，取得了端到端的 SOTA。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/AutoHR/image-20221106184645470.png" alt="image-20221106184645470"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>首次使用 NAS 搜索 HR 任务的网络，并且在 NAS 搜索中加入了 TDC</li>
+<li>提出了一种时域频域的 loss，提出两种数据增强策略</li>
+</ul>
+<h3 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h3><h4 id="NAS（神经结构搜索）"><a href="#NAS（神经结构搜索）" class="headerlink" title="NAS（神经结构搜索）"></a>NAS（神经结构搜索）</h4><p>&emsp;&emsp;NAS(Neural Architecture Search) 意图使用深度学习任务自主设计神经网络，其基本工作流程如下图所示。首先由人工给定搜索的空间以及搜索策略，由机器自主探索空间中的操作组成的网络结构，并根据其网络的表现更新网络架构和超参数。</p>
+<p><img src="/AutoHR/e082b8ba4993c229c993b7dfa19d4641.png" alt="img"></p>
+<p>&emsp;&emsp;但是 NAS 有着难以避免的问题：1.超参数和搜索空间的网络架构都是离散的，2.大量的超参数使得训练时间太长。为了解决这些问题，提出了层次化表示：Learning Transferable Architectures for Scalable Image Recognition，权重共享：Reinforcement Learning for Architecture Search by Network Transformation，表现预测：Progressive Neural Architecture Search 等方法。</p>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><h4 id="TDC"><a href="#TDC" class="headerlink" title="TDC"></a>TDC</h4><p>&emsp;&emsp;时空差分卷积（TDC）是一种新的卷积策略，其卷积过程大致如下图所示。具体来说，对第 $t$ 帧图像 $p_0$ 为位置的 3x3 卷积过程如下：对第 $t$ 帧图像的 $p_0$ 位置进行 expand 操作，扩展到整个 3x3 的大小，并且分别和 $t-1$，$t+1$ 帧的对应位置进行作差。注意这里的作差中 expand 的部分带有一个参数 $\theta$ 用来控制当前帧对临近帧的影响程度，对原位置直接进行卷积，并且将最终的结果相加。</p>
+<p><img src="/AutoHR/image-20221106184757405.png" alt="image-20221106184757405" style="zoom:50%;"></p>
+<p>&emsp;&emsp;上面的过程使用公式可以表示为：</p>
+<script type="math/tex; mode=display">
+O(p_0^t)=\mathop\sum\limits_{p_n^{t-1}\in\mathcal R_{t-1}}w(p_n^{t-1})·(I(p_0^{t-1}+p_n^{t-1})-\theta·I(p_0^t))</script><script type="math/tex; mode=display">
++\mathop\sum\limits_{p_n^{t+1}\in\mathcal R_{t+1}}w(p_n^{t+1})·(I(p_0^{t+1}+p_n^{t+1})-\theta·I(p_0^t))</script><script type="math/tex; mode=display">
++\mathop\sum\limits_{p_n^{t-1}\in\mathcal R_{t}}w(p_n^{t})·I(p_0^{t}+p_n^{t})</script><h4 id="前向过程"><a href="#前向过程" class="headerlink" title="前向过程"></a>前向过程</h4><p>&emsp;&emsp;正如概览图中所示，整个网络由一个有向无环图进行估计，记所有的操作空间为 $\mathcal O$，对于图中的每一个边 $(i,j)$，其输出为：$\tilde o^{(i,j)}(x_i)=\sum_{o\in\mathcal O}\eta_o^{(i,j)}·o(x_i)$，其中的 $o$  代表操作空间中的每一个操作，$\eta$ 由一个 softmax 的式子给出，$\eta_o^{(i,j)}=\frac{exp(\alpha_o^{(i,j)})}{\sum_{o’\in\mathcal O}exp(\alpha_{o’}^{(i,j)})}$，其中的 $\alpha_o^{(i,j)}$ 表示在边 $(i,j)$ 中操作 $o$ 的权重或系数。</p>
+<p>&emsp;&emsp;在这种表示下，可以通过如下式子进行训练从而找到最适合的 $\alpha$，在训练的过程中，由于有四个 block，这四个 block 可以以共享权重或不共享权重的方式训练，其中权重共享实际上是 NAS 的共识，这样不仅可以加速搜索，同样可以取得更好的结果。本文的消融实验也探讨了这部分。</p>
+<script type="math/tex; mode=display">
+\min\limits_\alpha \mathcal L_{val(\Phi^*(\alpha),\alpha)},\ s.t.\ \Phi^*(\alpha)=\arg \min\limits_\Phi\mathcal L_{train}(\Phi,\alpha)</script><p>&emsp;&emsp;通过这种方式找到的网络结构每个 cell 中的每一条边都含有所有的 $\mathcal O$ 中的网络算子，并且每一个算子都具备对应的权重，但是这样的网络结构太大，其中的多个算子中某些算子的权重其实非常低，因此作者采用这样的方法进行网络的剪枝以确定最终的网络：1.对于最终的输出 output 的入边，每个边选取一个权重最大的操作保留，2.对于其他的中间节点 B1,B2,B3 的入边，每个选取权重最大的两个操作保留。</p>
+<p><img src="/AutoHR/image-20221106195942710.png" alt="image-20221106195942710" style="zoom:50%;"></p>
+<h4 id="损失函数"><a href="#损失函数" class="headerlink" title="损失函数"></a>损失函数</h4><p>&emsp;&emsp;损失函数包括两个部分，分为时间和频率，其中时间部分就是所谓的线性相关性，具体由下式给出，并且这个函数在 rPPGNet 之中也用到了，不过 rPPGNet 更晚一些就是了。</p>
+<script type="math/tex; mode=display">
+\mathcal L_{np}=1-\frac{T\mathop\sum\limits_{i=1}^T y_iy_i^g-\mathop\sum\limits_{i=1}^Ty_i\mathop\sum\limits_{i=1}^Ty_i^g}{\sqrt{(T\mathop\sum\limits_{i=1}^Ty_i^2-(\mathop\sum\limits_{i=1}^Ty_i)^2)(T\mathop\sum\limits_{i=1}^T(y_i^g)^2-(\mathop\sum\limits_{i=1}^Ty_i^g)^2)}}</script><p>&emsp;&emsp;对于频率域，就是对 $y_i$ 求功率谱密度，然后和 GT 做比较，即：</p>
+<script type="math/tex; mode=display">
+\mathcal L_{fre}=\sum CE(PSD(y_i),y_i^g)</script><p>&emsp;&emsp;整体来说的损失函数由 $\mathcal L_{overall}=\lambda·\mathcal L_{time}+\mathcal L_{fre}$ 给出，其中 $\lambda$ 用于平衡损失。</p>
+<h4 id="数据增强"><a href="#数据增强" class="headerlink" title="数据增强"></a>数据增强</h4><p>&emsp;&emsp;本文针对现有数据集的两个问题提出了两个数据增强策略：1.头部运动可能导致 ROI 遮挡，2.HR 分布严重不平衡，呈倒 V 形。</p>
+<p>&emsp;&emsp;对于这两个问题的改进为：1.在随机时间片段（小于 20% 的空间大小和 20% 的时间长度）内随机擦除或切除部分时空管，模拟 ROI 遮挡的情况，2.对视频进行时间上采样和下采样，以生成具有极小或极大 HR 值的额外训练样本。具体来说，HR 值大于 90 bpm 的视频将被时间插值两次，而 HR 值小于 70 bpm 的视频将以采样率 2 下采样，分别模拟一半和两倍的心率。</p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文做了简单的消融实验，针对性地探究了 a）损失函数，b）TDC 中的 $\theta$ 值，c）是否具备 NAS / TDC 部分，d）是否使用数据增强策略。结果如下图所示，虽然基本上都没有提太多，但是每个方法都或多或少提了0.几 的点。</p>
+<p><img src="/AutoHR/image-20221106202041824.png" alt="image-20221106202041824" style="zoom:70%;"></p>
+<p>&emsp;&emsp;除了消融实验，本文还和目前的 SOTA 进行了比较，其中的△表示传统方法，◇表示非端到端的方法，☆表示端到端的深度学习方法。这里的 RhythmNet 是同年的论文，提出了 VIPL-HR，也是很棒的 SOTA 文章。</p>
+<p><img src="/AutoHR/image-20221106202146459.png" alt="image-20221106202146459" style="zoom:80%;"></p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+        <category>hr</category>
       </categories>
   </entry>
   <entry>
@@ -489,6 +489,50 @@ u_{out}=\frac{\sum\limits_{(x,y)\in\Omega_c}\mathcal{I}(x,y)\cdot(1-\mathcal{U_C
         <category>paper</category>
         <category>cv</category>
         <category>hr</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>multi-network learning rPPG</title>
+    <url>/Co-rectification/</url>
+    <content><![CDATA[<h2><center> Contactless Pulse Estimation Leveraging Pseudo Labels and Self-Supervision </center></h2>
+
+<p>【rPPG】【ICCV2023】【<a href="https://openaccess.thecvf.com/content/ICCV2023/html/Li_Contactless_Pulse_Estimation_Leveraging_Pseudo_Labels_and_Self-Supervision_ICCV_2023_paper.html">paper</a>】【<a href>code not available</a>】</p>
+<h3 id="abstract"><a href="#abstract" class="headerlink" title="abstract"></a>abstract</h3><p>&emsp;&emsp;本文提出了一种使用伪标签监督辅助对比学习的无监督范式，使用 2SR 生成伪标签并通过课程式学习逐步平衡伪标签监督和对比学习。关于伪标签监督是多网络学习在 rPPG 的一种成功迁移。需要指出本文将视频 $x$ 转化为了 STMap，但在之后多次用到 $\phi(x)$，难免造成模型直接处理视频的误会。</p>
+<h3 id="overview"><a href="#overview" class="headerlink" title="overview"></a>overview</h3><p><img src="/Co-rectification/image-20231109185005424.png" alt="image-20231109185005424" style="zoom:50%;"></p>
+<span id="more"></span>
+<hr>
+<h3 id="contribution"><a href="#contribution" class="headerlink" title="contribution"></a>contribution</h3><ul>
+<li>在普通自监督的基础上使用伪标签进行额外监督</li>
+<li>使用双模型联合训练的方式对伪标签进行优化</li>
+</ul>
+<h3 id="formulation"><a href="#formulation" class="headerlink" title="formulation"></a>formulation</h3><p>&emsp;&emsp;输入视频被转化为 STMap $x$；双模型 $\phi_1:x\to y_1$ 和 $\phi_2:x\to y_2$ 均为 Dual-GAN 的 backbone（不共享参数） ；2SR 作为传统方法直接从视频中估计伪标签 $y_p$；通过对 $y$ 计算 PSD $\mathcal{F}(y)$ 获取其对应心率 $h$。</p>
+<h3 id="framework"><a href="#framework" class="headerlink" title="framework"></a>framework</h3><p><img src="/Co-rectification/image-20231109191326777.png" alt="image-20231109191326777" style="zoom:50%;"></p>
+<ul>
+<li>自监督学习范式</li>
+</ul>
+<p>&emsp;&emsp;这部分基本与之前的相关工作没有区别，本文使用时间移位来构建 pos.，即对于 anchor，将其在视频内的位置平移 $\pm f$ 帧得到正样本：$\mathcal{L}_p=d(\mathcal{F}(\phi(x)),\mathcal{F}(\phi(x_{\pm f})))$，也就是期望模型在 anchor 和 pos. 上获取一致的 PSD。</p>
+<p>&emsp;&emsp;本文使用频率的上采样 $u_{\uparrow}$ 和下采样 $d_{\downarrow}$ 获取 neg.：$\mathcal{L}_n=-d(\mathcal{F}(\phi(x)),\mathcal{F}(\phi(x_{d_\downarrow})))-d(\mathcal{F}(\phi(x)),\mathcal{F}(\phi(x_{u_\uparrow})))$，也就是期望模型对于上下采样之后的 anchor 和 neg. 获取不同的 PSD，上下采样的范围是 [0.6,1.3]。</p>
+<p>&emsp;&emsp;由于构造 neg. 时使用了上采样和下采样，因此视频对应的心率也应该呈现对应的变化，即 $h_{u\uparrow}&lt;h&lt;h_{d\downarrow}$，针对这种理应的变化设计损失函数为：$\mathcal{L}_{rank}=\max(h_{u\uparrow}-h,0)+\max(h-h_{d\downarrow},0)$。</p>
+<p>&emsp;&emsp;综合自监督部分，损失函数为：</p>
+<script type="math/tex; mode=display">
+\mathcal{L}_{self-sup}=\mathcal{L}_p-\mathcal{L}_n+\alpha\mathcal{L}_{rank},\ \mathrm{where\ \alpha=0.01}</script><ul>
+<li>伪标签学习范式</li>
+</ul>
+<p>&emsp;&emsp;本文实质上是 multi-network learning 在 rPPG 上的成功应用，在两个模型上的协同优化循环优化 $\phi_1$ 和 $\phi_2$，优化 $\phi_1$ 可以表述为：</p>
+<p>&emsp;&emsp;i ) 计算 batch 内的 $\epsilon_1= \mathrm{abs}(h_p^b-h_1^b)\mathrm{\ for\ b\in[1,bs]}$，其表示模型输出和伪标签直接的差值</p>
+<p>&emsp;&emsp;ii) 在 $\epsilon_2$ 中选择误差最大的 $\lambda$ 个下标 $\{b_i\}_1^\lambda$，此时认为这些下标对应的伪标签是置信度低的，从而使用 $h_2^{b_i}$ 替换掉 $h_p^{b_i}$ 作为对 $\phi_1$ 的监督，此时并不更新 $\phi_2$</p>
+<p>&emsp;&emsp;对于伪标签学习，损失函数 $\mathcal{L}_{pseudo}$ 为简单的 MSE。但考虑到前期同一个 batch 内会出现多个由于网络没有充分训练的“偏差值”，因此 $\lambda$ 应当随着训练缓慢增大。具体来说，$\lambda=\frac{e_t}{e_{max}}\lambda_{max}$，其中 $e_t$ 表示第 $t$ 个 epoch，$\lambda_{max}=8$。</p>
+<p>&emsp;&emsp;综合伪标签学习和对比学习时，应该考虑到前期的对比学习相对于伪标签学习这种“伪监督学习”具备更低的置信度，因此 trade-off 应该先考虑伪标签学习，再考虑对比学习。</p>
+<script type="math/tex; mode=display">
+\mathcal{L}=(1-\frac{e_t}{e_{max}})\mathcal{L}_{pseudo}+\mathcal{L}_{self-sup}</script><h3 id="experiment"><a href="#experiment" class="headerlink" title="experiment"></a>experiment</h3><p>&emsp;&emsp;是第一个在 VIPL 上测试的模型，分成 10s 的 clip 做 video-level 测试，intra- 和 cross- 都 OK</p>
+<p><img src="/Co-rectification/image-20231109204253372.png" alt="image-20231109204253372" style="zoom:50%;"></p>
+<p><img src="/Co-rectification/image-20231109204310352.png" alt="image-20231109204310352" style="zoom:50%;"></p>
+<p>&emsp;&emsp;消融实验很有说服力</p>
+<p><img src="/Co-rectification/image-20231109204403769.png" alt="image-20231109204403769"></p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
       </categories>
   </entry>
   <entry>
@@ -592,50 +636,6 @@ L_{tf}=\lambda_{s}\cdot L_{s}+L_{code'}</script><p>&emsp;&emsp;其中，$L_s$ �
 <p>&emsp;&emsp;另一方面本文测试了和 VQGAN 在预测 codebook 序列上的正确性，由于 transformer 结构，准确度提升了很多（但是这里的 transformer 就是普通的 transformer，是否可以针对 transformer 的架构进行改进？）</p>
 <p><img src="/CodeFormer/image-20230209100935785.png" alt="image-20230209100935785"></p>
 <p>&emsp;&emsp;最后本文还论证了在第二阶段锁定解码器的必要性，通过测试是否在第二阶段更新解码器，得出结论：在第二阶段微调解码器会破坏学习到的先验知识。然后将本文的网络应用于了人脸图像修补，人脸图像上色等任务，同样取得了不错的结果。</p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>multi-network learning rPPG</title>
-    <url>/Co-rectification/</url>
-    <content><![CDATA[<h2><center> Contactless Pulse Estimation Leveraging Pseudo Labels and Self-Supervision </center></h2>
-
-<p>【rPPG】【ICCV2023】【<a href="https://openaccess.thecvf.com/content/ICCV2023/html/Li_Contactless_Pulse_Estimation_Leveraging_Pseudo_Labels_and_Self-Supervision_ICCV_2023_paper.html">paper</a>】【<a href>code not available</a>】</p>
-<h3 id="abstract"><a href="#abstract" class="headerlink" title="abstract"></a>abstract</h3><p>&emsp;&emsp;本文提出了一种使用伪标签监督辅助对比学习的无监督范式，使用 2SR 生成伪标签并通过课程式学习逐步平衡伪标签监督和对比学习。关于伪标签监督是多网络学习在 rPPG 的一种成功迁移。需要指出本文将视频 $x$ 转化为了 STMap，但在之后多次用到 $\phi(x)$，难免造成模型直接处理视频的误会。</p>
-<h3 id="overview"><a href="#overview" class="headerlink" title="overview"></a>overview</h3><p><img src="/Co-rectification/image-20231109185005424.png" alt="image-20231109185005424" style="zoom:50%;"></p>
-<span id="more"></span>
-<hr>
-<h3 id="contribution"><a href="#contribution" class="headerlink" title="contribution"></a>contribution</h3><ul>
-<li>在普通自监督的基础上使用伪标签进行额外监督</li>
-<li>使用双模型联合训练的方式对伪标签进行优化</li>
-</ul>
-<h3 id="formulation"><a href="#formulation" class="headerlink" title="formulation"></a>formulation</h3><p>&emsp;&emsp;输入视频被转化为 STMap $x$；双模型 $\phi_1:x\to y_1$ 和 $\phi_2:x\to y_2$ 均为 Dual-GAN 的 backbone（不共享参数） ；2SR 作为传统方法直接从视频中估计伪标签 $y_p$；通过对 $y$ 计算 PSD $\mathcal{F}(y)$ 获取其对应心率 $h$。</p>
-<h3 id="framework"><a href="#framework" class="headerlink" title="framework"></a>framework</h3><p><img src="/Co-rectification/image-20231109191326777.png" alt="image-20231109191326777" style="zoom:50%;"></p>
-<ul>
-<li>自监督学习范式</li>
-</ul>
-<p>&emsp;&emsp;这部分基本与之前的相关工作没有区别，本文使用时间移位来构建 pos.，即对于 anchor，将其在视频内的位置平移 $\pm f$ 帧得到正样本：$\mathcal{L}_p=d(\mathcal{F}(\phi(x)),\mathcal{F}(\phi(x_{\pm f})))$，也就是期望模型在 anchor 和 pos. 上获取一致的 PSD。</p>
-<p>&emsp;&emsp;本文使用频率的上采样 $u_{\uparrow}$ 和下采样 $d_{\downarrow}$ 获取 neg.：$\mathcal{L}_n=-d(\mathcal{F}(\phi(x)),\mathcal{F}(\phi(x_{d_\downarrow})))-d(\mathcal{F}(\phi(x)),\mathcal{F}(\phi(x_{u_\uparrow})))$，也就是期望模型对于上下采样之后的 anchor 和 neg. 获取不同的 PSD，上下采样的范围是 [0.6,1.3]。</p>
-<p>&emsp;&emsp;由于构造 neg. 时使用了上采样和下采样，因此视频对应的心率也应该呈现对应的变化，即 $h_{u\uparrow}&lt;h&lt;h_{d\downarrow}$，针对这种理应的变化设计损失函数为：$\mathcal{L}_{rank}=\max(h_{u\uparrow}-h,0)+\max(h-h_{d\downarrow},0)$。</p>
-<p>&emsp;&emsp;综合自监督部分，损失函数为：</p>
-<script type="math/tex; mode=display">
-\mathcal{L}_{self-sup}=\mathcal{L}_p-\mathcal{L}_n+\alpha\mathcal{L}_{rank},\ \mathrm{where\ \alpha=0.01}</script><ul>
-<li>伪标签学习范式</li>
-</ul>
-<p>&emsp;&emsp;本文实质上是 multi-network learning 在 rPPG 上的成功应用，在两个模型上的协同优化循环优化 $\phi_1$ 和 $\phi_2$，优化 $\phi_1$ 可以表述为：</p>
-<p>&emsp;&emsp;i ) 计算 batch 内的 $\epsilon_1= \mathrm{abs}(h_p^b-h_1^b)\mathrm{\ for\ b\in[1,bs]}$，其表示模型输出和伪标签直接的差值</p>
-<p>&emsp;&emsp;ii) 在 $\epsilon_2$ 中选择误差最大的 $\lambda$ 个下标 $\{b_i\}_1^\lambda$，此时认为这些下标对应的伪标签是置信度低的，从而使用 $h_2^{b_i}$ 替换掉 $h_p^{b_i}$ 作为对 $\phi_1$ 的监督，此时并不更新 $\phi_2$</p>
-<p>&emsp;&emsp;对于伪标签学习，损失函数 $\mathcal{L}_{pseudo}$ 为简单的 MSE。但考虑到前期同一个 batch 内会出现多个由于网络没有充分训练的“偏差值”，因此 $\lambda$ 应当随着训练缓慢增大。具体来说，$\lambda=\frac{e_t}{e_{max}}\lambda_{max}$，其中 $e_t$ 表示第 $t$ 个 epoch，$\lambda_{max}=8$。</p>
-<p>&emsp;&emsp;综合伪标签学习和对比学习时，应该考虑到前期的对比学习相对于伪标签学习这种“伪监督学习”具备更低的置信度，因此 trade-off 应该先考虑伪标签学习，再考虑对比学习。</p>
-<script type="math/tex; mode=display">
-\mathcal{L}=(1-\frac{e_t}{e_{max}})\mathcal{L}_{pseudo}+\mathcal{L}_{self-sup}</script><h3 id="experiment"><a href="#experiment" class="headerlink" title="experiment"></a>experiment</h3><p>&emsp;&emsp;是第一个在 VIPL 上测试的模型，分成 10s 的 clip 做 video-level 测试，intra- 和 cross- 都 OK</p>
-<p><img src="/Co-rectification/image-20231109204253372.png" alt="image-20231109204253372" style="zoom:50%;"></p>
-<p><img src="/Co-rectification/image-20231109204310352.png" alt="image-20231109204310352" style="zoom:50%;"></p>
-<p>&emsp;&emsp;消融实验很有说服力</p>
-<p><img src="/Co-rectification/image-20231109204403769.png" alt="image-20231109204403769"></p>
 ]]></content>
       <categories>
         <category>paper</category>
@@ -803,6 +803,156 @@ L_n=-\sum_{i=1}^N\sum_{j=1}^N\frac{||f_i-f_j'||^2}{N^2}</script><p>&emsp;&emsp;�
         <category>paper</category>
         <category>cv</category>
         <category>hr</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>diffusion models 2</title>
+    <url>/Diffusion_Model_2/</url>
+    <content><![CDATA[<h2><center> diffusion theories </center></h2>
+
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文将承接上文的 <a href>DDPM</a>，继续介绍其他的扩散模型理论，以及对扩散模型扩展的探索：</p>
+<ul>
+<li>SMLD（NIPS2019）：Generative modeling by estimating gradients of the data distribution</li>
+<li>SDE（ICLR2021）：Score-Based Generative Modeling through Stochastic Differential Equations</li>
+</ul>
+<span id="more"></span>
+<hr>
+<h3 id="SMLD-Generative-modeling-by-estimating-gradients-of-the-data-distribution"><a href="#SMLD-Generative-modeling-by-estimating-gradients-of-the-data-distribution" class="headerlink" title="SMLD : Generative modeling by estimating gradients of the data distribution"></a>SMLD : Generative modeling by estimating gradients of the data distribution</h3><p>【图像生成】【NIPS2019】【<a href="https://proceedings.neurips.cc/paper/2019/file/3001ef257407d5a371a96dcd947c7d93-Paper.pdf">paper</a>】【<a href="https://github.com/ermongroup/ncsn">code</a>】</p>
+<h4 id="前置说明"><a href="#前置说明" class="headerlink" title="前置说明"></a>前置说明</h4><p>&emsp;&emsp;SMLD 全名为 Score Matching Langevin Dynamics，即基于分数匹配的郎之万采样方法，其主要提出了 NCSN。NCSN 全名为 Noise Conditional Score Network，即以噪声为条件的分数（预测）网络。本文提出了一种基于分数匹配的加噪-去噪过程，同时采用郎之万采样进行逐次迭代，是扩散模型的基础理论之一。</p>
+<p>&emsp;&emsp;在阅读本方法时，最好一直带着三个疑问：1.为什么要向样本中添加噪声，2.噪声是怎么样被添加至样本的，3.噪声是如何被去除的。</p>
+<ul>
+<li><strong>什么是 score？</strong></li>
+</ul>
+<p>&emsp;&emsp;所谓的 score，定义为数据分布的对数的梯度。对于一个数据分布 $p(x)$，其 score 为 $\nabla_x\log p(x)$。这是数学上的定义，形象化地表示下，假如 $p(x)$ 如下图（左）所示，则其 score 如下图（右）所示。这个 score 的作用是方便采样，具体来说，假如从 $p(x)$ 某个随机位置开始采样，其初始值大概率没有在高密度位置，此时只需要按照梯度逐步前进，将会逐渐到达高密度区域。</p>
+<p><img src="/Diffusion_Model_2/image-20230504200127087.png" alt="image-20230504200127087" style="zoom:50%;"></p>
+<ul>
+<li><strong>什么是 郎之万采样？</strong></li>
+</ul>
+<p>&emsp;&emsp;郎之万采样就是一种采样方式，其来源于郎之万动力学 Langevin dynamics，也就是扩散模型中去噪的迭代过程，具体来说，给出一个分布 $p(x)$ 的分数，对其的采样过程为：$x_t=x_{t-1}+\frac\epsilon2\nabla_x\log p(x_{t-1})+\sqrt\epsilon z_t$，其中，$\epsilon$ 表示步长，即每次走几步，$z_t\sim N(0,I)$ 表示标准正态分布（噪声），整个过程可以看做，对于初始点 $x_{t-1}$，下一步将在其基础上移动 $\frac\epsilon2$ 步的梯度，并且伴随一个低阶的噪声扰动。</p>
+<p><img src="/Diffusion_Model_2/langevin.gif" alt="img" style="zoom:50%;"></p>
+<h4 id="优化设计（扩散-逆扩散过程）"><a href="#优化设计（扩散-逆扩散过程）" class="headerlink" title="优化设计（扩散-逆扩散过程）"></a>优化设计（扩散-逆扩散过程）</h4><h5 id="低密度不准确问题"><a href="#低密度不准确问题" class="headerlink" title="低密度不准确问题"></a>低密度不准确问题</h5><p>&emsp;&emsp;我们可以看出来，如果我们有一个非常准确的分数时就可以进行好的采样，但是估计分数也就是在估计分布，没有办法直观地进行获取，而是需要一个神经网络进行逼近，即 $\min\ E_{p(x)}[||s_\theta(x)-\nabla_x\log p(x)||_2^2]$。但是在估计分数时有着天然的问题（即使我们已知分布）：当数据分布比较集中（方差较小）时，空间中会存在大量的低密度区域，在这些区域中没有足够的样本对分数进行估计。这种情况如下图所示：</p>
+<p><img src="/Diffusion_Model_2/image-20230504203718065.png" alt="image-20230504203718065" style="zoom: 33%;"></p>
+<h5 id="使用退火郎之万采样"><a href="#使用退火郎之万采样" class="headerlink" title="使用退火郎之万采样"></a>使用退火郎之万采样</h5><p>&emsp;&emsp;本文额外引入了一个探讨：当目标数据分布是由两个不同的分布之和时，能否准确进行不同分布的采样？考虑这样一个混合分布：$p(x)=\pi p_1(x)+(1-\pi)p_2(x)$，其中 $\pi$ 为常数，则 $\nabla_x\log p(x)=\nabla_x\log p_1(x)+\nabla_x\log p_2(x)$，也就是说，虽然混合分布 $p(x)$ 本身与 $\pi$ 有关系，但是其 score 却与 $\pi$ 无关，这将极大地限制从混合分布中进行正确采样。</p>
+<p>&emsp;&emsp;本文进行了这样的实验：用不同的方法从混合高斯分布中获取样本。(a) 精确抽样。(b) 使用精确分数的郎之万采样进行抽样。(c)使用退火郎之万采样进行抽样。显然，朗之万动力学不正确地估计了两种模式之间的相对权值，而退火朗之万动力学则忠实地恢复了相对权值。</p>
+<p><img src="/Diffusion_Model_2/image-20230504204758364.png" alt="image-20230504204758364" style="zoom: 50%;"></p>
+<h5 id="NCSN：加噪与训练"><a href="#NCSN：加噪与训练" class="headerlink" title="NCSN：加噪与训练"></a>NCSN：加噪与训练</h5><ul>
+<li>加噪方式</li>
+</ul>
+<p>&emsp;&emsp;既然我们已经明确在分布集中时难以准确估计 score，那么我们就要对其进行加噪，通过使其具备更广的分布从而能够准确估计 score，这也就回答了第一个问题。但是这也会带来一些额外的问题：加入了较大的噪声之后，我们估计出的分布将会和真实分布差距较大。</p>
+<p>&emsp;&emsp;为了解决加噪之后难以去除的问题，我们通过这样的方式加入噪声：预设一个公比小于 1 的等比数列 $\{\sigma_i\}_i^L$，将其每一项分别作为正态分布的噪声 $N(0,\sigma^2I)$ 加入原始数据分布 $p(x)$ 之中以获取新数据分布 $q_\sigma(\tilde x)$，则 $q_\sigma(\tilde x)\sim\int p(x)N(\tilde x|x,\sigma^2I)dx$。此时我们的目的就是利用分数估计网络逼近 $q_\sigma(\tilde x)$，不过此时我们将对应的方差 $\sigma$ 也输入至分数网络之中：$s_\theta(\tilde x,\sigma)\simeq \nabla_{\tilde x}\log q_\sigma(\tilde x)$。</p>
+<p>&emsp;&emsp;这种加噪方式很好地平衡了上述两个难题，通过先加入大噪声使数据分布更广泛，从而获取原本低密度区域的正确分数估计，再逐步缩小加噪方差，直至最终可以收敛到和原数据分布基本一致。这种以 $\sigma_i$ 作为条件的分数估计网络就称为 NCSN。</p>
+<ul>
+<li>训练方式</li>
+</ul>
+<p>&emsp;&emsp;在训练的过程中，由于 $\sigma$ 总共有 $L$ 个，那么计算 loss 时自然所有的都需要考虑在内，为了推理出整体形式，首先考虑对于某一个 $\sigma\in\{\sigma_i\}_i^L$</p>
+<script type="math/tex; mode=display">
+\begin{align}
+&\because q_\sigma(\tilde x|x)=N(\tilde x|x,\sigma^2 I)（因为是直接在原始数据分布上加高斯噪声）\\
+&\therefore\nabla_{\tilde x}\log q_\sigma(\tilde x|x)=-\frac{\tilde x-x}{\sigma^2}（展开计算可得）\\
+&\therefore L(\theta;\sigma)=\mathbb E_{p(x)}\mathbb E_{\tilde x\sim N(x,\sigma^2I)}[\|s_\theta(\tilde x,\sigma)+\frac{\tilde x-x}{\sigma^2}\|_2^2]
+\end{align}</script><p>&emsp;&emsp;因此若考虑全部的 $\sigma$，损失函数应该写为：$L(\theta;\{\sigma_i\}_i^L)=\frac1L\sum\limits_{i=1}^L\lambda(\sigma_i)L(\theta;\sigma_i)$。其中，$\lambda(\sigma_i)$ 用于平衡各个方差之间的数量级，在合理的假设下，平衡之后的损失应当不受到 $\sigma_i$ 的级数的影响。作者指出在训练到收敛之后 $|s_\theta(x,\sigma)|_2\propto \frac1\sigma$，因此设 $\lambda(\sigma_i)=\sigma_i^2$，以此消除由 $\sigma$ 数值带来的影响。</p>
+<h5 id="NCSN-的推理过程"><a href="#NCSN-的推理过程" class="headerlink" title="NCSN 的推理过程"></a>NCSN 的推理过程</h5><p>&emsp;&emsp;使用退火郎之万采样对数据进行多次迭代，具体来说，当 score 被近似正确估计时执行下列步骤。其关键的见解在于：<strong>将 $\sigma$ 从大到小进行迭代，大的 $\sigma_i$ 可以使低密度区域更少，但逼近 $p(x)$ 效果不好，尽管如此，以此为 score 进行 $x_t$ 的郎之万采样也会大致地向高密度区域前进。通过这种方式，尽管大的 $\sigma_i$ 不够精确，但足以使 $x_{t+1}$ 进入 $\sigma_{i+1}$ 的 score 准确估计区域。</strong></p>
+<p><img src="/Diffusion_Model_2/image-20230505121220625.png" alt="image-20230505121220625" style="zoom: 40%;"></p>
+<hr>
+<h3 id="SDE-Score-Based-Generative-Modeling-through-Stochastic-Differential-Equations"><a href="#SDE-Score-Based-Generative-Modeling-through-Stochastic-Differential-Equations" class="headerlink" title="SDE : Score-Based Generative Modeling through Stochastic Differential Equations"></a>SDE : Score-Based Generative Modeling through Stochastic Differential Equations</h3><p>【图像生成】【ICLR2021】【<a href="http://arxiv.org/abs/2011.13456">paper</a>】【<a href="https://colab.research.google.com/drive/120kYYBOVa1i0TD85RjlEkFjaWDxSFUx3?usp=sharing#scrollTo=qW1HaPZb9gDM">code</a>】</p>
+<h4 id="前置说明-1"><a href="#前置说明-1" class="headerlink" title="前置说明"></a>前置说明</h4><p>&emsp;&emsp;所谓 SDE，即随机微分方程（Stochastic Differential Equations），常用来对随机过程进行建模，对于微分方程来说，常微分方程 ODE 的一般形式为：$dy=f(x)dx$，通常可以使用对 $dx$ 积分的方式求解 $f(y)$，随机微分方程 SDE 的一般形式为：$dx_t=f(x_t,t)dt+g(x_t,t)dw_t$，其中 $w_t$ 表示随机项。本文旨在使用 SDE 构造出一个一致性的扩散模型 pipeline，以指导后续的扩散模型构造。</p>
+<h4 id="加噪过程"><a href="#加噪过程" class="headerlink" title="加噪过程"></a>加噪过程</h4><p>&emsp;&emsp;当噪声尺度的数量接近无穷大时，我们基本上会随着噪声水平的不断增加而扰乱数据分布。在这种情况下，噪声扰动过程是一个连续时间随机过程，如下所示</p>
+<p><img src="/Diffusion_Model_2/perturb_vp.gif" alt="img"></p>
+<p>&emsp;&emsp;这个过程使用 SDE 描述为</p>
+<script type="math/tex; mode=display">
+dx=f(x,t)dt+g(t)dw</script><p>&emsp;&emsp;其中，作者将 $f(*,t)$ 称为漂移系数，$g(t)$ 称为扩散系数，对于一个 $dt$ 内的 $dx$，前半部分描述了一个确定的移动，后半部分则表示了一个噪声，在单位时间 $dt$ 内的 $dx$ 变化如下图所示：</p>
+<p><img src="/Diffusion_Model_2/image-20230507160801692.png" alt="image-20230507160801692" style="zoom: 33%;"></p>
+<p> &emsp;&emsp;在上式中，SDE 的具体形式（指 $f(x,t),\ g(t)$ 的表达式）是手工设计的，接下来我们将首先探索一下不使用具体形式的抽象化推理，然后将给 $f(x,t),\ g(t)$ 赋值具体表达式并以此推理出 DDPM 与 SMLD 两种具体扩散模型。</p>
+<h4 id="去噪过程"><a href="#去噪过程" class="headerlink" title="去噪过程"></a>去噪过程</h4><p>&emsp;&emsp;<strong>在有限数量的噪声尺度下，我们可以通过使用退火 Langevin 动力学</strong>反转扰动过程来生成样本，即，使用 Langevin 动力学从每个噪声扰动分布中顺序采样。对于无限噪声尺度，我们可以通过使用反向 SDE 类似地反转样本生成的扰动过程。</p>
+<p><img src="/Diffusion_Model_2/denoise_vp.gif" alt="img"></p>
+<p>&emsp;&emsp;为了能够得到逆向过程的 SDE 方差，我们需要对正向过程 $dx=f(x,t)dt+g(t)dw$ 进行推理，推理过程如下：</p>
+<ul>
+<li><p>首先，离散化扩散过程 SDE，$dx=x_{t+\Delta t}-x_t,\ dt=\Delta t$，得到：</p>
+<ul>
+<li><script type="math/tex; mode=display">
+x_{t+\Delta t}-x_t=f(x_t,t)dt+g(t)\sqrt{\Delta t}\epsilon,\ \epsilon\sim N(0,I)\tag 1</script></li>
+<li><p>这里有两个需要注意的点：1.在函数 $f$ 内，$x\to x_t$ 而非 $x_{t+\Delta t}$ 是因为这里我们是扩散过程，是给出 $x_t$ 求 $x_{t+\Delta t}$ 的过程；2.扩散项的 $dw$ 变成了 $\sqrt{\Delta t}\epsilon$，这个$\Delta t$ 加根号是结论性的，有<a href="https://kexue.fm/archives/9209#%E9%9A%8F%E6%9C%BA%E5%BE%AE%E5%88%86">非官方的解释</a>。</p>
+</li>
+</ul>
+</li>
+<li><p>由上式可得</p>
+<ul>
+<li><script type="math/tex; mode=display">
+p(x_{t+\Delta t}|x_t)\sim N(x_t+f(x_t,t)dt,\ g^2(t)\Delta t)\propto \exp (-\frac{\|x_{t+\Delta t}-x_t-f(x_t,t)\Delta t\|_2^2}{2g^2(t)\Delta t})\tag 2</script></li>
+</ul>
+</li>
+<li><p>为了进行逆扩散过程，我们需要知道 $p(x_t|x_{t+\Delta t})$ 因此可以列出贝叶斯公式</p>
+<ul>
+<li><script type="math/tex; mode=display">
+p(x_t|x_{t+\Delta t})=\frac{p(x_{t+\Delta t}|x_t)p(x_t)}{p(x_{t+\Delta t})}\tag 3</script></li>
+</ul>
+</li>
+<li><p>若此时将式 $2$ 代入式 $3$，则会保留一项 $\frac{p(x_t)}{p(x_{t+\Delta t})}$ 无法消去，因此先尝试处理此项</p>
+<ul>
+<li><script type="math/tex; mode=display">
+\frac{p(x_t)}{p(x_{t+\Delta t})}=\exp(\log p(x_t) - \log p(x_t|x_{t+\Delta t}))\tag 4</script></li>
+<li><p>对 $\log p(x_{t+\Delta t})$ 在 $x_t$ 处进行泰勒展开，得</p>
+</li>
+<li><script type="math/tex; mode=display">
+\log p(x_{t+\Delta t})\simeq\log p(x_t)+(x_{t+\Delta t}-x_t)\nabla_{x_t}\log p(x_t)+\Delta t\frac{\partial }{\partial t}\log p(x_t)\tag 5</script><ul>
+<li>需要注意的是，在上式展开时应采用多元泰勒展开方式进行，不然可能会漏掉最后一项（漏不漏不影响结果就是了）</li>
+</ul>
+</li>
+<li><p>将式 $5$ 代入式 $4$，得</p>
+</li>
+<li><script type="math/tex; mode=display">
+\frac{p(x_t)}{p(x_{t+\Delta t})}\simeq\exp(-(x_{t+\Delta t}-x_t)\nabla_{x_t}\log p(x_t)-\Delta t\frac{\partial }{\partial t}\log p(x_t))\tag 6</script></li>
+</ul>
+</li>
+<li><p>因此将式 $2$ 和式 $6$ 一起代入式 $3$，即可得到</p>
+<ul>
+<li><script type="math/tex; mode=display">
+p(x_t|x_{t+\Delta t})\propto\exp (-\frac{\|x_{t+\Delta t}-x_t-f(x_t,t)\Delta t\|_2^2}{2g^2(t)\Delta t}-(x_{t+\Delta t}-x_t)\nabla_{x_t}\log p(x_t)-\Delta t\frac{\partial }{\partial t}\log p(x_t))\tag 7</script></li>
+</ul>
+</li>
+<li><p>在 SDE 扩散模型的假设中，$\Delta t\to0$，不难看出上式具备 $\mathcal O(1/\Delta t),\ \mathcal O(1),\ \mathcal O(\Delta t)$ 的部分，因此可以令 $\mathcal O(\Delta t)$ 的部分约去，同时以 $x_{t+\Delta t}-x_t$ 为一个整体 $\Delta X$，可以将 $7$ 化简为</p>
+<ul>
+<li><script type="math/tex; mode=display">
+p(x_t|x_{t+\Delta t})\propto\exp (-\frac{\Delta X^2-2\Delta Xf(x_t,t)\Delta t}{2g^2(t)\Delta t}-\Delta X\nabla_{x_t}\log p(x_t))\tag 8</script></li>
+<li><p>对上式进行配方，然后去掉 $\mathcal O(\Delta t)$ 可得</p>
+</li>
+<li><script type="math/tex; mode=display">
+p(x_t|x_{t+\Delta t})\propto\exp (-\frac{1}{2g^2(t)\Delta t}\|\Delta X-(f(x_t,t)\Delta t -2g^2(t)\Delta t \nabla_{x_t}\log p(x_t))\|_2^2)\tag 9</script></li>
+</ul>
+</li>
+<li><p>此时，由于我们应该从输入 $x_{t+\Delta t}$ 得到 $x_t$，在保证正确性的情况下（因为 $\mathcal O(\Delta t)\to 0$）对式 $9$ 进行简单的换元</p>
+<ul>
+<li><script type="math/tex; mode=display">
+p(x_t|x_{t+\Delta t})\propto\exp (-\frac{1}{2g^2({t+\Delta t})\Delta t}\|\Delta X-(f(x_{t+\Delta t},t)\Delta t -2g^2({t+\Delta t})\Delta t \nabla_{x_t}\log p(x_{t+\Delta t}))\|_2^2)\tag {10}</script></li>
+<li><p>将此式变换为正态分布可以写成</p>
+</li>
+<li><script type="math/tex; mode=display">
+p(x_t|x_{t+\Delta t})\sim N(x_{t+\Delta t}-f(x_{t+\Delta t},t)\Delta t +2g^2({t+\Delta t})\Delta t \nabla_{x_t}\log p(x_{t+\Delta t}),\ g^2({t+\Delta t})\Delta tI)\tag {11}</script></li>
+</ul>
+</li>
+<li><p>写成离散形式的 $x_{t+\Delta t}$ 与 $x_t$ 的关系为</p>
+<ul>
+<li><script type="math/tex; mode=display">
+x_t-x_{t+\Delta t}=f(x_{t+\Delta t},t)\Delta t -2g^2({t+\Delta t})\Delta t\nabla_{x_t}\log p(x_{t+\Delta t})+g(t+\Delta t)\sqrt{\Delta t}\epsilon,\ \epsilon\sim N(0,I)\tag {12}</script></li>
+</ul>
+</li>
+<li><p>将式 $12$ 写为微分形式为</p>
+<ul>
+<li><script type="math/tex; mode=display">
+dx=[f(x,t)-g^2(t)\nabla_x\log p(x_t)]dt+g(t)dw\tag {13}</script></li>
+</ul>
+</li>
+</ul>
+<p>&emsp;&emsp;由此，我们就得到了逆扩散过程的 SDE 公式。为了计算反向 SDE，我们需要估计 $\nabla_x\log p(x_t)$，为此，我们训练一个基于时间依赖分数的模型 $s_\theta({x}, t)$，这样 ${s}_\theta({x}, t) \approx \nabla_{x} \log p_t({x})$。这类似于基于噪声条件分数的模型 ${s}_\theta({x}, i)$ 用于有限噪声。</p>
+<p>&emsp;&emsp;我们的训练目标 $s_\theta({x}, t)$ 是 Fisher 散度的连续加权组合，由下式给出</p>
+<script type="math/tex; mode=display">
+\begin{equation} \mathbb{E}_{t \in \mathcal{U}(0, T)}\mathbb{E}_{p_t(\mathbf{x})}[\lambda(t) \| \nabla_\mathbf{x} \log p_t(\mathbf{x}) - \mathbf{s}_\theta(\mathbf{x}, t) \|_2^2], \end{equation} \tag {14}</script><p>&emsp;&emsp;其中，$\mathcal{U}(0, T)$ 表示时间间隔内的均匀分布 $[0,T]$， $\lambda: \mathbb{R} \to \mathbb{R}_{&gt;0}$ 是正加权函数。通常我们使用 $\lambda(t) \propto 1/ \mathbb{E}[| \nabla_{\mathbf{x}(t)} \log p(\mathbf{x}(t) \mid \mathbf{x}(0))|_2^2]$ 以平衡不同分数匹配损失随时间的大小。由此便可以展开训练。</p>
+<h4 id="VP-SDE-和-VE-SDE"><a href="#VP-SDE-和-VE-SDE" class="headerlink" title="VP-SDE 和 VE-SDE"></a>VP-SDE 和 VE-SDE</h4><p>&emsp;&emsp;对于原始式子式 $1$，当我们令 $f(x,t)=0,\ g(t)=\frac{d}{dt}\sigma_t^2$ 时，SDE 被称为 VE（方差爆炸）SDE，也就对应着 SMLD 分数扩散模型，由此可以推出 VE-SDE 的更新公式为：$x_{t+\Delta t}=x_t+\sqrt{\sigma_{t+\Delta t}^2-\sigma_t^2}\epsilon$。</p>
+<p>&emsp;&emsp;对于原始式子式 $1$，当我们令 $\{\bar\beta_i\}_1^T=\{T\beta_i\}_1^T$，$\beta(\frac iT)=\bar\beta_i$，$f(x,t)=-\frac12\beta(t)x_t,\ g(t)=\sqrt{\beta(t)}$ 时，SDE 被称为 VP（方差收缩）SDE，也就对应着 DDPM 去噪扩散模型，由此可以推出 VP-SDE 的更新公式为：$x_{t+\Delta t}=\sqrt{1-\beta_{t+\Delta t}}x_t+\sqrt{\beta_{t+\Delta t}}\epsilon$。</p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
       </categories>
   </entry>
   <entry>
@@ -1056,156 +1206,6 @@ L_t=\mathbb E_{x_0,t,z}[||z-z_\theta(\sqrt{\bar\alpha_t}x_0+\sqrt{1-\bar \alpha_
 <p>&emsp;&emsp;至此，我们就推理并证明了 DDPM 选择的损失函数 $L_t$ 的具体表达形式，说白了就是在逆扩散过程之中通过网络 $\theta$ 输入后一时刻的状态图 $x_t$ 和 当前时刻 $t$，期望 $\theta(x_t,t)$ 的输出能够和 $x_{t-1}$ 的均值对齐，并且使用了 $\rm MSELoss$。</p>
 <h3 id="Demo"><a href="#Demo" class="headerlink" title="Demo"></a>Demo</h3><p><a href="https://github.com/azad-academy/denoising-diffusion-model">参考</a></p>
 <p>/home/chushuyang/research/practice/denoising-diffusion-model/diffusion_model_demo.ipynb</p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>diffusion models 2</title>
-    <url>/Diffusion_Model_2/</url>
-    <content><![CDATA[<h2><center> diffusion theories </center></h2>
-
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文将承接上文的 <a href>DDPM</a>，继续介绍其他的扩散模型理论，以及对扩散模型扩展的探索：</p>
-<ul>
-<li>SMLD（NIPS2019）：Generative modeling by estimating gradients of the data distribution</li>
-<li>SDE（ICLR2021）：Score-Based Generative Modeling through Stochastic Differential Equations</li>
-</ul>
-<span id="more"></span>
-<hr>
-<h3 id="SMLD-Generative-modeling-by-estimating-gradients-of-the-data-distribution"><a href="#SMLD-Generative-modeling-by-estimating-gradients-of-the-data-distribution" class="headerlink" title="SMLD : Generative modeling by estimating gradients of the data distribution"></a>SMLD : Generative modeling by estimating gradients of the data distribution</h3><p>【图像生成】【NIPS2019】【<a href="https://proceedings.neurips.cc/paper/2019/file/3001ef257407d5a371a96dcd947c7d93-Paper.pdf">paper</a>】【<a href="https://github.com/ermongroup/ncsn">code</a>】</p>
-<h4 id="前置说明"><a href="#前置说明" class="headerlink" title="前置说明"></a>前置说明</h4><p>&emsp;&emsp;SMLD 全名为 Score Matching Langevin Dynamics，即基于分数匹配的郎之万采样方法，其主要提出了 NCSN。NCSN 全名为 Noise Conditional Score Network，即以噪声为条件的分数（预测）网络。本文提出了一种基于分数匹配的加噪-去噪过程，同时采用郎之万采样进行逐次迭代，是扩散模型的基础理论之一。</p>
-<p>&emsp;&emsp;在阅读本方法时，最好一直带着三个疑问：1.为什么要向样本中添加噪声，2.噪声是怎么样被添加至样本的，3.噪声是如何被去除的。</p>
-<ul>
-<li><strong>什么是 score？</strong></li>
-</ul>
-<p>&emsp;&emsp;所谓的 score，定义为数据分布的对数的梯度。对于一个数据分布 $p(x)$，其 score 为 $\nabla_x\log p(x)$。这是数学上的定义，形象化地表示下，假如 $p(x)$ 如下图（左）所示，则其 score 如下图（右）所示。这个 score 的作用是方便采样，具体来说，假如从 $p(x)$ 某个随机位置开始采样，其初始值大概率没有在高密度位置，此时只需要按照梯度逐步前进，将会逐渐到达高密度区域。</p>
-<p><img src="/Diffusion_Model_2/image-20230504200127087.png" alt="image-20230504200127087" style="zoom:50%;"></p>
-<ul>
-<li><strong>什么是 郎之万采样？</strong></li>
-</ul>
-<p>&emsp;&emsp;郎之万采样就是一种采样方式，其来源于郎之万动力学 Langevin dynamics，也就是扩散模型中去噪的迭代过程，具体来说，给出一个分布 $p(x)$ 的分数，对其的采样过程为：$x_t=x_{t-1}+\frac\epsilon2\nabla_x\log p(x_{t-1})+\sqrt\epsilon z_t$，其中，$\epsilon$ 表示步长，即每次走几步，$z_t\sim N(0,I)$ 表示标准正态分布（噪声），整个过程可以看做，对于初始点 $x_{t-1}$，下一步将在其基础上移动 $\frac\epsilon2$ 步的梯度，并且伴随一个低阶的噪声扰动。</p>
-<p><img src="/Diffusion_Model_2/langevin.gif" alt="img" style="zoom:50%;"></p>
-<h4 id="优化设计（扩散-逆扩散过程）"><a href="#优化设计（扩散-逆扩散过程）" class="headerlink" title="优化设计（扩散-逆扩散过程）"></a>优化设计（扩散-逆扩散过程）</h4><h5 id="低密度不准确问题"><a href="#低密度不准确问题" class="headerlink" title="低密度不准确问题"></a>低密度不准确问题</h5><p>&emsp;&emsp;我们可以看出来，如果我们有一个非常准确的分数时就可以进行好的采样，但是估计分数也就是在估计分布，没有办法直观地进行获取，而是需要一个神经网络进行逼近，即 $\min\ E_{p(x)}[||s_\theta(x)-\nabla_x\log p(x)||_2^2]$。但是在估计分数时有着天然的问题（即使我们已知分布）：当数据分布比较集中（方差较小）时，空间中会存在大量的低密度区域，在这些区域中没有足够的样本对分数进行估计。这种情况如下图所示：</p>
-<p><img src="/Diffusion_Model_2/image-20230504203718065.png" alt="image-20230504203718065" style="zoom: 33%;"></p>
-<h5 id="使用退火郎之万采样"><a href="#使用退火郎之万采样" class="headerlink" title="使用退火郎之万采样"></a>使用退火郎之万采样</h5><p>&emsp;&emsp;本文额外引入了一个探讨：当目标数据分布是由两个不同的分布之和时，能否准确进行不同分布的采样？考虑这样一个混合分布：$p(x)=\pi p_1(x)+(1-\pi)p_2(x)$，其中 $\pi$ 为常数，则 $\nabla_x\log p(x)=\nabla_x\log p_1(x)+\nabla_x\log p_2(x)$，也就是说，虽然混合分布 $p(x)$ 本身与 $\pi$ 有关系，但是其 score 却与 $\pi$ 无关，这将极大地限制从混合分布中进行正确采样。</p>
-<p>&emsp;&emsp;本文进行了这样的实验：用不同的方法从混合高斯分布中获取样本。(a) 精确抽样。(b) 使用精确分数的郎之万采样进行抽样。(c)使用退火郎之万采样进行抽样。显然，朗之万动力学不正确地估计了两种模式之间的相对权值，而退火朗之万动力学则忠实地恢复了相对权值。</p>
-<p><img src="/Diffusion_Model_2/image-20230504204758364.png" alt="image-20230504204758364" style="zoom: 50%;"></p>
-<h5 id="NCSN：加噪与训练"><a href="#NCSN：加噪与训练" class="headerlink" title="NCSN：加噪与训练"></a>NCSN：加噪与训练</h5><ul>
-<li>加噪方式</li>
-</ul>
-<p>&emsp;&emsp;既然我们已经明确在分布集中时难以准确估计 score，那么我们就要对其进行加噪，通过使其具备更广的分布从而能够准确估计 score，这也就回答了第一个问题。但是这也会带来一些额外的问题：加入了较大的噪声之后，我们估计出的分布将会和真实分布差距较大。</p>
-<p>&emsp;&emsp;为了解决加噪之后难以去除的问题，我们通过这样的方式加入噪声：预设一个公比小于 1 的等比数列 $\{\sigma_i\}_i^L$，将其每一项分别作为正态分布的噪声 $N(0,\sigma^2I)$ 加入原始数据分布 $p(x)$ 之中以获取新数据分布 $q_\sigma(\tilde x)$，则 $q_\sigma(\tilde x)\sim\int p(x)N(\tilde x|x,\sigma^2I)dx$。此时我们的目的就是利用分数估计网络逼近 $q_\sigma(\tilde x)$，不过此时我们将对应的方差 $\sigma$ 也输入至分数网络之中：$s_\theta(\tilde x,\sigma)\simeq \nabla_{\tilde x}\log q_\sigma(\tilde x)$。</p>
-<p>&emsp;&emsp;这种加噪方式很好地平衡了上述两个难题，通过先加入大噪声使数据分布更广泛，从而获取原本低密度区域的正确分数估计，再逐步缩小加噪方差，直至最终可以收敛到和原数据分布基本一致。这种以 $\sigma_i$ 作为条件的分数估计网络就称为 NCSN。</p>
-<ul>
-<li>训练方式</li>
-</ul>
-<p>&emsp;&emsp;在训练的过程中，由于 $\sigma$ 总共有 $L$ 个，那么计算 loss 时自然所有的都需要考虑在内，为了推理出整体形式，首先考虑对于某一个 $\sigma\in\{\sigma_i\}_i^L$</p>
-<script type="math/tex; mode=display">
-\begin{align}
-&\because q_\sigma(\tilde x|x)=N(\tilde x|x,\sigma^2 I)（因为是直接在原始数据分布上加高斯噪声）\\
-&\therefore\nabla_{\tilde x}\log q_\sigma(\tilde x|x)=-\frac{\tilde x-x}{\sigma^2}（展开计算可得）\\
-&\therefore L(\theta;\sigma)=\mathbb E_{p(x)}\mathbb E_{\tilde x\sim N(x,\sigma^2I)}[\|s_\theta(\tilde x,\sigma)+\frac{\tilde x-x}{\sigma^2}\|_2^2]
-\end{align}</script><p>&emsp;&emsp;因此若考虑全部的 $\sigma$，损失函数应该写为：$L(\theta;\{\sigma_i\}_i^L)=\frac1L\sum\limits_{i=1}^L\lambda(\sigma_i)L(\theta;\sigma_i)$。其中，$\lambda(\sigma_i)$ 用于平衡各个方差之间的数量级，在合理的假设下，平衡之后的损失应当不受到 $\sigma_i$ 的级数的影响。作者指出在训练到收敛之后 $|s_\theta(x,\sigma)|_2\propto \frac1\sigma$，因此设 $\lambda(\sigma_i)=\sigma_i^2$，以此消除由 $\sigma$ 数值带来的影响。</p>
-<h5 id="NCSN-的推理过程"><a href="#NCSN-的推理过程" class="headerlink" title="NCSN 的推理过程"></a>NCSN 的推理过程</h5><p>&emsp;&emsp;使用退火郎之万采样对数据进行多次迭代，具体来说，当 score 被近似正确估计时执行下列步骤。其关键的见解在于：<strong>将 $\sigma$ 从大到小进行迭代，大的 $\sigma_i$ 可以使低密度区域更少，但逼近 $p(x)$ 效果不好，尽管如此，以此为 score 进行 $x_t$ 的郎之万采样也会大致地向高密度区域前进。通过这种方式，尽管大的 $\sigma_i$ 不够精确，但足以使 $x_{t+1}$ 进入 $\sigma_{i+1}$ 的 score 准确估计区域。</strong></p>
-<p><img src="/Diffusion_Model_2/image-20230505121220625.png" alt="image-20230505121220625" style="zoom: 40%;"></p>
-<hr>
-<h3 id="SDE-Score-Based-Generative-Modeling-through-Stochastic-Differential-Equations"><a href="#SDE-Score-Based-Generative-Modeling-through-Stochastic-Differential-Equations" class="headerlink" title="SDE : Score-Based Generative Modeling through Stochastic Differential Equations"></a>SDE : Score-Based Generative Modeling through Stochastic Differential Equations</h3><p>【图像生成】【ICLR2021】【<a href="http://arxiv.org/abs/2011.13456">paper</a>】【<a href="https://colab.research.google.com/drive/120kYYBOVa1i0TD85RjlEkFjaWDxSFUx3?usp=sharing#scrollTo=qW1HaPZb9gDM">code</a>】</p>
-<h4 id="前置说明-1"><a href="#前置说明-1" class="headerlink" title="前置说明"></a>前置说明</h4><p>&emsp;&emsp;所谓 SDE，即随机微分方程（Stochastic Differential Equations），常用来对随机过程进行建模，对于微分方程来说，常微分方程 ODE 的一般形式为：$dy=f(x)dx$，通常可以使用对 $dx$ 积分的方式求解 $f(y)$，随机微分方程 SDE 的一般形式为：$dx_t=f(x_t,t)dt+g(x_t,t)dw_t$，其中 $w_t$ 表示随机项。本文旨在使用 SDE 构造出一个一致性的扩散模型 pipeline，以指导后续的扩散模型构造。</p>
-<h4 id="加噪过程"><a href="#加噪过程" class="headerlink" title="加噪过程"></a>加噪过程</h4><p>&emsp;&emsp;当噪声尺度的数量接近无穷大时，我们基本上会随着噪声水平的不断增加而扰乱数据分布。在这种情况下，噪声扰动过程是一个连续时间随机过程，如下所示</p>
-<p><img src="/Diffusion_Model_2/perturb_vp.gif" alt="img"></p>
-<p>&emsp;&emsp;这个过程使用 SDE 描述为</p>
-<script type="math/tex; mode=display">
-dx=f(x,t)dt+g(t)dw</script><p>&emsp;&emsp;其中，作者将 $f(*,t)$ 称为漂移系数，$g(t)$ 称为扩散系数，对于一个 $dt$ 内的 $dx$，前半部分描述了一个确定的移动，后半部分则表示了一个噪声，在单位时间 $dt$ 内的 $dx$ 变化如下图所示：</p>
-<p><img src="/Diffusion_Model_2/image-20230507160801692.png" alt="image-20230507160801692" style="zoom: 33%;"></p>
-<p> &emsp;&emsp;在上式中，SDE 的具体形式（指 $f(x,t),\ g(t)$ 的表达式）是手工设计的，接下来我们将首先探索一下不使用具体形式的抽象化推理，然后将给 $f(x,t),\ g(t)$ 赋值具体表达式并以此推理出 DDPM 与 SMLD 两种具体扩散模型。</p>
-<h4 id="去噪过程"><a href="#去噪过程" class="headerlink" title="去噪过程"></a>去噪过程</h4><p>&emsp;&emsp;<strong>在有限数量的噪声尺度下，我们可以通过使用退火 Langevin 动力学</strong>反转扰动过程来生成样本，即，使用 Langevin 动力学从每个噪声扰动分布中顺序采样。对于无限噪声尺度，我们可以通过使用反向 SDE 类似地反转样本生成的扰动过程。</p>
-<p><img src="/Diffusion_Model_2/denoise_vp.gif" alt="img"></p>
-<p>&emsp;&emsp;为了能够得到逆向过程的 SDE 方差，我们需要对正向过程 $dx=f(x,t)dt+g(t)dw$ 进行推理，推理过程如下：</p>
-<ul>
-<li><p>首先，离散化扩散过程 SDE，$dx=x_{t+\Delta t}-x_t,\ dt=\Delta t$，得到：</p>
-<ul>
-<li><script type="math/tex; mode=display">
-x_{t+\Delta t}-x_t=f(x_t,t)dt+g(t)\sqrt{\Delta t}\epsilon,\ \epsilon\sim N(0,I)\tag 1</script></li>
-<li><p>这里有两个需要注意的点：1.在函数 $f$ 内，$x\to x_t$ 而非 $x_{t+\Delta t}$ 是因为这里我们是扩散过程，是给出 $x_t$ 求 $x_{t+\Delta t}$ 的过程；2.扩散项的 $dw$ 变成了 $\sqrt{\Delta t}\epsilon$，这个$\Delta t$ 加根号是结论性的，有<a href="https://kexue.fm/archives/9209#%E9%9A%8F%E6%9C%BA%E5%BE%AE%E5%88%86">非官方的解释</a>。</p>
-</li>
-</ul>
-</li>
-<li><p>由上式可得</p>
-<ul>
-<li><script type="math/tex; mode=display">
-p(x_{t+\Delta t}|x_t)\sim N(x_t+f(x_t,t)dt,\ g^2(t)\Delta t)\propto \exp (-\frac{\|x_{t+\Delta t}-x_t-f(x_t,t)\Delta t\|_2^2}{2g^2(t)\Delta t})\tag 2</script></li>
-</ul>
-</li>
-<li><p>为了进行逆扩散过程，我们需要知道 $p(x_t|x_{t+\Delta t})$ 因此可以列出贝叶斯公式</p>
-<ul>
-<li><script type="math/tex; mode=display">
-p(x_t|x_{t+\Delta t})=\frac{p(x_{t+\Delta t}|x_t)p(x_t)}{p(x_{t+\Delta t})}\tag 3</script></li>
-</ul>
-</li>
-<li><p>若此时将式 $2$ 代入式 $3$，则会保留一项 $\frac{p(x_t)}{p(x_{t+\Delta t})}$ 无法消去，因此先尝试处理此项</p>
-<ul>
-<li><script type="math/tex; mode=display">
-\frac{p(x_t)}{p(x_{t+\Delta t})}=\exp(\log p(x_t) - \log p(x_t|x_{t+\Delta t}))\tag 4</script></li>
-<li><p>对 $\log p(x_{t+\Delta t})$ 在 $x_t$ 处进行泰勒展开，得</p>
-</li>
-<li><script type="math/tex; mode=display">
-\log p(x_{t+\Delta t})\simeq\log p(x_t)+(x_{t+\Delta t}-x_t)\nabla_{x_t}\log p(x_t)+\Delta t\frac{\partial }{\partial t}\log p(x_t)\tag 5</script><ul>
-<li>需要注意的是，在上式展开时应采用多元泰勒展开方式进行，不然可能会漏掉最后一项（漏不漏不影响结果就是了）</li>
-</ul>
-</li>
-<li><p>将式 $5$ 代入式 $4$，得</p>
-</li>
-<li><script type="math/tex; mode=display">
-\frac{p(x_t)}{p(x_{t+\Delta t})}\simeq\exp(-(x_{t+\Delta t}-x_t)\nabla_{x_t}\log p(x_t)-\Delta t\frac{\partial }{\partial t}\log p(x_t))\tag 6</script></li>
-</ul>
-</li>
-<li><p>因此将式 $2$ 和式 $6$ 一起代入式 $3$，即可得到</p>
-<ul>
-<li><script type="math/tex; mode=display">
-p(x_t|x_{t+\Delta t})\propto\exp (-\frac{\|x_{t+\Delta t}-x_t-f(x_t,t)\Delta t\|_2^2}{2g^2(t)\Delta t}-(x_{t+\Delta t}-x_t)\nabla_{x_t}\log p(x_t)-\Delta t\frac{\partial }{\partial t}\log p(x_t))\tag 7</script></li>
-</ul>
-</li>
-<li><p>在 SDE 扩散模型的假设中，$\Delta t\to0$，不难看出上式具备 $\mathcal O(1/\Delta t),\ \mathcal O(1),\ \mathcal O(\Delta t)$ 的部分，因此可以令 $\mathcal O(\Delta t)$ 的部分约去，同时以 $x_{t+\Delta t}-x_t$ 为一个整体 $\Delta X$，可以将 $7$ 化简为</p>
-<ul>
-<li><script type="math/tex; mode=display">
-p(x_t|x_{t+\Delta t})\propto\exp (-\frac{\Delta X^2-2\Delta Xf(x_t,t)\Delta t}{2g^2(t)\Delta t}-\Delta X\nabla_{x_t}\log p(x_t))\tag 8</script></li>
-<li><p>对上式进行配方，然后去掉 $\mathcal O(\Delta t)$ 可得</p>
-</li>
-<li><script type="math/tex; mode=display">
-p(x_t|x_{t+\Delta t})\propto\exp (-\frac{1}{2g^2(t)\Delta t}\|\Delta X-(f(x_t,t)\Delta t -2g^2(t)\Delta t \nabla_{x_t}\log p(x_t))\|_2^2)\tag 9</script></li>
-</ul>
-</li>
-<li><p>此时，由于我们应该从输入 $x_{t+\Delta t}$ 得到 $x_t$，在保证正确性的情况下（因为 $\mathcal O(\Delta t)\to 0$）对式 $9$ 进行简单的换元</p>
-<ul>
-<li><script type="math/tex; mode=display">
-p(x_t|x_{t+\Delta t})\propto\exp (-\frac{1}{2g^2({t+\Delta t})\Delta t}\|\Delta X-(f(x_{t+\Delta t},t)\Delta t -2g^2({t+\Delta t})\Delta t \nabla_{x_t}\log p(x_{t+\Delta t}))\|_2^2)\tag {10}</script></li>
-<li><p>将此式变换为正态分布可以写成</p>
-</li>
-<li><script type="math/tex; mode=display">
-p(x_t|x_{t+\Delta t})\sim N(x_{t+\Delta t}-f(x_{t+\Delta t},t)\Delta t +2g^2({t+\Delta t})\Delta t \nabla_{x_t}\log p(x_{t+\Delta t}),\ g^2({t+\Delta t})\Delta tI)\tag {11}</script></li>
-</ul>
-</li>
-<li><p>写成离散形式的 $x_{t+\Delta t}$ 与 $x_t$ 的关系为</p>
-<ul>
-<li><script type="math/tex; mode=display">
-x_t-x_{t+\Delta t}=f(x_{t+\Delta t},t)\Delta t -2g^2({t+\Delta t})\Delta t\nabla_{x_t}\log p(x_{t+\Delta t})+g(t+\Delta t)\sqrt{\Delta t}\epsilon,\ \epsilon\sim N(0,I)\tag {12}</script></li>
-</ul>
-</li>
-<li><p>将式 $12$ 写为微分形式为</p>
-<ul>
-<li><script type="math/tex; mode=display">
-dx=[f(x,t)-g^2(t)\nabla_x\log p(x_t)]dt+g(t)dw\tag {13}</script></li>
-</ul>
-</li>
-</ul>
-<p>&emsp;&emsp;由此，我们就得到了逆扩散过程的 SDE 公式。为了计算反向 SDE，我们需要估计 $\nabla_x\log p(x_t)$，为此，我们训练一个基于时间依赖分数的模型 $s_\theta({x}, t)$，这样 ${s}_\theta({x}, t) \approx \nabla_{x} \log p_t({x})$。这类似于基于噪声条件分数的模型 ${s}_\theta({x}, i)$ 用于有限噪声。</p>
-<p>&emsp;&emsp;我们的训练目标 $s_\theta({x}, t)$ 是 Fisher 散度的连续加权组合，由下式给出</p>
-<script type="math/tex; mode=display">
-\begin{equation} \mathbb{E}_{t \in \mathcal{U}(0, T)}\mathbb{E}_{p_t(\mathbf{x})}[\lambda(t) \| \nabla_\mathbf{x} \log p_t(\mathbf{x}) - \mathbf{s}_\theta(\mathbf{x}, t) \|_2^2], \end{equation} \tag {14}</script><p>&emsp;&emsp;其中，$\mathcal{U}(0, T)$ 表示时间间隔内的均匀分布 $[0,T]$， $\lambda: \mathbb{R} \to \mathbb{R}_{&gt;0}$ 是正加权函数。通常我们使用 $\lambda(t) \propto 1/ \mathbb{E}[| \nabla_{\mathbf{x}(t)} \log p(\mathbf{x}(t) \mid \mathbf{x}(0))|_2^2]$ 以平衡不同分数匹配损失随时间的大小。由此便可以展开训练。</p>
-<h4 id="VP-SDE-和-VE-SDE"><a href="#VP-SDE-和-VE-SDE" class="headerlink" title="VP-SDE 和 VE-SDE"></a>VP-SDE 和 VE-SDE</h4><p>&emsp;&emsp;对于原始式子式 $1$，当我们令 $f(x,t)=0,\ g(t)=\frac{d}{dt}\sigma_t^2$ 时，SDE 被称为 VE（方差爆炸）SDE，也就对应着 SMLD 分数扩散模型，由此可以推出 VE-SDE 的更新公式为：$x_{t+\Delta t}=x_t+\sqrt{\sigma_{t+\Delta t}^2-\sigma_t^2}\epsilon$。</p>
-<p>&emsp;&emsp;对于原始式子式 $1$，当我们令 $\{\bar\beta_i\}_1^T=\{T\beta_i\}_1^T$，$\beta(\frac iT)=\bar\beta_i$，$f(x,t)=-\frac12\beta(t)x_t,\ g(t)=\sqrt{\beta(t)}$ 时，SDE 被称为 VP（方差收缩）SDE，也就对应着 DDPM 去噪扩散模型，由此可以推出 VP-SDE 的更新公式为：$x_{t+\Delta t}=\sqrt{1-\beta_{t+\Delta t}}x_t+\sqrt{\beta_{t+\Delta t}}\epsilon$。</p>
 ]]></content>
       <categories>
         <category>paper</category>
@@ -1506,44 +1506,6 @@ math\_express</script><h3 id="结果"><a href="#结果" class="headerlink" title
       </categories>
   </entry>
   <entry>
-    <title>I3D</title>
-    <url>/I3D/</url>
-    <content><![CDATA[<h2 id="Quo-Vadis-Action-Recognition-A-New-Model-and-the-Kinetics-Dataset-【视频动作识别】-CVPR2017"><a href="#Quo-Vadis-Action-Recognition-A-New-Model-and-the-Kinetics-Dataset-【视频动作识别】-CVPR2017" class="headerlink" title="Quo Vadis, Action Recognition? A New Model and the Kinetics Dataset 【视频动作识别】 CVPR2017"></a><a href="https://openaccess.thecvf.com/content_cvpr_2017/papers/Carreira_Quo_Vadis_Action_CVPR_2017_paper.pdf">Quo Vadis, Action Recognition? A New Model and the Kinetics Dataset</a> 【视频动作识别】 CVPR2017</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种新的视频理解网络结构，和一个新的数据集。这两个都是里程碑式的工作，对于新网络架构，其名字叫做“膨胀的3D网络”，方法简单有效，仅是将 2D 卷积核进行 3D 膨胀，相对于以往的训练 3D 卷积核，关键就在于先训练 2D 网络，再在不改变权重的情况下进行扩张后进行微调。新的数据集也十分有效，大小适合，范围多样，是视频理解领域新工作绕不开的测试数据集。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/I3D/image-20221008130116447.png" alt="image-20221008130116447"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>提出了一种基于 2D 网络预训练得到的参数膨胀到 3D 的方法</li>
-<li>提出了一个可用的视频领域经典数据集</li>
-<li>保留了光流的预提取，结合了 3D 卷积核和光流预提取</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/I3D/image-20221008161145107.png" alt="image-20221008161145107"></p>
-<p>&emsp;&emsp;这篇论文本质上是一个框架性质的论文，并没有提出自己的 backbone，而是结合旧有的网络结构进行扩展和计算，这里选取的网络是 inception，因为这个时候 inception 在视频领域表现还不错，不过很快 ResNet 就在视频领域也占据主导地位了，因此之后作者又选取 ResNet 做了一下。这些都无关紧要，仅作为例子讲解如何进行 inflate 操作。</p>
-<h4 id="旧有视频理解网络结构"><a href="#旧有视频理解网络结构" class="headerlink" title="旧有视频理解网络结构"></a>旧有视频理解网络结构</h4><h5 id="2DCNN-LSTM-RNN"><a href="#2DCNN-LSTM-RNN" class="headerlink" title="2DCNN + LSTM/RNN"></a>2DCNN + LSTM/RNN</h5><p><img src="/I3D/image-20221008180646729.png" alt="image-20221008180646729"></p>
-<p>&emsp;&emsp;这一类的网络通用方法是使用一个 2DCNN 网络进行逐帧的特征抽取，然后在抽取完成的特征上接入一个 LSTM/RNN，从而学习到时序信息。但是在之后的实践中我们发展这种方式得到的结果显著地不如使用光流这种手工特征进行时间建模，因此目前大致在逐渐废弃这种基于 2DCNN+LSTM，但是不排除使用 transformer 代替某一个小结构或者干脆把 CNN 和 LSTM 都换成 transformer 之后效果会变好，甚至成为 SOTA。 </p>
-<h5 id="3DCNN"><a href="#3DCNN" class="headerlink" title="3DCNN"></a>3DCNN</h5><p>&emsp;&emsp;对于 3DCNN，关键就是理解如何进行 3D 卷积，为了更好地理解 3D 卷积过程，接下来从代码和可视化的方向分别表示：</p>
-<ul>
-<li>代码（pytorch）</li>
-</ul>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#--------------------------------------conv2D------------------------------------------#</span></span><br><span class="line">layer_2d = nn.Conv2d(<span class="number">3</span>, <span class="number">8</span>, <span class="number">3</span>, <span class="number">1</span>, <span class="number">1</span>)</span><br><span class="line">data_2d = torch.randn(<span class="number">1</span>, <span class="number">3</span>, <span class="number">3</span>, <span class="number">3</span>)</span><br><span class="line"><span class="built_in">print</span>(layer_2d(data_2d).shape)</span><br><span class="line"><span class="comment">#data2d(N, C, H, W)</span></span><br><span class="line"><span class="comment">#layer2d(C_out, C_in, kernel_size, stride, padding)</span></span><br><span class="line"><span class="comment">#output(N, C_out, H_out = (H + 2*padding - kernel_size + 1)/stride, W_out = (W + 2*padding - kernel_size + 1)/stride)</span></span><br><span class="line"><span class="comment">#output.shape = (1, 8, 3, 3)</span></span><br><span class="line"><span class="comment">#--------------------------------------conv3D------------------------------------------#</span></span><br><span class="line">layer_3d = nn.Conv3d(<span class="number">3</span>, <span class="number">8</span>, <span class="number">3</span>, <span class="number">1</span>, <span class="number">1</span>)</span><br><span class="line">data_3d = torch.randn(<span class="number">1</span>, <span class="number">3</span>, <span class="number">10</span>, <span class="number">128</span>, <span class="number">128</span>)</span><br><span class="line"><span class="built_in">print</span>(layer_3d(data_3d).shape)</span><br><span class="line"><span class="comment">#data3d(N, C, D, H, W)</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">注意：这里的D, H, W是指输入数据的维度，即视频的帧数，高度，宽度</span></span><br><span class="line"><span class="string">例如，输入的视频是每10帧进行堆叠，每帧是128*128的图片，图片的通道数为3，那么输入数据的维度就是(N, 3, 10, 128, 128)</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="comment">#layer3d(C_out, C_in, kernel_size, stride, padding)</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">注意：这里的kernel_size, stride, padding是指3D卷积核的大小，步长，填充，此时他们可以是一个元组分别指代每一个维度，也可以是一个数字代表每个维度都一致</span></span><br><span class="line"><span class="string">例如，kernel_size = (3, 3, 3), stride = (1, 1, 1), padding = (1, 1, 2)</span></span><br><span class="line"><span class="string">一般情况下，我们不在D维度上进行下采样，因为视频帧本就难以完整描述一个动作</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="comment">#output.shape = (1, 8, 10, 128, 128)</span></span><br></pre></td></tr></table></figure>
-<ul>
-<li>图像</li>
-</ul>
-<p><img src="/I3D/3DCNN.png" alt></p>
-<p>&emsp;&emsp;虽然 3DCNN 在一定程度上对时间序列的信息抽取能力超过了堆叠帧的 2DCNN，但是有两个缺点导致一直不温不火，实际上直到本文 I3D 提出之前，基本没有能和 SOTA 一战的任何 3DCNN 网络。这两个缺点分别是：1.3DCNN 的参数太多，相对与 2DCNN 模型要大很多倍，并且由于参数多导致不容易收敛以及效果一般。2.3DCNN 对时间序列信息的抽取能力仍然比不过光流输入的 2DCNN。</p>
-<h5 id="two-stream-2DCNN"><a href="#two-stream-2DCNN" class="headerlink" title="two-stream 2DCNN"></a>two-stream 2DCNN</h5><p>&emsp;&emsp;<a href="https://bnucsy.github.io/Two_stream_CNN/">这里已经有了详细的描述。</a></p>
-<h5 id="3D-fused-two-stream"><a href="#3D-fused-two-stream" class="headerlink" title="3D fused two-stream"></a>3D fused two-stream</h5><p><img src="/I3D/image-20221008215156195.png" alt="image-20221008215156195"></p>
-<p>&emsp;&emsp;这种网络的思路也非常简单，但是其实和 I3D 在某些程度上已经近似了，这种网络将之前先计算出特征然后融合的 late fusion 改成了先融合经过 3DCNN 头再输出，即变成了 early fusion。 这其实确实解决了问题，对于 3DCNN 的参数量大难以循环的问题，因为这个网络里只有 3DCNN 的头，较少的参数使得其训练并不困难，模型大小也没有太大。除此之外这种网络结构也使用了光流，没有因为使用 3DCNN 而造成时间序列信息的欠学习。说白了，只有一点不太行，就是结果不好，当然 I3D 的提出巧夺天工，但是 3DCNN fusion 的提出也不能说活该被埋没，纯粹是谁效果好谁就是更好的算法，单从结构上实在很难判断孰优孰劣。</p>
-<h4 id="本文具体网络架构"><a href="#本文具体网络架构" class="headerlink" title="本文具体网络架构"></a>本文具体网络架构</h4><p>&emsp;&emsp;本文的网络很简单，基本采用的就是双流网络，只不过把双流网络的两个子网络都换成 3DCNN。照理说这样会陷入一个问题：太多的参数导致难以训练。但是 I3D 提出了一个巧妙的构想：我们不从头训练 3DCNN，而是训练一个和双流网络一样的 2DCNN，再将其中的所有 2 维的卷积核和池化层全部变成 3 维。这样我们得到了参数已经初始化好的 3DCNN，然后我们在数据集上做微调即可。 </p>
-<p>&emsp;&emsp;这个思路简单明了，接下来我们主要探究如何进行 2D 扩张。作者给了一个简单的想法，对于一个 NxN 的 2D 卷积层，首先把所有的单张帧进行 N 次复制粘贴得到一个 N 帧相同图片的视频，然后将 2D 的卷积核也进行 N 次复制粘贴，得到 NxNxN 的 3D 卷积核，每个卷积核和对应的图片帧进行卷积运算，这样得到 N 个相同的值，接下来就可以直接输入下一层，对于 pooling 层也是这样，复制 N 份，然后逐层 pooling。以此为基础得到的最终结果是 N 份的旧网络结果，将这个结果取平均，理论上效果应该和旧网络的结果一模一样。以此就可以初始化 3D 网络，再进行微调即可。</p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-        <category>video</category>
-      </categories>
-  </entry>
-  <entry>
     <title>LTML</title>
     <url>/LTML/</url>
     <content><![CDATA[<h2><center> Long-Tailed Multi-Label Visual Recognition by Collaborative Training on
@@ -1608,6 +1570,44 @@ math\_express</script><h3 id="结果"><a href="#结果" class="headerlink" title
       <categories>
         <category>paper</category>
         <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>I3D</title>
+    <url>/I3D/</url>
+    <content><![CDATA[<h2 id="Quo-Vadis-Action-Recognition-A-New-Model-and-the-Kinetics-Dataset-【视频动作识别】-CVPR2017"><a href="#Quo-Vadis-Action-Recognition-A-New-Model-and-the-Kinetics-Dataset-【视频动作识别】-CVPR2017" class="headerlink" title="Quo Vadis, Action Recognition? A New Model and the Kinetics Dataset 【视频动作识别】 CVPR2017"></a><a href="https://openaccess.thecvf.com/content_cvpr_2017/papers/Carreira_Quo_Vadis_Action_CVPR_2017_paper.pdf">Quo Vadis, Action Recognition? A New Model and the Kinetics Dataset</a> 【视频动作识别】 CVPR2017</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种新的视频理解网络结构，和一个新的数据集。这两个都是里程碑式的工作，对于新网络架构，其名字叫做“膨胀的3D网络”，方法简单有效，仅是将 2D 卷积核进行 3D 膨胀，相对于以往的训练 3D 卷积核，关键就在于先训练 2D 网络，再在不改变权重的情况下进行扩张后进行微调。新的数据集也十分有效，大小适合，范围多样，是视频理解领域新工作绕不开的测试数据集。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/I3D/image-20221008130116447.png" alt="image-20221008130116447"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>提出了一种基于 2D 网络预训练得到的参数膨胀到 3D 的方法</li>
+<li>提出了一个可用的视频领域经典数据集</li>
+<li>保留了光流的预提取，结合了 3D 卷积核和光流预提取</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/I3D/image-20221008161145107.png" alt="image-20221008161145107"></p>
+<p>&emsp;&emsp;这篇论文本质上是一个框架性质的论文，并没有提出自己的 backbone，而是结合旧有的网络结构进行扩展和计算，这里选取的网络是 inception，因为这个时候 inception 在视频领域表现还不错，不过很快 ResNet 就在视频领域也占据主导地位了，因此之后作者又选取 ResNet 做了一下。这些都无关紧要，仅作为例子讲解如何进行 inflate 操作。</p>
+<h4 id="旧有视频理解网络结构"><a href="#旧有视频理解网络结构" class="headerlink" title="旧有视频理解网络结构"></a>旧有视频理解网络结构</h4><h5 id="2DCNN-LSTM-RNN"><a href="#2DCNN-LSTM-RNN" class="headerlink" title="2DCNN + LSTM/RNN"></a>2DCNN + LSTM/RNN</h5><p><img src="/I3D/image-20221008180646729.png" alt="image-20221008180646729"></p>
+<p>&emsp;&emsp;这一类的网络通用方法是使用一个 2DCNN 网络进行逐帧的特征抽取，然后在抽取完成的特征上接入一个 LSTM/RNN，从而学习到时序信息。但是在之后的实践中我们发展这种方式得到的结果显著地不如使用光流这种手工特征进行时间建模，因此目前大致在逐渐废弃这种基于 2DCNN+LSTM，但是不排除使用 transformer 代替某一个小结构或者干脆把 CNN 和 LSTM 都换成 transformer 之后效果会变好，甚至成为 SOTA。 </p>
+<h5 id="3DCNN"><a href="#3DCNN" class="headerlink" title="3DCNN"></a>3DCNN</h5><p>&emsp;&emsp;对于 3DCNN，关键就是理解如何进行 3D 卷积，为了更好地理解 3D 卷积过程，接下来从代码和可视化的方向分别表示：</p>
+<ul>
+<li>代码（pytorch）</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#--------------------------------------conv2D------------------------------------------#</span></span><br><span class="line">layer_2d = nn.Conv2d(<span class="number">3</span>, <span class="number">8</span>, <span class="number">3</span>, <span class="number">1</span>, <span class="number">1</span>)</span><br><span class="line">data_2d = torch.randn(<span class="number">1</span>, <span class="number">3</span>, <span class="number">3</span>, <span class="number">3</span>)</span><br><span class="line"><span class="built_in">print</span>(layer_2d(data_2d).shape)</span><br><span class="line"><span class="comment">#data2d(N, C, H, W)</span></span><br><span class="line"><span class="comment">#layer2d(C_out, C_in, kernel_size, stride, padding)</span></span><br><span class="line"><span class="comment">#output(N, C_out, H_out = (H + 2*padding - kernel_size + 1)/stride, W_out = (W + 2*padding - kernel_size + 1)/stride)</span></span><br><span class="line"><span class="comment">#output.shape = (1, 8, 3, 3)</span></span><br><span class="line"><span class="comment">#--------------------------------------conv3D------------------------------------------#</span></span><br><span class="line">layer_3d = nn.Conv3d(<span class="number">3</span>, <span class="number">8</span>, <span class="number">3</span>, <span class="number">1</span>, <span class="number">1</span>)</span><br><span class="line">data_3d = torch.randn(<span class="number">1</span>, <span class="number">3</span>, <span class="number">10</span>, <span class="number">128</span>, <span class="number">128</span>)</span><br><span class="line"><span class="built_in">print</span>(layer_3d(data_3d).shape)</span><br><span class="line"><span class="comment">#data3d(N, C, D, H, W)</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">注意：这里的D, H, W是指输入数据的维度，即视频的帧数，高度，宽度</span></span><br><span class="line"><span class="string">例如，输入的视频是每10帧进行堆叠，每帧是128*128的图片，图片的通道数为3，那么输入数据的维度就是(N, 3, 10, 128, 128)</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="comment">#layer3d(C_out, C_in, kernel_size, stride, padding)</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">注意：这里的kernel_size, stride, padding是指3D卷积核的大小，步长，填充，此时他们可以是一个元组分别指代每一个维度，也可以是一个数字代表每个维度都一致</span></span><br><span class="line"><span class="string">例如，kernel_size = (3, 3, 3), stride = (1, 1, 1), padding = (1, 1, 2)</span></span><br><span class="line"><span class="string">一般情况下，我们不在D维度上进行下采样，因为视频帧本就难以完整描述一个动作</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="comment">#output.shape = (1, 8, 10, 128, 128)</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>图像</li>
+</ul>
+<p><img src="/I3D/3DCNN.png" alt></p>
+<p>&emsp;&emsp;虽然 3DCNN 在一定程度上对时间序列的信息抽取能力超过了堆叠帧的 2DCNN，但是有两个缺点导致一直不温不火，实际上直到本文 I3D 提出之前，基本没有能和 SOTA 一战的任何 3DCNN 网络。这两个缺点分别是：1.3DCNN 的参数太多，相对与 2DCNN 模型要大很多倍，并且由于参数多导致不容易收敛以及效果一般。2.3DCNN 对时间序列信息的抽取能力仍然比不过光流输入的 2DCNN。</p>
+<h5 id="two-stream-2DCNN"><a href="#two-stream-2DCNN" class="headerlink" title="two-stream 2DCNN"></a>two-stream 2DCNN</h5><p>&emsp;&emsp;<a href="https://bnucsy.github.io/Two_stream_CNN/">这里已经有了详细的描述。</a></p>
+<h5 id="3D-fused-two-stream"><a href="#3D-fused-two-stream" class="headerlink" title="3D fused two-stream"></a>3D fused two-stream</h5><p><img src="/I3D/image-20221008215156195.png" alt="image-20221008215156195"></p>
+<p>&emsp;&emsp;这种网络的思路也非常简单，但是其实和 I3D 在某些程度上已经近似了，这种网络将之前先计算出特征然后融合的 late fusion 改成了先融合经过 3DCNN 头再输出，即变成了 early fusion。 这其实确实解决了问题，对于 3DCNN 的参数量大难以循环的问题，因为这个网络里只有 3DCNN 的头，较少的参数使得其训练并不困难，模型大小也没有太大。除此之外这种网络结构也使用了光流，没有因为使用 3DCNN 而造成时间序列信息的欠学习。说白了，只有一点不太行，就是结果不好，当然 I3D 的提出巧夺天工，但是 3DCNN fusion 的提出也不能说活该被埋没，纯粹是谁效果好谁就是更好的算法，单从结构上实在很难判断孰优孰劣。</p>
+<h4 id="本文具体网络架构"><a href="#本文具体网络架构" class="headerlink" title="本文具体网络架构"></a>本文具体网络架构</h4><p>&emsp;&emsp;本文的网络很简单，基本采用的就是双流网络，只不过把双流网络的两个子网络都换成 3DCNN。照理说这样会陷入一个问题：太多的参数导致难以训练。但是 I3D 提出了一个巧妙的构想：我们不从头训练 3DCNN，而是训练一个和双流网络一样的 2DCNN，再将其中的所有 2 维的卷积核和池化层全部变成 3 维。这样我们得到了参数已经初始化好的 3DCNN，然后我们在数据集上做微调即可。 </p>
+<p>&emsp;&emsp;这个思路简单明了，接下来我们主要探究如何进行 2D 扩张。作者给了一个简单的想法，对于一个 NxN 的 2D 卷积层，首先把所有的单张帧进行 N 次复制粘贴得到一个 N 帧相同图片的视频，然后将 2D 的卷积核也进行 N 次复制粘贴，得到 NxNxN 的 3D 卷积核，每个卷积核和对应的图片帧进行卷积运算，这样得到 N 个相同的值，接下来就可以直接输入下一层，对于 pooling 层也是这样，复制 N 份，然后逐层 pooling。以此为基础得到的最终结果是 N 份的旧网络结果，将这个结果取平均，理论上效果应该和旧网络的结果一模一样。以此就可以初始化 3D 网络，再进行微调即可。</p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+        <category>video</category>
       </categories>
   </entry>
   <entry>
@@ -1686,49 +1686,6 @@ o(L_r(x,u),D(x,u))[即 \widehat L]=\widetilde o(L_r(x,u),D(x,u)) +L_r(x,u)</scri
       </categories>
   </entry>
   <entry>
-    <title>MAE_源码级精读</title>
-    <url>/MAE/</url>
-    <content><![CDATA[<h2 id="Masked-Autoencoders-Are-Scalable-Vision-Learners-【图像分类、语义分割、目标检测】-CVPR2022"><a href="#Masked-Autoencoders-Are-Scalable-Vision-Learners-【图像分类、语义分割、目标检测】-CVPR2022" class="headerlink" title="Masked Autoencoders Are Scalable Vision Learners 【图像分类、语义分割、目标检测】 CVPR2022"></a><a href="url">Masked Autoencoders Are Scalable Vision Learners</a> 【图像分类、语义分割、目标检测】 CVPR2022</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;在 transformer 成功迁移到 CV 之后（VIT，swinTransformer），bert 等自监督训练的模型的迁移也开始被关注，虽然在 VIT 论文的末尾作者已经讨论了相关的可能性，但是 VIT 当时并不看好这种自监督的训练。这篇 MAE 大胆地进行了自监督训练图像的尝试，MAE 以一种非常简单的策略：遮挡某些 patch 后输入 VIT 得到隐空间表征，再通过另一个 VIT 解码全部图像，从而使 AE 学会表征语义信息。这是非常常见的 AE 训练策略，但是 MAE 做了 75% 以上的遮挡，构建了非常困难的任务场景，却得到了远超预期的结果。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/MAE/image-20220927100006046.png" alt="image-20220927100006046"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>借鉴 bert，采用自监督的训练方式训练 transformer</li>
-<li>对于 encoder，被遮挡的 patch 并不输入，这保证了在复杂度一定的情况下 encoder 可以更深</li>
-<li>对于隐空间的向量，没有 mask 的向量将由同一个 0 向量表示，该向量可以训练</li>
-<li>对于 encoder 和 decoder，两次加入位置编码（这里虽然和其他 transformer 不一样，但是没做消融实验）</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/MAE/image-20220927095410783.png" alt="image-20220927095410783" style="zoom:80%;"></p>
-<p>&emsp;&emsp;这篇论文的具体网络架构实在没啥好说的，就连代码也就 200 多行，不过由于这种简单的架构，我们在记录时基本可以把训练时的所有 trick 都试着看一看。这并非是不重要的，由于 VIT 在结尾也尝试了这种自监督的训练却没有好的结果，这种 bert 的迁移模型也有 BEiT 等工作，但偏偏 MAE 以非常简单的策略比其他的效果都要好，我认为一些超参数的设定，包括位置编码、某些变量的随机初始化分布，encoder 和 decoder 的层深，loss 的计算等细节部分可能对文章贡献更大。<a href="https://github.dev/facebookresearch/mae/blob/main/models_mae.py">源代码见此</a>。</p>
-<hr>
-<h4 id="初始化网络结构及参数初始化"><a href="#初始化网络结构及参数初始化" class="headerlink" title="初始化网络结构及参数初始化"></a>初始化网络结构及参数初始化</h4><p>&emsp;&emsp;这一部分关注与 encoder/decoder 及 encoder 之前的预处理部分，decoder 之前的预处理部分，包括如何打 patch，如何进行 random mask，以及 encoder/decoder 的一些参数。这里不多讨论具体 AE 做了什么，主要还是探讨一些初始化层。</p>
-<p>&emsp;&emsp;首先是打 patch，这一部分和 VIT 完全没有任何区别，就是 VIT-base 的翻版，甚至直接 import 了 VIT 的实现，将 224x224 的图像打成多个 16x16 的 patch。</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">self.patch_embed = PatchEmbed(img_size, patch_size, in_chans, embed_dim)</span><br><span class="line">num_patches = self.patch_embed.num_patches</span><br></pre></td></tr></table></figure>
-<p>&emsp;&emsp;然后 MAE 做了一个 mask 操作，具体的操作之后再说，总之在 mask 之后，原本 196x1024 的输入现在变成了 49x1024。接下来 MAE 完全按照 bert 来，也加了一个 CLS，然后加入 position embedding。具体来说，embedding 之后的维度为 1024，同时 pos 并非可学习的，而是直接采用 consin 编码方式，这一点和原始 transformer 一致。CLS 并非全零 tensor，而是服从 (0,0.2) 的正态分布。对于 decoder，也是同样的位置编码方式和反 embedding。</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#———————————————————————————encoder————————————————————————————</span></span><br><span class="line">self.cls_token = nn.Parameter(torch.zeros(<span class="number">1</span>, <span class="number">1</span>, embed_dim))</span><br><span class="line">self.pos_embed = nn.Parameter(torch.zeros(<span class="number">1</span>, num_patches + <span class="number">1</span>, embed_dim), requires_grad=<span class="literal">False</span>)  <span class="comment"># fixed sin-cos embedding</span></span><br><span class="line">pos_embed = get_2d_sincos_pos_embed(self.pos_embed.shape[-<span class="number">1</span>], <span class="built_in">int</span>(self.patch_embed.num_patches**<span class="number">.5</span>), cls_token=<span class="literal">True</span>)</span><br><span class="line">self.pos_embed.data.copy_(torch.from_numpy(pos_embed).<span class="built_in">float</span>().unsqueeze(<span class="number">0</span>))</span><br><span class="line"><span class="comment">#———————————————————————————decoder————————————————————————————</span></span><br><span class="line">decoder_pos_embed = get_2d_sincos_pos_embed(self.decoder_pos_embed.shape[-<span class="number">1</span>], <span class="built_in">int</span>(self.patch_embed.num_patches**<span class="number">.5</span>), cls_token=<span class="literal">True</span>)</span><br><span class="line">self.decoder_pos_embed.data.copy_(torch.from_numpy(decoder_pos_embed).<span class="built_in">float</span>().unsqueeze(<span class="number">0</span>))</span><br></pre></td></tr></table></figure>
-<p>&emsp;&emsp;在这之后， MAE 选择了和 VIT 一致的 encoder，深度为 24，自注意力头数为 16，MLP 隐层维度为 4x1024，接受 token 维度为 1024。这样就可以输入 encoder 然后得到 50x1024 的输出了。对于和 VIT encoder 结构一致的 decoder，深度为 8，自注意力头数为 16，MLP 隐层维度为 4x512，接受输入的 token 维度为 512。【论文里多次强调，这是一个非对称结构的自编码器，然而实际上这里的非对称并非体现在框架算法上，更多的是 transformer 的层数和维度的大小】</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># MAE encoder specifics</span></span><br><span class="line">self.blocks = nn.ModuleList([</span><br><span class="line">        Block(embed_dim, num_heads, mlp_ratio, qkv_bias=<span class="literal">True</span>, qk_scale=<span class="literal">None</span>, norm_layer=norm_layer)</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(depth)])</span><br><span class="line"><span class="comment"># MAE decoder specifics</span></span><br><span class="line">self.mask_token = nn.Parameter(torch.zeros(<span class="number">1</span>, <span class="number">1</span>, decoder_embed_dim))</span><br><span class="line">self.decoder_blocks = nn.ModuleList([</span><br><span class="line">        Block(decoder_embed_dim, decoder_num_heads, mlp_ratio, qkv_bias=<span class="literal">True</span>, qk_scale=<span class="literal">None</span>, norm_layer=norm_layer)</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(decoder_depth)])</span><br></pre></td></tr></table></figure>
-<h4 id="encoder"><a href="#encoder" class="headerlink" title="encoder"></a>encoder</h4><p>&emsp;&emsp;在上面已经讨论过的一些模块的基础上，我们可以快速梳理 encoder 的前向过程，具体的过程直接在代码中注释说明</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">forward_encoder</span>(<span class="params">self, x, mask_ratio</span>):</span><br><span class="line">    <span class="comment"># embed patches</span></span><br><span class="line">    x = self.patch_embed(x)	<span class="comment">#将图像切分成多个小 patch【196x256】</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># add pos embed w/o cls token</span></span><br><span class="line">    x = x + self.pos_embed[:, <span class="number">1</span>:, :]	<span class="comment">#在得到的 patch 中加入 cos-sin 位置编码【196x256】</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># masking: length -&gt; length * mask_ratio</span></span><br><span class="line">    x, mask, ids_restore = self.random_masking(x, mask_ratio)	<span class="comment">#进行 mask，实际上是进行 shuffle 之后取前 75%，返回 mask 和下标【49x256】</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># append cls token</span></span><br><span class="line">    cls_token = self.cls_token + self.pos_embed[:, :<span class="number">1</span>, :]	<span class="comment">#加入 CLS，并和 x 连接起来【50x256】</span></span><br><span class="line">    cls_tokens = cls_token.expand(x.shape[<span class="number">0</span>], -<span class="number">1</span>, -<span class="number">1</span>)</span><br><span class="line">    x = torch.cat((cls_tokens, x), dim=<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># apply Transformer blocks</span></span><br><span class="line">    <span class="keyword">for</span> blk <span class="keyword">in</span> self.blocks:	<span class="comment">#进入 encoder，经过 embedding 和 transformer block 等过程【50x1024】</span></span><br><span class="line">        x = blk(x)</span><br><span class="line">    x = self.norm(x)	<span class="comment">#标准LayerNorm</span></span><br></pre></td></tr></table></figure>
-<p>&emsp;&emsp;在上述代码中我们仅有一处一笔带过，即 mask，接下来我们详细分析 mask 函数</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">random_masking</span>(<span class="params">self, x, mask_ratio</span>):</span><br><span class="line">    <span class="comment"># mask_ratio 即为遮挡的比例，默认值 0.75，即剩余 1/4</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Perform per-sample random masking by per-sample shuffling.</span></span><br><span class="line"><span class="string">    Per-sample shuffling is done by argsort random noise.</span></span><br><span class="line"><span class="string">    x: [N, L, D], sequence</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    N, L, D = x.shape  <span class="comment"># batch, length, dim</span></span><br><span class="line">    len_keep = <span class="built_in">int</span>(L * (<span class="number">1</span> - mask_ratio))	<span class="comment">#mask 之后的长度，对于原本的输入 224，得到的是 224 * (1 - 0.75) = 49</span></span><br><span class="line">    </span><br><span class="line">    noise = torch.rand(N, L, device=x.device)  <span class="comment"># noise in [0, 1] 生成一定的噪音</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># sort noise for each sample</span></span><br><span class="line">    ids_shuffle = torch.argsort(noise, dim=<span class="number">1</span>)  <span class="comment"># ascend: small is keep, large is remove 排序噪声，这里的 noise 只作为排序的 shuffle 依据，没有实际含义</span></span><br><span class="line">    ids_restore = torch.argsort(ids_shuffle, dim=<span class="number">1</span>)	<span class="comment">#存储最终留下的 idx</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># keep the first subset</span></span><br><span class="line">    ids_keep = ids_shuffle[:, :len_keep]</span><br><span class="line">    x_masked = torch.gather(x, dim=<span class="number">1</span>, index=ids_keep.unsqueeze(-<span class="number">1</span>).repeat(<span class="number">1</span>, <span class="number">1</span>, D))	<span class="comment">#得到 mask 之后的 x，即【49x256】</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># generate the binary mask: 0 is keep, 1 is remove</span></span><br><span class="line">    mask = torch.ones([N, L], device=x.device)	<span class="comment">#所谓的 mask 矩阵，即在保留的位置赋 0，其余赋 1，在 decoder 中是不需要的，返回这个值是为了后续 loss 的计算</span></span><br><span class="line">    mask[:, :len_keep] = <span class="number">0</span></span><br><span class="line">    <span class="comment"># unshuffle to get the binary mask</span></span><br><span class="line">    mask = torch.gather(mask, dim=<span class="number">1</span>, index=ids_restore)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> x_masked, mask, ids_restore</span><br></pre></td></tr></table></figure>
-<h4 id="decoder"><a href="#decoder" class="headerlink" title="decoder"></a>decoder</h4><p>&emsp;&emsp;这里的大部分操作是非常简单的，简单讲一下 decoder 的过程：首先复原和原本一样多的 patch ，复原方法是将其余被遮住的 patch 用同一个向量表示，这个向量进入计算图。然后加入位置编码，进入 transformer，出来之后过一个 Norm 和线性投射层，移除 CLS 后返回。</p>
-<p>&emsp;&emsp;需要注意的是，在 李沐 的视频中，他说 decoder 是可以看到未经过 encoder 也未经过 mask 的原 patch，但实际上通过读源码我们发现并不能看到原图。这是因为在 李沐 出视频的时候 KaiMing 还没有放出来源码。同样的，李沐 在视频中抛出疑问：decoder 中是否所有部分都要加位置编码？有这个疑问是因为在没有被 mask 的 patch 中，其实本来就是有位置编码的，这样相当于加了两次。但实际上就是加了两次，又由于没有消融实验，我们无法判断两次加入位置编码是否对这项工作起了关键作用。</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">forward_decoder</span>(<span class="params">self, x, ids_restore</span>):</span><br><span class="line">    <span class="comment"># embed tokens</span></span><br><span class="line">    x = self.decoder_embed(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># append mask tokens to sequence</span></span><br><span class="line">    mask_tokens = self.mask_token.repeat(x.shape[<span class="number">0</span>], ids_restore.shape[<span class="number">1</span>] + <span class="number">1</span> - x.shape[<span class="number">1</span>], <span class="number">1</span>)</span><br><span class="line">    x_ = torch.cat([x[:, <span class="number">1</span>:, :], mask_tokens], dim=<span class="number">1</span>)  <span class="comment"># no cls token</span></span><br><span class="line">    x_ = torch.gather(x_, dim=<span class="number">1</span>, index=ids_restore.unsqueeze(-<span class="number">1</span>).repeat(<span class="number">1</span>, <span class="number">1</span>, x.shape[<span class="number">2</span>]))  <span class="comment"># unshuffle</span></span><br><span class="line">    x = torch.cat([x[:, :<span class="number">1</span>, :], x_], dim=<span class="number">1</span>)  <span class="comment"># append cls token</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># add pos embed</span></span><br><span class="line">    x = x + self.decoder_pos_embed</span><br><span class="line"></span><br><span class="line">    <span class="comment"># apply Transformer blocks</span></span><br><span class="line">    <span class="keyword">for</span> blk <span class="keyword">in</span> self.decoder_blocks:</span><br><span class="line">        x = blk(x)</span><br><span class="line">    x = self.decoder_norm(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># predictor projection</span></span><br><span class="line">    x = self.decoder_pred(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># remove cls token</span></span><br><span class="line">    x = x[:, <span class="number">1</span>:, :]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
-<h4 id="loss"><a href="#loss" class="headerlink" title="loss"></a>loss</h4><p>&emsp;&emsp;网络的 loss 比较普通，选用常见任务对应的损失，这里因为是自监督的训练，选了个 MSE，也是自监督非常常见的损失选择，不过是最后加了一个针对 mask 的处理，并不复杂。</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">forward_loss</span>(<span class="params">self, imgs, pred, mask</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    imgs: [N, 3, H, W]</span></span><br><span class="line"><span class="string">    pred: [N, L, p*p*3]</span></span><br><span class="line"><span class="string">    mask: [N, L], 0 is keep, 1 is remove, </span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    target = self.patchify(imgs)</span><br><span class="line">    <span class="keyword">if</span> self.norm_pix_loss:</span><br><span class="line">        mean = target.mean(dim=-<span class="number">1</span>, keepdim=<span class="literal">True</span>)</span><br><span class="line">        var = target.var(dim=-<span class="number">1</span>, keepdim=<span class="literal">True</span>)</span><br><span class="line">        target = (target - mean) / (var + <span class="number">1.e-6</span>)**<span class="number">.5</span></span><br><span class="line"></span><br><span class="line">    loss = (pred - target) ** <span class="number">2</span></span><br><span class="line">    loss = loss.mean(dim=-<span class="number">1</span>)  <span class="comment"># [N, L], mean loss per patch</span></span><br><span class="line"></span><br><span class="line">    loss = (loss * mask).<span class="built_in">sum</span>() / mask.<span class="built_in">sum</span>()  <span class="comment"># mean loss on removed patches</span></span><br><span class="line">    <span class="keyword">return</span> loss</span><br></pre></td></tr></table></figure>
-<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;结果是这项工作最重要的部分了，因为纵观这篇 paper，10 页之中只有 1 页讲了具体做了什么，其他全部在说我们为什么这么做，我们做出来有多么好，尤其是我们做出来多么好的结果这方面，真的占据了很大的篇幅，并且这结果确实让人直呼震惊，叹为观止。</p>
-<p><img src="/MAE/image-20220927235213707.png" alt="image-20220927235213707"></p>
-<p><img src="/MAE/image-20220927235234672.png" alt="image-20220927235234672"></p>
-<hr>
-<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3><p>&emsp;&emsp;自从 transformer 出现之后，基于此产生的工作层出不穷，首先在 NLP 领域，transformer 被加入了自监督的训练方式，造就了 NLP 领域通用的预训练 baseline，如 bert，GPT 等。自从 2021 年之后，transformer 在 CV 领域也开始逐渐大放异彩，在诸多迁移的文章中，VIT 是首个将原生 transformer 用于 CV 领域的成功研究，这项研究让人们认识到，就算不针对图像做特殊处理，transformer 也可以和 CV 领域的传统老大哥 CNN 掰手腕，VIT 的同年，MSRA 提出了 swinTransformer，在多领域完成了对 VIT 的扩展，并几乎取得了所有的 SOTA。在这之外，针对 bert 等自监督训练模型向 CV 领域的迁移也开始进行，其中最成功的，甚至成功地有点过分的，就是这篇 MAE，即带掩码的自编码器。神奇的是，这个结果好得出奇甚至有点玄学的工作，在国外没有引起太大的反响，或许是因为网络设计真的太简单，但是单从结果上看，这项工作给人带来的震惊不逊于 KaiMing 的另一个工作 ResNet，嗷现在也有 ResNext 了。这俩大道至简了嗷属于是。</p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-      </categories>
-  </entry>
-  <entry>
     <title>MAGVIT</title>
     <url>/MAGVIT/</url>
     <content><![CDATA[<h2><center> MAGVIT: Masked Generative Video Transformer </center></h2>
@@ -1791,6 +1748,49 @@ o(L_r(x,u),D(x,u))[即 \widehat L]=\widetilde o(L_r(x,u),D(x,u)) +L_r(x,u)</scri
 </ul>
 <p><img src="/MAGVIT/image-20230418170727129.png" alt="image-20230418170727129" style="zoom:50%;"></p>
 <p>&emsp;&emsp;更多的结果可视化见网站：<a href="https://magvit.cs.cmu.edu">https://magvit.cs.cmu.edu</a></p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>MAE_源码级精读</title>
+    <url>/MAE/</url>
+    <content><![CDATA[<h2 id="Masked-Autoencoders-Are-Scalable-Vision-Learners-【图像分类、语义分割、目标检测】-CVPR2022"><a href="#Masked-Autoencoders-Are-Scalable-Vision-Learners-【图像分类、语义分割、目标检测】-CVPR2022" class="headerlink" title="Masked Autoencoders Are Scalable Vision Learners 【图像分类、语义分割、目标检测】 CVPR2022"></a><a href="url">Masked Autoencoders Are Scalable Vision Learners</a> 【图像分类、语义分割、目标检测】 CVPR2022</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;在 transformer 成功迁移到 CV 之后（VIT，swinTransformer），bert 等自监督训练的模型的迁移也开始被关注，虽然在 VIT 论文的末尾作者已经讨论了相关的可能性，但是 VIT 当时并不看好这种自监督的训练。这篇 MAE 大胆地进行了自监督训练图像的尝试，MAE 以一种非常简单的策略：遮挡某些 patch 后输入 VIT 得到隐空间表征，再通过另一个 VIT 解码全部图像，从而使 AE 学会表征语义信息。这是非常常见的 AE 训练策略，但是 MAE 做了 75% 以上的遮挡，构建了非常困难的任务场景，却得到了远超预期的结果。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/MAE/image-20220927100006046.png" alt="image-20220927100006046"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>借鉴 bert，采用自监督的训练方式训练 transformer</li>
+<li>对于 encoder，被遮挡的 patch 并不输入，这保证了在复杂度一定的情况下 encoder 可以更深</li>
+<li>对于隐空间的向量，没有 mask 的向量将由同一个 0 向量表示，该向量可以训练</li>
+<li>对于 encoder 和 decoder，两次加入位置编码（这里虽然和其他 transformer 不一样，但是没做消融实验）</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/MAE/image-20220927095410783.png" alt="image-20220927095410783" style="zoom:80%;"></p>
+<p>&emsp;&emsp;这篇论文的具体网络架构实在没啥好说的，就连代码也就 200 多行，不过由于这种简单的架构，我们在记录时基本可以把训练时的所有 trick 都试着看一看。这并非是不重要的，由于 VIT 在结尾也尝试了这种自监督的训练却没有好的结果，这种 bert 的迁移模型也有 BEiT 等工作，但偏偏 MAE 以非常简单的策略比其他的效果都要好，我认为一些超参数的设定，包括位置编码、某些变量的随机初始化分布，encoder 和 decoder 的层深，loss 的计算等细节部分可能对文章贡献更大。<a href="https://github.dev/facebookresearch/mae/blob/main/models_mae.py">源代码见此</a>。</p>
+<hr>
+<h4 id="初始化网络结构及参数初始化"><a href="#初始化网络结构及参数初始化" class="headerlink" title="初始化网络结构及参数初始化"></a>初始化网络结构及参数初始化</h4><p>&emsp;&emsp;这一部分关注与 encoder/decoder 及 encoder 之前的预处理部分，decoder 之前的预处理部分，包括如何打 patch，如何进行 random mask，以及 encoder/decoder 的一些参数。这里不多讨论具体 AE 做了什么，主要还是探讨一些初始化层。</p>
+<p>&emsp;&emsp;首先是打 patch，这一部分和 VIT 完全没有任何区别，就是 VIT-base 的翻版，甚至直接 import 了 VIT 的实现，将 224x224 的图像打成多个 16x16 的 patch。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">self.patch_embed = PatchEmbed(img_size, patch_size, in_chans, embed_dim)</span><br><span class="line">num_patches = self.patch_embed.num_patches</span><br></pre></td></tr></table></figure>
+<p>&emsp;&emsp;然后 MAE 做了一个 mask 操作，具体的操作之后再说，总之在 mask 之后，原本 196x1024 的输入现在变成了 49x1024。接下来 MAE 完全按照 bert 来，也加了一个 CLS，然后加入 position embedding。具体来说，embedding 之后的维度为 1024，同时 pos 并非可学习的，而是直接采用 consin 编码方式，这一点和原始 transformer 一致。CLS 并非全零 tensor，而是服从 (0,0.2) 的正态分布。对于 decoder，也是同样的位置编码方式和反 embedding。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#———————————————————————————encoder————————————————————————————</span></span><br><span class="line">self.cls_token = nn.Parameter(torch.zeros(<span class="number">1</span>, <span class="number">1</span>, embed_dim))</span><br><span class="line">self.pos_embed = nn.Parameter(torch.zeros(<span class="number">1</span>, num_patches + <span class="number">1</span>, embed_dim), requires_grad=<span class="literal">False</span>)  <span class="comment"># fixed sin-cos embedding</span></span><br><span class="line">pos_embed = get_2d_sincos_pos_embed(self.pos_embed.shape[-<span class="number">1</span>], <span class="built_in">int</span>(self.patch_embed.num_patches**<span class="number">.5</span>), cls_token=<span class="literal">True</span>)</span><br><span class="line">self.pos_embed.data.copy_(torch.from_numpy(pos_embed).<span class="built_in">float</span>().unsqueeze(<span class="number">0</span>))</span><br><span class="line"><span class="comment">#———————————————————————————decoder————————————————————————————</span></span><br><span class="line">decoder_pos_embed = get_2d_sincos_pos_embed(self.decoder_pos_embed.shape[-<span class="number">1</span>], <span class="built_in">int</span>(self.patch_embed.num_patches**<span class="number">.5</span>), cls_token=<span class="literal">True</span>)</span><br><span class="line">self.decoder_pos_embed.data.copy_(torch.from_numpy(decoder_pos_embed).<span class="built_in">float</span>().unsqueeze(<span class="number">0</span>))</span><br></pre></td></tr></table></figure>
+<p>&emsp;&emsp;在这之后， MAE 选择了和 VIT 一致的 encoder，深度为 24，自注意力头数为 16，MLP 隐层维度为 4x1024，接受 token 维度为 1024。这样就可以输入 encoder 然后得到 50x1024 的输出了。对于和 VIT encoder 结构一致的 decoder，深度为 8，自注意力头数为 16，MLP 隐层维度为 4x512，接受输入的 token 维度为 512。【论文里多次强调，这是一个非对称结构的自编码器，然而实际上这里的非对称并非体现在框架算法上，更多的是 transformer 的层数和维度的大小】</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># MAE encoder specifics</span></span><br><span class="line">self.blocks = nn.ModuleList([</span><br><span class="line">        Block(embed_dim, num_heads, mlp_ratio, qkv_bias=<span class="literal">True</span>, qk_scale=<span class="literal">None</span>, norm_layer=norm_layer)</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(depth)])</span><br><span class="line"><span class="comment"># MAE decoder specifics</span></span><br><span class="line">self.mask_token = nn.Parameter(torch.zeros(<span class="number">1</span>, <span class="number">1</span>, decoder_embed_dim))</span><br><span class="line">self.decoder_blocks = nn.ModuleList([</span><br><span class="line">        Block(decoder_embed_dim, decoder_num_heads, mlp_ratio, qkv_bias=<span class="literal">True</span>, qk_scale=<span class="literal">None</span>, norm_layer=norm_layer)</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(decoder_depth)])</span><br></pre></td></tr></table></figure>
+<h4 id="encoder"><a href="#encoder" class="headerlink" title="encoder"></a>encoder</h4><p>&emsp;&emsp;在上面已经讨论过的一些模块的基础上，我们可以快速梳理 encoder 的前向过程，具体的过程直接在代码中注释说明</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">forward_encoder</span>(<span class="params">self, x, mask_ratio</span>):</span><br><span class="line">    <span class="comment"># embed patches</span></span><br><span class="line">    x = self.patch_embed(x)	<span class="comment">#将图像切分成多个小 patch【196x256】</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># add pos embed w/o cls token</span></span><br><span class="line">    x = x + self.pos_embed[:, <span class="number">1</span>:, :]	<span class="comment">#在得到的 patch 中加入 cos-sin 位置编码【196x256】</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># masking: length -&gt; length * mask_ratio</span></span><br><span class="line">    x, mask, ids_restore = self.random_masking(x, mask_ratio)	<span class="comment">#进行 mask，实际上是进行 shuffle 之后取前 75%，返回 mask 和下标【49x256】</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># append cls token</span></span><br><span class="line">    cls_token = self.cls_token + self.pos_embed[:, :<span class="number">1</span>, :]	<span class="comment">#加入 CLS，并和 x 连接起来【50x256】</span></span><br><span class="line">    cls_tokens = cls_token.expand(x.shape[<span class="number">0</span>], -<span class="number">1</span>, -<span class="number">1</span>)</span><br><span class="line">    x = torch.cat((cls_tokens, x), dim=<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># apply Transformer blocks</span></span><br><span class="line">    <span class="keyword">for</span> blk <span class="keyword">in</span> self.blocks:	<span class="comment">#进入 encoder，经过 embedding 和 transformer block 等过程【50x1024】</span></span><br><span class="line">        x = blk(x)</span><br><span class="line">    x = self.norm(x)	<span class="comment">#标准LayerNorm</span></span><br></pre></td></tr></table></figure>
+<p>&emsp;&emsp;在上述代码中我们仅有一处一笔带过，即 mask，接下来我们详细分析 mask 函数</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">random_masking</span>(<span class="params">self, x, mask_ratio</span>):</span><br><span class="line">    <span class="comment"># mask_ratio 即为遮挡的比例，默认值 0.75，即剩余 1/4</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    Perform per-sample random masking by per-sample shuffling.</span></span><br><span class="line"><span class="string">    Per-sample shuffling is done by argsort random noise.</span></span><br><span class="line"><span class="string">    x: [N, L, D], sequence</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    N, L, D = x.shape  <span class="comment"># batch, length, dim</span></span><br><span class="line">    len_keep = <span class="built_in">int</span>(L * (<span class="number">1</span> - mask_ratio))	<span class="comment">#mask 之后的长度，对于原本的输入 224，得到的是 224 * (1 - 0.75) = 49</span></span><br><span class="line">    </span><br><span class="line">    noise = torch.rand(N, L, device=x.device)  <span class="comment"># noise in [0, 1] 生成一定的噪音</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># sort noise for each sample</span></span><br><span class="line">    ids_shuffle = torch.argsort(noise, dim=<span class="number">1</span>)  <span class="comment"># ascend: small is keep, large is remove 排序噪声，这里的 noise 只作为排序的 shuffle 依据，没有实际含义</span></span><br><span class="line">    ids_restore = torch.argsort(ids_shuffle, dim=<span class="number">1</span>)	<span class="comment">#存储最终留下的 idx</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># keep the first subset</span></span><br><span class="line">    ids_keep = ids_shuffle[:, :len_keep]</span><br><span class="line">    x_masked = torch.gather(x, dim=<span class="number">1</span>, index=ids_keep.unsqueeze(-<span class="number">1</span>).repeat(<span class="number">1</span>, <span class="number">1</span>, D))	<span class="comment">#得到 mask 之后的 x，即【49x256】</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># generate the binary mask: 0 is keep, 1 is remove</span></span><br><span class="line">    mask = torch.ones([N, L], device=x.device)	<span class="comment">#所谓的 mask 矩阵，即在保留的位置赋 0，其余赋 1，在 decoder 中是不需要的，返回这个值是为了后续 loss 的计算</span></span><br><span class="line">    mask[:, :len_keep] = <span class="number">0</span></span><br><span class="line">    <span class="comment"># unshuffle to get the binary mask</span></span><br><span class="line">    mask = torch.gather(mask, dim=<span class="number">1</span>, index=ids_restore)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> x_masked, mask, ids_restore</span><br></pre></td></tr></table></figure>
+<h4 id="decoder"><a href="#decoder" class="headerlink" title="decoder"></a>decoder</h4><p>&emsp;&emsp;这里的大部分操作是非常简单的，简单讲一下 decoder 的过程：首先复原和原本一样多的 patch ，复原方法是将其余被遮住的 patch 用同一个向量表示，这个向量进入计算图。然后加入位置编码，进入 transformer，出来之后过一个 Norm 和线性投射层，移除 CLS 后返回。</p>
+<p>&emsp;&emsp;需要注意的是，在 李沐 的视频中，他说 decoder 是可以看到未经过 encoder 也未经过 mask 的原 patch，但实际上通过读源码我们发现并不能看到原图。这是因为在 李沐 出视频的时候 KaiMing 还没有放出来源码。同样的，李沐 在视频中抛出疑问：decoder 中是否所有部分都要加位置编码？有这个疑问是因为在没有被 mask 的 patch 中，其实本来就是有位置编码的，这样相当于加了两次。但实际上就是加了两次，又由于没有消融实验，我们无法判断两次加入位置编码是否对这项工作起了关键作用。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">forward_decoder</span>(<span class="params">self, x, ids_restore</span>):</span><br><span class="line">    <span class="comment"># embed tokens</span></span><br><span class="line">    x = self.decoder_embed(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># append mask tokens to sequence</span></span><br><span class="line">    mask_tokens = self.mask_token.repeat(x.shape[<span class="number">0</span>], ids_restore.shape[<span class="number">1</span>] + <span class="number">1</span> - x.shape[<span class="number">1</span>], <span class="number">1</span>)</span><br><span class="line">    x_ = torch.cat([x[:, <span class="number">1</span>:, :], mask_tokens], dim=<span class="number">1</span>)  <span class="comment"># no cls token</span></span><br><span class="line">    x_ = torch.gather(x_, dim=<span class="number">1</span>, index=ids_restore.unsqueeze(-<span class="number">1</span>).repeat(<span class="number">1</span>, <span class="number">1</span>, x.shape[<span class="number">2</span>]))  <span class="comment"># unshuffle</span></span><br><span class="line">    x = torch.cat([x[:, :<span class="number">1</span>, :], x_], dim=<span class="number">1</span>)  <span class="comment"># append cls token</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># add pos embed</span></span><br><span class="line">    x = x + self.decoder_pos_embed</span><br><span class="line"></span><br><span class="line">    <span class="comment"># apply Transformer blocks</span></span><br><span class="line">    <span class="keyword">for</span> blk <span class="keyword">in</span> self.decoder_blocks:</span><br><span class="line">        x = blk(x)</span><br><span class="line">    x = self.decoder_norm(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># predictor projection</span></span><br><span class="line">    x = self.decoder_pred(x)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># remove cls token</span></span><br><span class="line">    x = x[:, <span class="number">1</span>:, :]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> x</span><br></pre></td></tr></table></figure>
+<h4 id="loss"><a href="#loss" class="headerlink" title="loss"></a>loss</h4><p>&emsp;&emsp;网络的 loss 比较普通，选用常见任务对应的损失，这里因为是自监督的训练，选了个 MSE，也是自监督非常常见的损失选择，不过是最后加了一个针对 mask 的处理，并不复杂。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">forward_loss</span>(<span class="params">self, imgs, pred, mask</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    imgs: [N, 3, H, W]</span></span><br><span class="line"><span class="string">    pred: [N, L, p*p*3]</span></span><br><span class="line"><span class="string">    mask: [N, L], 0 is keep, 1 is remove, </span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    target = self.patchify(imgs)</span><br><span class="line">    <span class="keyword">if</span> self.norm_pix_loss:</span><br><span class="line">        mean = target.mean(dim=-<span class="number">1</span>, keepdim=<span class="literal">True</span>)</span><br><span class="line">        var = target.var(dim=-<span class="number">1</span>, keepdim=<span class="literal">True</span>)</span><br><span class="line">        target = (target - mean) / (var + <span class="number">1.e-6</span>)**<span class="number">.5</span></span><br><span class="line"></span><br><span class="line">    loss = (pred - target) ** <span class="number">2</span></span><br><span class="line">    loss = loss.mean(dim=-<span class="number">1</span>)  <span class="comment"># [N, L], mean loss per patch</span></span><br><span class="line"></span><br><span class="line">    loss = (loss * mask).<span class="built_in">sum</span>() / mask.<span class="built_in">sum</span>()  <span class="comment"># mean loss on removed patches</span></span><br><span class="line">    <span class="keyword">return</span> loss</span><br></pre></td></tr></table></figure>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;结果是这项工作最重要的部分了，因为纵观这篇 paper，10 页之中只有 1 页讲了具体做了什么，其他全部在说我们为什么这么做，我们做出来有多么好，尤其是我们做出来多么好的结果这方面，真的占据了很大的篇幅，并且这结果确实让人直呼震惊，叹为观止。</p>
+<p><img src="/MAE/image-20220927235213707.png" alt="image-20220927235213707"></p>
+<p><img src="/MAE/image-20220927235234672.png" alt="image-20220927235234672"></p>
+<hr>
+<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3><p>&emsp;&emsp;自从 transformer 出现之后，基于此产生的工作层出不穷，首先在 NLP 领域，transformer 被加入了自监督的训练方式，造就了 NLP 领域通用的预训练 baseline，如 bert，GPT 等。自从 2021 年之后，transformer 在 CV 领域也开始逐渐大放异彩，在诸多迁移的文章中，VIT 是首个将原生 transformer 用于 CV 领域的成功研究，这项研究让人们认识到，就算不针对图像做特殊处理，transformer 也可以和 CV 领域的传统老大哥 CNN 掰手腕，VIT 的同年，MSRA 提出了 swinTransformer，在多领域完成了对 VIT 的扩展，并几乎取得了所有的 SOTA。在这之外，针对 bert 等自监督训练模型向 CV 领域的迁移也开始进行，其中最成功的，甚至成功地有点过分的，就是这篇 MAE，即带掩码的自编码器。神奇的是，这个结果好得出奇甚至有点玄学的工作，在国外没有引起太大的反响，或许是因为网络设计真的太简单，但是单从结果上看，这项工作给人带来的震惊不逊于 KaiMing 的另一个工作 ResNet，嗷现在也有 ResNext 了。这俩大道至简了嗷属于是。</p>
 ]]></content>
       <categories>
         <category>paper</category>
@@ -2103,6 +2103,39 @@ z^{proto}=\gamma z^{proto}+(1-\gamma) \mathbb E_{x^{(i)}\sim p(\mathcal T)}\frac
       </categories>
   </entry>
   <entry>
+    <title>Orthogonal_VQGAN</title>
+    <url>/Orthogonal_VQGAN/</url>
+    <content><![CDATA[<h2><center> Exploration into Translation-Equivariant Image Quantization </center></h2>
+
+<p>【VQGAN探索】【ICASSP<strong>(CCF_B)</strong>】【<a href="arXiv:2112.00384">paper</a>】【<a href>code</a>未开源】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了在 VQ 的时候由于码本中不同编码的堆叠，可能导致性能的下降以及平移等变性的缺失，因此以一种很简单的方式消除了堆叠，具体来说，即加入正交化损失，通过强制 codebook 正交化减少堆叠。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Orthogonal_VQGAN/image-20230330092831822.png" alt="image-20230330092831822" style="zoom:50%;"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>正交化损失，用于减少堆叠以及保持平移等变性</li>
+<li>正交初始化，用于减少堆叠（以本文为经验可以得出的结果，具备明显的合理性）</li>
+</ul>
+<h3 id="为什么要正交？"><a href="#为什么要正交？" class="headerlink" title="为什么要正交？"></a>为什么要正交？</h3><p>&emsp;&emsp;图像经过 CNN 之后的平移等变性缺失是老生常谈的话题，以可视化的例子如下所示，下图中随着图像主体的平移，普通的 CNN 结构（baseline）的置信度变化方差很大，而抗堆叠的方法会好很多。</p>
+<p><img src="/Orthogonal_VQGAN/video_00810.gif" alt></p>
+<p>&emsp;&emsp;所谓平移等变，事实上在分类任务中要求的应该是平移不变性，就是平移之后输出不变，对应在分割等任务上应该是平移等变，就是平移之后输出的 box 等跟随平移。但是我觉得在分类任务其实也得要求平移等变，并非以结果和输入等变，而是以特征图和输入等变，如下图所示。而平移不变性则是在等变的特征图的基础上后续预测网络的要求。</p>
+<p><img src="/Orthogonal_VQGAN/v2-73708d7f00e07e836bd63a96baad638e_1440w.webp" alt="img" style="zoom:50%;"></p>
+<p>&emsp;&emsp;之所以会缺失平移等变性，主要是因为在降采样的过程中，无论是卷积降采样还是池化降采样，都会损失相对位置信息，以 MaxPooling 为例，第一步取 max 实际上只是在一定程度上做了平均，算是一种信息的压缩，但是这里的压缩损失的只是细节信息，但是第二步的池化操作会把原本离得或近或远的 max 的 index 放在相邻位置。这种降采样导致在周期性平移（平移长度为步长整数倍）时可以获得平移等变的结果，而除此之外就会产生较大的误差。因此可以看出 baseline 并不是一直都差，而是周期性地好坏。</p>
+<h3 id="如何保证码本正交？"><a href="#如何保证码本正交？" class="headerlink" title="如何保证码本正交？"></a>如何保证码本正交？</h3><p>&emsp;&emsp;码本的正交可以最大限度地消除码本的冗余性，从而在特征向量少量移动时保证量化之后的向量尽可能不变。</p>
+<p>&emsp;&emsp;至于做法包含两个层面：</p>
+<ul>
+<li>初始化的时候将随机初始化的变量进行正交化处理</li>
+<li>使用正交化损失进行强制 codebook 正交化，orthogonality loss 写作：</li>
+</ul>
+<script type="math/tex; mode=display">
+\mathcal L_{REG}(e)=\lambda\frac{1}{K^2}||l_2(e)^Tl_2(e)-I_K||_2^2</script><p>&emsp;&emsp;即，对码表的编码进行 l2_normlize 之后计算正交矩阵，使其和单位矩阵尽可能接近，$K^2$ 用以消除尺度误差，$\lambda$ 用以平衡权重。</p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
     <title>PGGAN</title>
     <url>/PG_GAN/</url>
     <content><![CDATA[<h2><center> Progressive Growing of GANs for Improved Quality, Stability, and Variation </center></h2>
@@ -2149,95 +2182,6 @@ z^{proto}=\gamma z^{proto}+(1-\gamma) \mathbb E_{x^{(i)}\sim p(\mathcal T)}\frac
       <categories>
         <category>paper</category>
         <category>cv</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>Orthogonal_VQGAN</title>
-    <url>/Orthogonal_VQGAN/</url>
-    <content><![CDATA[<h2><center> Exploration into Translation-Equivariant Image Quantization </center></h2>
-
-<p>【VQGAN探索】【ICASSP<strong>(CCF_B)</strong>】【<a href="arXiv:2112.00384">paper</a>】【<a href>code</a>未开源】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了在 VQ 的时候由于码本中不同编码的堆叠，可能导致性能的下降以及平移等变性的缺失，因此以一种很简单的方式消除了堆叠，具体来说，即加入正交化损失，通过强制 codebook 正交化减少堆叠。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Orthogonal_VQGAN/image-20230330092831822.png" alt="image-20230330092831822" style="zoom:50%;"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>正交化损失，用于减少堆叠以及保持平移等变性</li>
-<li>正交初始化，用于减少堆叠（以本文为经验可以得出的结果，具备明显的合理性）</li>
-</ul>
-<h3 id="为什么要正交？"><a href="#为什么要正交？" class="headerlink" title="为什么要正交？"></a>为什么要正交？</h3><p>&emsp;&emsp;图像经过 CNN 之后的平移等变性缺失是老生常谈的话题，以可视化的例子如下所示，下图中随着图像主体的平移，普通的 CNN 结构（baseline）的置信度变化方差很大，而抗堆叠的方法会好很多。</p>
-<p><img src="/Orthogonal_VQGAN/video_00810.gif" alt></p>
-<p>&emsp;&emsp;所谓平移等变，事实上在分类任务中要求的应该是平移不变性，就是平移之后输出不变，对应在分割等任务上应该是平移等变，就是平移之后输出的 box 等跟随平移。但是我觉得在分类任务其实也得要求平移等变，并非以结果和输入等变，而是以特征图和输入等变，如下图所示。而平移不变性则是在等变的特征图的基础上后续预测网络的要求。</p>
-<p><img src="/Orthogonal_VQGAN/v2-73708d7f00e07e836bd63a96baad638e_1440w.webp" alt="img" style="zoom:50%;"></p>
-<p>&emsp;&emsp;之所以会缺失平移等变性，主要是因为在降采样的过程中，无论是卷积降采样还是池化降采样，都会损失相对位置信息，以 MaxPooling 为例，第一步取 max 实际上只是在一定程度上做了平均，算是一种信息的压缩，但是这里的压缩损失的只是细节信息，但是第二步的池化操作会把原本离得或近或远的 max 的 index 放在相邻位置。这种降采样导致在周期性平移（平移长度为步长整数倍）时可以获得平移等变的结果，而除此之外就会产生较大的误差。因此可以看出 baseline 并不是一直都差，而是周期性地好坏。</p>
-<h3 id="如何保证码本正交？"><a href="#如何保证码本正交？" class="headerlink" title="如何保证码本正交？"></a>如何保证码本正交？</h3><p>&emsp;&emsp;码本的正交可以最大限度地消除码本的冗余性，从而在特征向量少量移动时保证量化之后的向量尽可能不变。</p>
-<p>&emsp;&emsp;至于做法包含两个层面：</p>
-<ul>
-<li>初始化的时候将随机初始化的变量进行正交化处理</li>
-<li>使用正交化损失进行强制 codebook 正交化，orthogonality loss 写作：</li>
-</ul>
-<script type="math/tex; mode=display">
-\mathcal L_{REG}(e)=\lambda\frac{1}{K^2}||l_2(e)^Tl_2(e)-I_K||_2^2</script><p>&emsp;&emsp;即，对码表的编码进行 l2_normlize 之后计算正交矩阵，使其和单位矩阵尽可能接近，$K^2$ 用以消除尺度误差，$\lambda$ 用以平衡权重。</p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>Privacy-Phys</title>
-    <url>/Privacy_Phys/</url>
-    <content><![CDATA[<h2><center> Privacy-Phys: Facial Video-based Physiological Modification for Privacy Protection </center></h2>
-
-<p>【心率监测】【SPL2022】【<a href="https://ieeexplore.ieee.org/document/9806161/">paper</a>】【<a href>code未开源</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种基于预训练的 3D-CNN 网络结构用于在保持视觉不变性的基础上修改视频中人脸的 rppg 信号，可以用于 IDEA 中的正样本生成模块之中。另外，本文讲故事的方式是：rppg 信号中具备人的生理和疾病等隐私信息，这些信息不希望被他人窃取，因此使用 PrivacyPhys 方法可以快速地修改 rppg 信号以干扰窃取，可以用于视频软件之中。</p>
-<p>&emsp;&emsp;一个有意思的点在于：本文所谓的预训练的网络其实完全不参与微调，梯度也不用来更新网络参数，而是直接更新结果。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Privacy_Phys/image-20221124091934773.png" alt="image-20221124091934773" style="zoom:80%;"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>一种新的用于修改人脸视频中 rppg 信号的 3DCNN 网络</li>
-<li>该网络修改之后的视频可以混淆当前检测的 SOTA 方法（有点像 deepfake 和 detection 了，好怪)</li>
-<li>相比于之前的大作 PulseEdit，这个方法推理更加迅速</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/Privacy_Phys/image-20221124092312238.png" alt="image-20221124092312238" style="zoom:67%;"></p>
-<p>&emsp;&emsp;本文的前向过程非常简单，首先对于输入的视频 $z$，copy 一份同样的视频 $x$（$x$ 最后就是输出），同时根据人脸分割生成皮肤掩码 $S$，生成 $S$ 的目的是：心率编辑不应当修改除了人脸范围以外的其他像素。</p>
-<p>&emsp;&emsp;接着读入目标心率 $y$，通过一个训练好并且固定权重的 3DCNN，这里是 STN，但也可以使任何可以快速计算的网络，记为 $G_\theta$ ，对 $x$ 进行 rppg 信号提取，提取得到的信号记为 $G_\theta(x)$，然后开始计算 loss。</p>
-<p>&emsp;&emsp;loss 的计算分为两个部分：1.用于保证原始视频和新视频视觉效果一致的损失 $L_{f}$，2.用于保证修改之后的视频提取出的 rppg 信号和目标信号一致的损失 $L_{rppg}$，具体来说：</p>
-<script type="math/tex; mode=display">
-\rm
-\begin{aligned}
-&L_{f}(x,z)=\frac1{T\cdot C\cdot H\cdot W}||x-z||_2^2\\
-&L_{rppg}(G_{\theta^*(x)},y)=L_{rppg}(\hat y,y)=\frac{-cov(\hat y, y)}{\sigma_{\hat y}\cdot \sigma_y}\\
-where\ \ \ \ &\sigma_y=\sqrt{\frac 1 T \sum_{t=1}^Ty(t)^2-(\frac 1 T \sum_{t=1}^Ty(t))^2}\\
-and\ \ \ \ &cov(\hat y,y)=\frac 1 T \sum_{t=1}^T\hat y(t)y(t)-\frac 1 T \sum_{t=1}^T\hat y(t)\cdot\frac 1 T \sum_{t=1}^Ty(t)
-\end{aligned}</script><p>&emsp;&emsp;简单概括来说就是：使用 MSELoss 限制视频的视觉一致性，使用 NPC 限制 rppg 信号的一致性。</p>
-<p>&emsp;&emsp;获得两个损失之后求和得到最终的损失：$L=L_{rppg}+\lambda L_f$，$\lambda$ 用于控制视频和 rppg 信号的重要程度。通过 $L$ 向输出 $x$ 求导得到 $\nabla_xL$，并使用此梯度更新 $x$，但是这里注意更新的其实是 $S\bigotimes x$，也就是只更新人脸 mask 之内的部分。具体实现中直接全部更新，更新之后再做掩码即可。</p>
-<p>&emsp;&emsp;整体来说，本文的优化目标可以看做：</p>
-<script type="math/tex; mode=display">
-x=arg\min_{x\in R^{T\times C\times H\times W}} L_{rppg}(G_\theta(x),y)+\lambda L_f(x,z)\\
-s.t.\ \ S\bigotimes x=S\bigotimes z</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文的创新性比较高，整体的实现有点天马行空，消融实验只能做一下 $\lambda$，其他都是对比实验。</p>
-<ul>
-<li>$\lambda$ 的选择</li>
-</ul>
-<p>&emsp;&emsp;这部分选择了 7 种预训练的模型作为 $G$，分别探索了在不同 $\lambda$ 的选择下对于视频 PSNR 和 rppg 信号 MAE 的平衡性，最终选择了 $\lambda=0.1$（其实我感觉有点怪，这个 PSNR 都最低 51 了 $\dots\dots$ 正常来说 30+ 就是高质量图像了，35+ 都肉眼无法区别了，这意思感觉像是 $\lambda$ 可以不要一样，后面就知道为啥明明都 50+ 了还要选“平衡”）</p>
-<p><img src="/Privacy_Phys/image-20221124101025603.png" alt="image-20221124101025603" style="zoom:80%;"></p>
-<ul>
-<li>和 PulseEdit 的对比</li>
-</ul>
-<p>&emsp;&emsp;同样是之前选择的预训练模型，这里对比了在 PURE 和 MMSE 中和 PulseEdit 的结果，可以看出基本上在正常的 PSNR 下都是 PrivacyPhys 更好一些（就是为了全面超 PulseEdit 才选 0.1 的 $\lambda$ 以提高 PSNR）</p>
-<p><img src="/Privacy_Phys/image-20221124102201504.png" alt="image-20221124102201504"></p>
-<p><img src="/Privacy_Phys/image-20221124101931885.png" alt="image-20221124101931885"></p>
-<ul>
-<li>注意区域的对比</li>
-</ul>
-<p>&emsp;&emsp;可以看出相对来说，PrivacyPhys 还是更加关注了正确的区域，但是总觉得也就那样，和其他的注意力图展示出来差不少，整体来说 rppg fake 或许都不太好。</p>
-<p><img src="/Privacy_Phys/image-20221124102235096.png" alt="image-20221124102235096"></p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-        <category>hr</category>
       </categories>
   </entry>
   <entry>
@@ -2303,6 +2247,62 @@ p=\lceil\delta_c(n)\rceil-\delta_c(n)</script><p>&emsp;&emsp;故而在所有的�
 <p>&emsp;&emsp;接着是这类工作最重要的实验：分析是否确实在保证了视觉不变性的情况下改变了信号的数据测试：</p>
 <p><img src="/PulseEdit/image-20221207174838630.png" alt="image-20221207174838630"></p>
 <p>&emsp;&emsp;其实还有很多的实验，主要是测试是否能够结合 deepfake 的，和我不太相关，因此不再记录。</p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+        <category>hr</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Privacy-Phys</title>
+    <url>/Privacy_Phys/</url>
+    <content><![CDATA[<h2><center> Privacy-Phys: Facial Video-based Physiological Modification for Privacy Protection </center></h2>
+
+<p>【心率监测】【SPL2022】【<a href="https://ieeexplore.ieee.org/document/9806161/">paper</a>】【<a href>code未开源</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;本文提出了一种基于预训练的 3D-CNN 网络结构用于在保持视觉不变性的基础上修改视频中人脸的 rppg 信号，可以用于 IDEA 中的正样本生成模块之中。另外，本文讲故事的方式是：rppg 信号中具备人的生理和疾病等隐私信息，这些信息不希望被他人窃取，因此使用 PrivacyPhys 方法可以快速地修改 rppg 信号以干扰窃取，可以用于视频软件之中。</p>
+<p>&emsp;&emsp;一个有意思的点在于：本文所谓的预训练的网络其实完全不参与微调，梯度也不用来更新网络参数，而是直接更新结果。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Privacy_Phys/image-20221124091934773.png" alt="image-20221124091934773" style="zoom:80%;"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>一种新的用于修改人脸视频中 rppg 信号的 3DCNN 网络</li>
+<li>该网络修改之后的视频可以混淆当前检测的 SOTA 方法（有点像 deepfake 和 detection 了，好怪)</li>
+<li>相比于之前的大作 PulseEdit，这个方法推理更加迅速</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/Privacy_Phys/image-20221124092312238.png" alt="image-20221124092312238" style="zoom:67%;"></p>
+<p>&emsp;&emsp;本文的前向过程非常简单，首先对于输入的视频 $z$，copy 一份同样的视频 $x$（$x$ 最后就是输出），同时根据人脸分割生成皮肤掩码 $S$，生成 $S$ 的目的是：心率编辑不应当修改除了人脸范围以外的其他像素。</p>
+<p>&emsp;&emsp;接着读入目标心率 $y$，通过一个训练好并且固定权重的 3DCNN，这里是 STN，但也可以使任何可以快速计算的网络，记为 $G_\theta$ ，对 $x$ 进行 rppg 信号提取，提取得到的信号记为 $G_\theta(x)$，然后开始计算 loss。</p>
+<p>&emsp;&emsp;loss 的计算分为两个部分：1.用于保证原始视频和新视频视觉效果一致的损失 $L_{f}$，2.用于保证修改之后的视频提取出的 rppg 信号和目标信号一致的损失 $L_{rppg}$，具体来说：</p>
+<script type="math/tex; mode=display">
+\rm
+\begin{aligned}
+&L_{f}(x,z)=\frac1{T\cdot C\cdot H\cdot W}||x-z||_2^2\\
+&L_{rppg}(G_{\theta^*(x)},y)=L_{rppg}(\hat y,y)=\frac{-cov(\hat y, y)}{\sigma_{\hat y}\cdot \sigma_y}\\
+where\ \ \ \ &\sigma_y=\sqrt{\frac 1 T \sum_{t=1}^Ty(t)^2-(\frac 1 T \sum_{t=1}^Ty(t))^2}\\
+and\ \ \ \ &cov(\hat y,y)=\frac 1 T \sum_{t=1}^T\hat y(t)y(t)-\frac 1 T \sum_{t=1}^T\hat y(t)\cdot\frac 1 T \sum_{t=1}^Ty(t)
+\end{aligned}</script><p>&emsp;&emsp;简单概括来说就是：使用 MSELoss 限制视频的视觉一致性，使用 NPC 限制 rppg 信号的一致性。</p>
+<p>&emsp;&emsp;获得两个损失之后求和得到最终的损失：$L=L_{rppg}+\lambda L_f$，$\lambda$ 用于控制视频和 rppg 信号的重要程度。通过 $L$ 向输出 $x$ 求导得到 $\nabla_xL$，并使用此梯度更新 $x$，但是这里注意更新的其实是 $S\bigotimes x$，也就是只更新人脸 mask 之内的部分。具体实现中直接全部更新，更新之后再做掩码即可。</p>
+<p>&emsp;&emsp;整体来说，本文的优化目标可以看做：</p>
+<script type="math/tex; mode=display">
+x=arg\min_{x\in R^{T\times C\times H\times W}} L_{rppg}(G_\theta(x),y)+\lambda L_f(x,z)\\
+s.t.\ \ S\bigotimes x=S\bigotimes z</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>&emsp;&emsp;本文的创新性比较高，整体的实现有点天马行空，消融实验只能做一下 $\lambda$，其他都是对比实验。</p>
+<ul>
+<li>$\lambda$ 的选择</li>
+</ul>
+<p>&emsp;&emsp;这部分选择了 7 种预训练的模型作为 $G$，分别探索了在不同 $\lambda$ 的选择下对于视频 PSNR 和 rppg 信号 MAE 的平衡性，最终选择了 $\lambda=0.1$（其实我感觉有点怪，这个 PSNR 都最低 51 了 $\dots\dots$ 正常来说 30+ 就是高质量图像了，35+ 都肉眼无法区别了，这意思感觉像是 $\lambda$ 可以不要一样，后面就知道为啥明明都 50+ 了还要选“平衡”）</p>
+<p><img src="/Privacy_Phys/image-20221124101025603.png" alt="image-20221124101025603" style="zoom:80%;"></p>
+<ul>
+<li>和 PulseEdit 的对比</li>
+</ul>
+<p>&emsp;&emsp;同样是之前选择的预训练模型，这里对比了在 PURE 和 MMSE 中和 PulseEdit 的结果，可以看出基本上在正常的 PSNR 下都是 PrivacyPhys 更好一些（就是为了全面超 PulseEdit 才选 0.1 的 $\lambda$ 以提高 PSNR）</p>
+<p><img src="/Privacy_Phys/image-20221124102201504.png" alt="image-20221124102201504"></p>
+<p><img src="/Privacy_Phys/image-20221124101931885.png" alt="image-20221124101931885"></p>
+<ul>
+<li>注意区域的对比</li>
+</ul>
+<p>&emsp;&emsp;可以看出相对来说，PrivacyPhys 还是更加关注了正确的区域，但是总觉得也就那样，和其他的注意力图展示出来差不少，整体来说 rppg fake 或许都不太好。</p>
+<p><img src="/Privacy_Phys/image-20221124102235096.png" alt="image-20221124102235096"></p>
 ]]></content>
       <categories>
         <category>paper</category>
@@ -2532,34 +2532,6 @@ L_v=\frac1d\sum\limits_{i=1}^{d}(\mathrm{CDF}_i(Q)-\mathrm{CDF}_i(P))^2</script>
       </categories>
   </entry>
   <entry>
-    <title>Two_stream_CNN</title>
-    <url>/Two_stream_CNN/</url>
-    <content><![CDATA[<h2 id="Two-stream-convolutional-networks-for-action-recognition-in-videos-【视频动作识别】-NIPS2014"><a href="#Two-stream-convolutional-networks-for-action-recognition-in-videos-【视频动作识别】-NIPS2014" class="headerlink" title="Two-stream convolutional networks for action recognition in videos 【视频动作识别】 NIPS2014"></a><a href="https://proceedings.neurips.cc/paper/2014/file/00ec53c4682d36f5c4359f4ae7bd7ba1-Paper.pdf">Two-stream convolutional networks for action recognition in videos</a> 【视频动作识别】 NIPS2014</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;双流网络是卷积神经网络在视频理解领域的第一个应用，在这之前的视频理解都是基于手工制作的特征，正是从这项工作开始，视频理解领域步入 CNN 时代。虽然早就有人尝试使用 CNN 做视频，但是效果很差，主要原因是 CNN 难以理解视频帧之间的时间变化。双流网络克服了这个问题，提出了使用光流信息代替时间变化的思路，将空间帧和光流帧按顺序输入两个不同的 CNN 网络，将得到的输出通过一个 SVM 分类器进行分类。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Two_stream_CNN/image-20221008092010923.png" alt="image-20221008092010923"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
-<li>使用双向光流图代表时间信息</li>
-<li>对光流图的叠加方式进行了探究</li>
-<li>使用了 JPEG 的方式存储光流图</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p>&emsp;&emsp;本文的网络正如概览，大致是个 AlexNet 变体，对于输入的 video，单帧输入空间流网络，同时抽取光流之后堆叠输入时间流网络，得到的结果通过 SVM 进行分类，两个网络联合训练，是经典且简单的 CNN。</p>
-<h4 id="光流"><a href="#光流" class="headerlink" title="光流"></a>光流</h4><p><img src="/Two_stream_CNN/image-20221008094036062.png" alt="image-20221008094036062"></p>
-<p>&emsp;&emsp;光流顾名思义表示了光的流动，在图像每一帧之间抽取光流，对于 (a)，(b) 两帧抽取光流，将会得到 (c)，(c) 是一个二维表示，每个点有一个梯度，梯度的方向和大小分别代表了点移动的方向和距离，二维表示中的二维分别是水平方向和垂直方向的变化。如果将水平方向和垂直方向的单一维度进行灰度图可视化，将会得到 (d)，(e)。</p>
-<p>&emsp;&emsp;光流是一种直接性的时间变化信息，因此本文使用这种数据的堆叠输入 CNN，帮助 CNN 进行了难以理解的特征的抽取，得出了较好的结果。但是光流存在一些缺点，1.计算较为困难，2.密集表示的光流需要的空间太大。为了解决这些问题，本文提出了一种基于 GPU 方式计算光流的方法，平均计算一张光流图需要 0.06s，同时对于一张 HxWx2 的光流图，本文采用 JPEG 的方式压缩图像，在需要使用的时候再解压缩。这种方式能够在一定程度上解决前两个问题，但是以目前的眼光来看，对于大型数据集，光流预处理时间需要按周/月来计算，存储空间也是 TB 级别。更离谱的是，时至今日，仍然没有人提出更好的处理和存储方式，基本上光流已经被废弃了。</p>
-<h4 id="光流叠加"><a href="#光流叠加" class="headerlink" title="光流叠加"></a>光流叠加</h4><p>&emsp;&emsp;在光流抽取之后，作者认为将光流逐帧输入 CNN 在一定程度上丧失了其时间上的语义信息，因此作者选取连续的 10 个帧，将其光流进行叠加。这里作者探讨了两种叠加方法：</p>
-<p><img src="/Two_stream_CNN/image-20221008100702857.png" alt="image-20221008100702857"></p>
-<p>&emsp;&emsp;图左表示直接进行叠加，也就是单纯地将计算得到的光流按帧排列，然后输入给网络，图右是一种更加利用光流位移信息的叠加方式，对于后一帧的图像，其每个点的梯度继承前一帧同一个点的梯度，两个梯度进行叠加，用于表示当前状态相对于初始状态下的位移情况。看上去第二种叠加更加有效，但实际上单纯的排列会得到更好的效果，作者表示了疑惑但没有解释原因。我猜这是因为对于 CNN 来说，从原始叠加学会梯度移动的叠加并不困难，但是返回来就会很难学习。当然，这也是结果导向的猜测，原始堆叠更好我也能编个理由出来。</p>
-<h4 id="数据组织方式"><a href="#数据组织方式" class="headerlink" title="数据组织方式"></a>数据组织方式</h4><p>&emsp;&emsp;本文的输入数据采样固定数量的帧 ( 25 个) ,它们之间的时间间隔相等。从每一帧中，通过裁剪和翻转帧的四个角和中心，获得 10 个 ConvNet 输入，因此对每一组输入共有 250 维。对于光流图像一致。</p>
-<p>&emsp;&emsp;同时，本文采用了双向光流，也即同时对这个视频倒着计算光流，分别进行输入和计算，和 bi-LSTM 一致。这种方式是稳定的涨点方法，基本等同于平时的金字塔操作。</p>
-]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-        <category>video</category>
-      </categories>
-  </entry>
-  <entry>
     <title>TATS</title>
     <url>/TATS/</url>
     <content><![CDATA[<h2><center> Long Video Generation with Time-Agnostic VQGAN and Time-Sensitive Transformer </center></h2>
@@ -2628,6 +2600,34 @@ L_v=\frac1d\sum\limits_{i=1}^{d}(\mathrm{CDF}_i(Q)-\mathrm{CDF}_i(P))^2</script>
       <categories>
         <category>paper</category>
         <category>cv</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Two_stream_CNN</title>
+    <url>/Two_stream_CNN/</url>
+    <content><![CDATA[<h2 id="Two-stream-convolutional-networks-for-action-recognition-in-videos-【视频动作识别】-NIPS2014"><a href="#Two-stream-convolutional-networks-for-action-recognition-in-videos-【视频动作识别】-NIPS2014" class="headerlink" title="Two-stream convolutional networks for action recognition in videos 【视频动作识别】 NIPS2014"></a><a href="https://proceedings.neurips.cc/paper/2014/file/00ec53c4682d36f5c4359f4ae7bd7ba1-Paper.pdf">Two-stream convolutional networks for action recognition in videos</a> 【视频动作识别】 NIPS2014</h2><h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>&emsp;&emsp;双流网络是卷积神经网络在视频理解领域的第一个应用，在这之前的视频理解都是基于手工制作的特征，正是从这项工作开始，视频理解领域步入 CNN 时代。虽然早就有人尝试使用 CNN 做视频，但是效果很差，主要原因是 CNN 难以理解视频帧之间的时间变化。双流网络克服了这个问题，提出了使用光流信息代替时间变化的思路，将空间帧和光流帧按顺序输入两个不同的 CNN 网络，将得到的输出通过一个 SVM 分类器进行分类。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/Two_stream_CNN/image-20221008092010923.png" alt="image-20221008092010923"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><ul>
+<li>使用双向光流图代表时间信息</li>
+<li>对光流图的叠加方式进行了探究</li>
+<li>使用了 JPEG 的方式存储光流图</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p>&emsp;&emsp;本文的网络正如概览，大致是个 AlexNet 变体，对于输入的 video，单帧输入空间流网络，同时抽取光流之后堆叠输入时间流网络，得到的结果通过 SVM 进行分类，两个网络联合训练，是经典且简单的 CNN。</p>
+<h4 id="光流"><a href="#光流" class="headerlink" title="光流"></a>光流</h4><p><img src="/Two_stream_CNN/image-20221008094036062.png" alt="image-20221008094036062"></p>
+<p>&emsp;&emsp;光流顾名思义表示了光的流动，在图像每一帧之间抽取光流，对于 (a)，(b) 两帧抽取光流，将会得到 (c)，(c) 是一个二维表示，每个点有一个梯度，梯度的方向和大小分别代表了点移动的方向和距离，二维表示中的二维分别是水平方向和垂直方向的变化。如果将水平方向和垂直方向的单一维度进行灰度图可视化，将会得到 (d)，(e)。</p>
+<p>&emsp;&emsp;光流是一种直接性的时间变化信息，因此本文使用这种数据的堆叠输入 CNN，帮助 CNN 进行了难以理解的特征的抽取，得出了较好的结果。但是光流存在一些缺点，1.计算较为困难，2.密集表示的光流需要的空间太大。为了解决这些问题，本文提出了一种基于 GPU 方式计算光流的方法，平均计算一张光流图需要 0.06s，同时对于一张 HxWx2 的光流图，本文采用 JPEG 的方式压缩图像，在需要使用的时候再解压缩。这种方式能够在一定程度上解决前两个问题，但是以目前的眼光来看，对于大型数据集，光流预处理时间需要按周/月来计算，存储空间也是 TB 级别。更离谱的是，时至今日，仍然没有人提出更好的处理和存储方式，基本上光流已经被废弃了。</p>
+<h4 id="光流叠加"><a href="#光流叠加" class="headerlink" title="光流叠加"></a>光流叠加</h4><p>&emsp;&emsp;在光流抽取之后，作者认为将光流逐帧输入 CNN 在一定程度上丧失了其时间上的语义信息，因此作者选取连续的 10 个帧，将其光流进行叠加。这里作者探讨了两种叠加方法：</p>
+<p><img src="/Two_stream_CNN/image-20221008100702857.png" alt="image-20221008100702857"></p>
+<p>&emsp;&emsp;图左表示直接进行叠加，也就是单纯地将计算得到的光流按帧排列，然后输入给网络，图右是一种更加利用光流位移信息的叠加方式，对于后一帧的图像，其每个点的梯度继承前一帧同一个点的梯度，两个梯度进行叠加，用于表示当前状态相对于初始状态下的位移情况。看上去第二种叠加更加有效，但实际上单纯的排列会得到更好的效果，作者表示了疑惑但没有解释原因。我猜这是因为对于 CNN 来说，从原始叠加学会梯度移动的叠加并不困难，但是返回来就会很难学习。当然，这也是结果导向的猜测，原始堆叠更好我也能编个理由出来。</p>
+<h4 id="数据组织方式"><a href="#数据组织方式" class="headerlink" title="数据组织方式"></a>数据组织方式</h4><p>&emsp;&emsp;本文的输入数据采样固定数量的帧 ( 25 个) ,它们之间的时间间隔相等。从每一帧中，通过裁剪和翻转帧的四个角和中心，获得 10 个 ConvNet 输入，因此对每一组输入共有 250 维。对于光流图像一致。</p>
+<p>&emsp;&emsp;同时，本文采用了双向光流，也即同时对这个视频倒着计算光流，分别进行输入和计算，和 bi-LSTM 一致。这种方式是稳定的涨点方法，基本等同于平时的金字塔操作。</p>
+]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+        <category>video</category>
       </categories>
   </entry>
   <entry>
@@ -2825,33 +2825,6 @@ L_v=\frac1d\sum\limits_{i=1}^{d}(\mathrm{CDF}_i(Q)-\mathrm{CDF}_i(P))^2</script>
       </categories>
   </entry>
   <entry>
-    <title>layered-neural-atlases</title>
-    <url>/layered-neural-atlases/</url>
-    <content><![CDATA[<h2><center> Layered Neural Atlases for Consistent Video Editing </center></h2>
-
-<p>【视频编辑】【SIGA2021】【<a href="https://arxiv.org/pdf/2109.11418.pdf">paper</a>】【<a href="https://github.com/ykasten/layered-neural-atlases">code</a>】</p>
-<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>ds；本文使用基于 NeRF 的进行了视频编辑的工作。得到的模型将输入视频分为前景和背景并分别映射到两个图层。允许对背景图层或者前景图层的编辑并且一致性地传播到整个视频之中从而达到编辑视频的效果。本文除了 PSNR 之外没有其他数据指标，多为定性研究与消融实验。</p>
-<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/layered-neural-atlases/image-20221212163203372.png" alt="image-20221212163203372"></p>
-<span id="more"></span>
-<hr>
-<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><p>（视频编辑第一次接触，都挺新的）</p>
-<ul>
-<li>仅使用四个 MLP 作为整个网络的 backbone</li>
-<li>对不同的数据来说，测试集和训练集一致，并且模型不可泛化</li>
-<li>设计了多个损失函数，针对可能出现的不同问题进行特有的限制</li>
-</ul>
-<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/layered-neural-atlases/image-20221214093448979.png" alt="image-20221214093448979" style="zoom:67%;"></p>
-<p>ds；本文含参的网络模块只有四个，分别对应上图的：$\mathbb M_b, \mathbb M_f, \mathbb M_\alpha, \mathbb A$，这四个网络都是 MLP 结构，具体参数量不同</p>
-<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><script type="math/tex; mode=display">
-math\_express</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><hr>
-<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3>]]></content>
-      <categories>
-        <category>paper</category>
-        <category>cv</category>
-        <category>video</category>
-      </categories>
-  </entry>
-  <entry>
     <title>docx and help</title>
     <url>/docxs/</url>
     <content><![CDATA[<h2 id="文档教程收集"><a href="#文档教程收集" class="headerlink" title="文档教程收集"></a>文档教程收集</h2><p>&emsp;速查包括【markdown、 cuda编程、系统指令、Python三方库】 等文档或教程</p>
@@ -2979,6 +2952,33 @@ math\_express</script><h3 id="结果"><a href="#结果" class="headerlink" title
       </categories>
   </entry>
   <entry>
+    <title>layered-neural-atlases</title>
+    <url>/layered-neural-atlases/</url>
+    <content><![CDATA[<h2><center> Layered Neural Atlases for Consistent Video Editing </center></h2>
+
+<p>【视频编辑】【SIGA2021】【<a href="https://arxiv.org/pdf/2109.11418.pdf">paper</a>】【<a href="https://github.com/ykasten/layered-neural-atlases">code</a>】</p>
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><p>ds；本文使用基于 NeRF 的进行了视频编辑的工作。得到的模型将输入视频分为前景和背景并分别映射到两个图层。允许对背景图层或者前景图层的编辑并且一致性地传播到整个视频之中从而达到编辑视频的效果。本文除了 PSNR 之外没有其他数据指标，多为定性研究与消融实验。</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><p><img src="/layered-neural-atlases/image-20221212163203372.png" alt="image-20221212163203372"></p>
+<span id="more"></span>
+<hr>
+<h3 id="创新"><a href="#创新" class="headerlink" title="创新"></a>创新</h3><p>（视频编辑第一次接触，都挺新的）</p>
+<ul>
+<li>仅使用四个 MLP 作为整个网络的 backbone</li>
+<li>对不同的数据来说，测试集和训练集一致，并且模型不可泛化</li>
+<li>设计了多个损失函数，针对可能出现的不同问题进行特有的限制</li>
+</ul>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p><img src="/layered-neural-atlases/image-20221214093448979.png" alt="image-20221214093448979" style="zoom:67%;"></p>
+<p>ds；本文含参的网络模块只有四个，分别对应上图的：$\mathbb M_b, \mathbb M_f, \mathbb M_\alpha, \mathbb A$，这四个网络都是 MLP 结构，具体参数量不同</p>
+<h3 id="损失"><a href="#损失" class="headerlink" title="损失"></a>损失</h3><script type="math/tex; mode=display">
+math\_express</script><h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><hr>
+<h3 id="启发"><a href="#启发" class="headerlink" title="启发"></a>启发</h3>]]></content>
+      <categories>
+        <category>paper</category>
+        <category>cv</category>
+        <category>video</category>
+      </categories>
+  </entry>
+  <entry>
     <title>LeetCode-5 最长回文子串</title>
     <url>/leetcode_5/</url>
     <content><![CDATA[<h2 id="LeetCode-5-最长回文子串【M】"><a href="#LeetCode-5-最长回文子串【M】" class="headerlink" title="LeetCode-5 最长回文子串【M】"></a><a href="https://leetcode-cn.com/problems/longest-palindromic-substring/">LeetCode-5 最长回文子串</a>【M】</h2><h3 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h3><p>给你一个字符串 s，找到 s 中最长的回文子串。</p>
@@ -3018,6 +3018,22 @@ math\_express</script><h3 id="结果"><a href="#结果" class="headerlink" title
       <categories>
         <category>code</category>
         <category>LeetCode</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>LeetCode-XX XXXX</title>
+    <url>/leetcode_template/</url>
+    <content><![CDATA[<h2 id="LeetCode-XX-XXXX"><a href="#LeetCode-XX-XXXX" class="headerlink" title="LeetCode-XX XXXX"></a>LeetCode-XX XXXX</h2><h3 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h3><span id="more"></span>
+<hr>
+<h3 id="解题思路"><a href="#解题思路" class="headerlink" title="解题思路"></a>解题思路</h3><h4 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h4><p>时间复杂度：</p>
+<p>空间复杂度：</p>
+<h4 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+<h4 id="提交结果"><a href="#提交结果" class="headerlink" title="提交结果"></a>提交结果</h4><p>时间——$\%$</p>
+<p>空间——$\%$</p>
+<hr>
+]]></content>
+      <categories>
+        <category>template</category>
       </categories>
   </entry>
   <entry>
@@ -3071,22 +3087,6 @@ math\_express</script><h3 id="结果"><a href="#结果" class="headerlink" title
 <hr>
 <h3 id="contribution"><a href="#contribution" class="headerlink" title="contribution"></a>contribution</h3><h3 id="framework"><a href="#framework" class="headerlink" title="framework"></a>framework</h3><script type="math/tex; mode=display">
 math\_express</script><h3 id="experiment"><a href="#experiment" class="headerlink" title="experiment"></a>experiment</h3>]]></content>
-      <categories>
-        <category>template</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>LeetCode-XX XXXX</title>
-    <url>/leetcode_template/</url>
-    <content><![CDATA[<h2 id="LeetCode-XX-XXXX"><a href="#LeetCode-XX-XXXX" class="headerlink" title="LeetCode-XX XXXX"></a>LeetCode-XX XXXX</h2><h3 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h3><span id="more"></span>
-<hr>
-<h3 id="解题思路"><a href="#解题思路" class="headerlink" title="解题思路"></a>解题思路</h3><h4 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h4><p>时间复杂度：</p>
-<p>空间复杂度：</p>
-<h4 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
-<h4 id="提交结果"><a href="#提交结果" class="headerlink" title="提交结果"></a>提交结果</h4><p>时间——$\%$</p>
-<p>空间——$\%$</p>
-<hr>
-]]></content>
       <categories>
         <category>template</category>
       </categories>
@@ -3667,76 +3667,80 @@ g(x)=W_g\times x</script><p>&emsp;&emsp;显然，对于 方程 $(2)$ 的前半�
       </categories>
   </entry>
   <entry>
-    <title>复数</title>
-    <url>/%E5%A4%8D%E6%95%B0/</url>
-    <content><![CDATA[<h3 id="分母有理化"><a href="#分母有理化" class="headerlink" title="分母有理化"></a>分母有理化</h3><span id="more"></span>
-<p>定义：将分母中含有根式的分数通过变化使得分母中仅含有有理数</p>
-<p>:warning:平方差公式：$(a+b)(a-b)=a^2-b^2$</p>
+    <title>图像对齐和图像拼接</title>
+    <url>/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/</url>
+    <content><![CDATA[<p>👉👉👉👉👉👉本次实验选取来自 <a href="http://www.liushuaicheng.org/TIP/VideoStitching2016/index.html">论文</a> 的数据集  video2 的视频帧，通过 SIFT 特征点检测进行图像对齐，其第一帧的左，右视图如下：</p>
+<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127210155800.png" alt="image-20221127210155800" style="zoom: 150%;"></p>
+<span id="more"></span>
+<h3 id="图像的-SIFT-特征检测原理"><a href="#图像的-SIFT-特征检测原理" class="headerlink" title="图像的 SIFT 特征检测原理"></a>图像的 SIFT 特征检测原理</h3><p>&emsp;&emsp;SIFT 特征全称 Scale Invariant Feature Transform（尺度不变特征变换），通过 SIFT 生成的特征点具备对旋转、尺度缩放、平移、亮度变化、视角变化、仿射变换、噪声的鲁棒性。</p>
+<p>&emsp;&emsp;为了寻找视觉不变性的特征，需要对图像使用尺度空间方法，即在图像模型中引入尺度参数。常见的尺度空间由 LoG 产生，但是 LoG 较难计算，后面发现 DoG 能够近似代替 LoG，因此 SIFT 使用 DoG 空间作为尺度空间获取关键点。</p>
+<h4 id="DoG-空间的计算"><a href="#DoG-空间的计算" class="headerlink" title="DoG 空间的计算"></a>DoG 空间的计算</h4><p>&emsp;&emsp;对 DoG 空间的有效性可以这样理解：使用高 $\sigma$ 和低 $\sigma$ 分别产生的模糊与不模糊的图像作差即可得到边缘。这也解释了 DoG 空间检测出的极值点实际上对边缘具备更强的响应。</p>
+<p>&emsp;&emsp;在计算 DoG 空间之前需要先计算 SIFT 高斯金字塔，区别于普通的高斯金字塔，SIFT 高斯金字塔每一层具有多个图像，每一层最低端的图像单独拿出来就是普通的高斯金字塔。在金字塔的每一层内，从下往上的 $\sigma$ 逐渐增大，即在每一层内越向上的图像越模糊。</p>
+<p>&emsp;&emsp;对于构建好的 SIFT 金字塔中每个层的图像做上下差分，即可得到 DoG 空间。</p>
+<h4 id="使用-DoG-空间获取极值点"><a href="#使用-DoG-空间获取极值点" class="headerlink" title="使用 DoG 空间获取极值点"></a>使用 DoG 空间获取极值点</h4><p>&emsp;&emsp;这里采用的判断逻辑是斑点的判断方式，但是和斑点不同的是 DoG 的极值点需要额外对比上下两层的点，类似于使用 3Dconv 进行卷积。 </p>
+<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127203341901.png" alt="image-20221127203341901"></p>
+<h4 id="关键点处理"><a href="#关键点处理" class="headerlink" title="关键点处理"></a>关键点处理</h4><p>&emsp;&emsp;对于上一步中获得的极值点，其具备一些缺点：1. 对边缘响应太大，2. 同一个特征检测出的特征点较多，3. 特征点是离散像素，位置不够精确。而对于这些缺点，接下来需要进一步处理这些特征点。</p>
+<p>&emsp;&emsp;对于边缘响应问题，需要计算特征点处的 Hessian 矩阵 H，这个矩阵的特征值代表了 x, y 方向的梯度，接下来需要利用两个特征值的比计算出一个阈值，将横边缘相比垂直边缘具备较大主曲率的特征点剔除；对于特征点多的问题，采用 NMS 过一遍即可；对于离散像素位置不精确问题，需要对尺度空间进行曲线拟合，利用 DoG 函数的泰勒展开计算出插值中心的偏移量，针对偏移量的大小判断是否需要改变关键点位置并逐次迭代，最终插值中心就是原位置加上基于尺度的偏移量。</p>
+<h4 id="估计关键点方向"><a href="#估计关键点方向" class="headerlink" title="估计关键点方向"></a>估计关键点方向</h4><p>&emsp;&emsp;由于关键点同时应当具备旋转不变形，因此需要确定关键点的方向，其做法如下：</p>
 <ul>
-<li>分母中仅含有根式</li>
+<li>在不同的尺度上计算图像的梯度，计算范围是特征点的邻域，然后统计成直方图</li>
+<li>将直方图中最大值的梯度定为主方向，超过最大值80%的方向定为辅方向【将所有的梯度归到八个正交方向上】</li>
 </ul>
-<script type="math/tex; mode=display">
-\frac {1+\sqrt 2}{\sqrt 3}\to(上下同\times分母)\to\frac {(1+\sqrt2)\sqrt3}{\sqrt3\times\sqrt3}\to\frac{\sqrt3+\sqrt6}{3}</script><ul>
-<li>分母中含有根式和整式</li>
-</ul>
-<script type="math/tex; mode=display">
-\frac{1+\sqrt2}{\sqrt3+1}\to(上下同\times分母的平方差公式)\to\frac{(1+\sqrt2)(\sqrt3-1)}{(\sqrt3+1)(\sqrt3-1)}\to\frac{\sqrt3-1+\sqrt6-\sqrt2}{2}</script><hr>
-<h3 id="虚数-复数"><a href="#虚数-复数" class="headerlink" title="虚数 / 复数"></a>虚数 / 复数</h3><p><img src="/%E5%A4%8D%E6%95%B0/image-20221029094307137.png" alt="image-20221029094307137"></p>
+<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127204838014.png" alt="image-20221127204838014" style="zoom:50%;"></p>
+<h4 id="生成关键点的描述子"><a href="#生成关键点的描述子" class="headerlink" title="生成关键点的描述子"></a>生成关键点的描述子</h4><p>&emsp;&emsp;为了保证旋转不变性，需要将特征点邻域内的图像旋转一个方向角 $\theta$，然后重新栅格化图像，更新梯度。接着对每个特征点的邻域分成十六个子邻域，每个子邻域的梯度分到八个方向，统计各个方向的梯度信息最终形成一个 128 维度的向量作为特征描述。</p>
+<p>&emsp;&emsp;为了去除光照产生的影响，对特征向量进行归一化处理，然后为了去除相机饱和度等因素的影响，对梯度较大的值进行截断（0.2），然后再进行一次归一化，最终根据特征点的尺度对特征向量进行排序即可得到最终的描述子。</p>
+<p>👉👉👉👉👉👉经过 SIFT 特征检测得到的特征如下图所示</p>
+<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127210417139.png" alt="image-20221127210417139" style="zoom:150%;"></p>
+<h3 id="特征描述子的距离匹配和-RANSAC-方法"><a href="#特征描述子的距离匹配和-RANSAC-方法" class="headerlink" title="特征描述子的距离匹配和 RANSAC 方法"></a>特征描述子的距离匹配和 RANSAC 方法</h3><p>&emsp;&emsp;为了描述特征的距离，可以使用简单的 L2 距离，但是这样对于比较接近的特征点会出现错误匹配的情况。</p>
+<p>&emsp;&emsp;因此更多的选用 ratio distance，即 $ d=\frac{||f_1-f_2||}{||f_1-f_2’||}$，这种方式计算了第一相似的点和第二相似的点之间的相似度差距，这种差距比较大是符合我们期望的，因为比较大就代表了我们得到的特征混淆可能性低，反之则代表相似的特征点比较多，这个特征不太合适用作对齐。</p>
+<p>&emsp;&emsp;而对于 RANSAC 方法，其本身是一个从误匹配或离群点较多的数据中正确估计数学模型的方法。该方法是基于迭代的概率性算法，其假设为：内点表示正常的数据点，而外点表示误匹配和离群点，整个数据集由内点和外点组成。</p>
 <ul>
-<li>虚数即在实数轴之外的部分，基本单位是 $i$ ，并且 $i^2=-1$<ul>
-<li>虚数的运算除了 $i^2=-1$ 之外，其余和实数完全一致</li>
-<li>$i^3=i^2\times i=-1\times i=-i$，更复杂的计算如下：</li>
+<li>选择出可以估计出模型的最小数据集（对于 H 矩阵随机选择 4 个点即可）</li>
+<li>使用这个数据集计算出模型 H</li>
+<li>将所有数据代入 H，计算内点的数目，比较当前的内点数目和之前最好的内点数，并且选择是否更新模型</li>
+<li>重复前三步，直到目前的内点数目大于给定的阈值或超过迭代次数</li>
 </ul>
-</li>
-</ul>
-<script type="math/tex; mode=display">
-(3i^3+2)(i-1)\\=3i^4-3i^3+2i-2\\=3+3i+2i-2\\=1+5i</script><ul>
-<li><strong>复数</strong>即虚数与实数的组合，基本表示形式为 $z=a+bi$，其中 $a,b\in R$<ul>
-<li>实部/虚部<ul>
-<li>其中 $a$ 叫做复数 $z$ 实部，$bi$ 叫做复数 $z$ 的虚部</li>
-<li>:warning: $a,b$ 均可以为 0，也就是说 <strong>所有的 纯实数/纯虚数 本身就是复数</strong></li>
-</ul>
-</li>
-<li>复平面<ul>
-<li>复数 $a+bi$ 在复平面对应点 $(a,b)$</li>
-</ul>
-</li>
-<li>复数的模<ul>
-<li>对于 $z=a+bi$，$z$ 的模 $|z|=\sqrt{a^2+b^2}$</li>
-</ul>
-</li>
-<li>共轭复数<ul>
-<li>对于 $z=a+bi$，$z$ 的共轭(复数) $\bar z=a-bi$ </li>
-</ul>
-</li>
-</ul>
-</li>
-<li>复数的例子：<ul>
-<li>对于 $z=1+2i$<ul>
-<li>$z$ 的实部为 $1$，虚部为 $2i$</li>
-<li>$z$ 在复平面对应的点为 $(1,2)$</li>
-<li>$z$ 的模 $|z|=\sqrt{1^2+2^2}=\sqrt 5$</li>
-<li>$z$ 的共轭 $\bar z=1-2i$</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<hr>
-<h3 id="复数分母实数化"><a href="#复数分母实数化" class="headerlink" title="复数分母实数化"></a>复数分母实数化</h3><p>定义：将分母中含有虚部的分数通过变化使得分母中仅含有实数</p>
+<p>&emsp;&emsp;这里的迭代次数是可以计算的，假设总数据中内点的概率为 $t$，预期能够获取的模型 H 的正确概率为 $P$，每次模型采样 $N$ 个点，（H 矩阵为 4）则迭代次数 $k=\frac{\log (1-P)}{\log (1-t^N)}$。</p>
+<p>👉👉👉👉👉👉对 SIFT 特征子的距离匹配（仅匹配概率最大的前 100 个点）</p>
+<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127211847840.png" alt="image-20221127211847840" style="zoom:150%;"></p>
+<p>👉👉👉👉👉👉使用 RANSAC 方法找到在上述匹配中的内点，并且构造出模型 H，结果为：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">H = [[ <span class="number">9.03698224e-01</span> -<span class="number">3.28876988e-02</span>  <span class="number">1.58813667e+02</span>]</span><br><span class="line"> [-<span class="number">2.37023637e-02</span>  <span class="number">9.45220683e-01</span>  <span class="number">5.04870429e+01</span>]</span><br><span class="line"> [-<span class="number">7.30423646e-05</span> -<span class="number">2.73295440e-05</span>  <span class="number">1.00000000e+00</span>]]</span><br></pre></td></tr></table></figure>
+<h3 id="基于单应矩阵-H-的图像变换与拼接"><a href="#基于单应矩阵-H-的图像变换与拼接" class="headerlink" title="基于单应矩阵 H 的图像变换与拼接"></a>基于单应矩阵 H 的图像变换与拼接</h3><p>&emsp;&emsp;基于已经求出的单应矩阵 H，使用 warp 方法对左图进行 Perspective 变换得到 warp 之后的图像以及合成之后的总图像：</p>
+<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127212531760.png" alt="image-20221127212531760" style="zoom:150%;"></p>
+<p>&emsp;&emsp;其中图像融合的方法为：</p>
 <ul>
-<li>分母中仅含有虚部</li>
+<li>对左图进行 warp</li>
+<li>将右图填充到左图的左侧</li>
 </ul>
-<script type="math/tex; mode=display">
-\frac{1+2i}{3i}\to(上下同\times i)\to \frac{(1+2i)i}{3i^2}\to\frac{i+2i^2}{3i^2}\to\frac{i-2}{-3}\to\frac{2-i}{3}\\=\frac2 3-\frac1 3i</script><ul>
-<li>分母中实部虚部都不为零</li>
-</ul>
-<script type="math/tex; mode=display">
-\frac{1+2i}{3i+1}\to(上下同\times分母的平方差公式)\to\frac{(1+2i)(3i-1)}{(3i+1)(3i-1)}\to\frac{3i-1+6i^2-2i}{9i^2-1}\to\frac{i-7}{-10}\\=\frac7 {10}-\frac1{10}i</script><p>例题1：</p>
-<p><img src="/%E5%A4%8D%E6%95%B0/image-20221029100826673.png" alt="image-20221029100826673"></p>
-<script type="math/tex; mode=display">
-解：\frac{i(1+i)}{(1-i)(1+i)}=\frac{i+i^2}{1-i^2}\to\frac{i-1}{2}\\=-\frac1 2+\frac1 2i</script><p>因此对应点坐标为 $(-\frac1 2,\frac1 2)$ 即第二象限，选 $B$</p>
+<p>&emsp;&emsp;这里无论是计算 left 映射到 right 的 H 矩阵还是计算 right 到 left 的 H 矩阵都可以得到同样的结果，从效果上看，右面似乎更好一些，但是这是和图像质量密切相关的：</p>
+<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127213833895.png" alt="image-20221127213833895" style="zoom:150%;"></p>
+<h3 id="实验总结"><a href="#实验总结" class="headerlink" title="实验总结"></a>实验总结</h3><p>&emsp;&emsp;实验的关键在于是否使用 RANSAC 方法，也就是对于不同特征点的匹配性，消融实验如下：</p>
+<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127214148342.png" alt="image-20221127214148342" style="zoom:150%;"></p>
+<p>&emsp;&emsp;这里尽管没有使用 RANSAC 方法，warp 之后的图像看上去也没有失真，这是因为之前 match 的特征点仅保留了最接近的 100 个，可见尽管如此仍然由不少的离群点，而如果保留 1000 个match 特征点，不使用 RANSAC 方法则会完全失真，实验结果如下。</p>
+<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127214843068.png" alt="image-20221127214843068" style="zoom:150%;"></p>
+<h3 id="demo"><a href="#demo" class="headerlink" title="demo"></a>demo</h3><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#%% import</span></span><br><span class="line"><span class="keyword">import</span> cv2</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="comment">#%% read image</span></span><br><span class="line">left_img = cv2.imread(<span class="string">&#x27;left.png&#x27;</span>)</span><br><span class="line">right_img = cv2.imread(<span class="string">&#x27;right.png&#x27;</span>)</span><br><span class="line">fig, ax = plt.subplots(<span class="number">1</span>, <span class="number">2</span>, figsize=(<span class="number">10</span>, <span class="number">5</span>))</span><br><span class="line">ax[<span class="number">0</span>].imshow(left_img)</span><br><span class="line">ax[<span class="number">0</span>].set_title(<span class="string">&#x27;Left Image&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>].imshow(right_img)</span><br><span class="line">ax[<span class="number">1</span>].set_title(<span class="string">&#x27;Right Image&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line"><span class="comment">#%% SIFT feature detection</span></span><br><span class="line">li_gray = cv2.cvtColor(left_img, cv2.COLOR_BGR2GRAY)</span><br><span class="line">ri_gray = cv2.cvtColor(right_img, cv2.COLOR_BGR2GRAY)</span><br><span class="line">sift = cv2.SIFT_create()</span><br><span class="line">kp1, des1 = sift.detectAndCompute(li_gray, <span class="literal">None</span>)</span><br><span class="line">kp2, des2 = sift.detectAndCompute(ri_gray, <span class="literal">None</span>)</span><br><span class="line">li, ri = left_img.copy(), right_img.copy()</span><br><span class="line">cv2.drawKeypoints(li, kp1, li, (<span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>))</span><br><span class="line">cv2.drawKeypoints(ri, kp2, ri, (<span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>))</span><br><span class="line">fig, ax = plt.subplots(<span class="number">1</span>, <span class="number">2</span>, figsize=(<span class="number">10</span>, <span class="number">5</span>))</span><br><span class="line">ax[<span class="number">0</span>].imshow(li)</span><br><span class="line">ax[<span class="number">0</span>].set_title(<span class="string">&#x27;Left Image&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>].imshow(ri)</span><br><span class="line">ax[<span class="number">1</span>].set_title(<span class="string">&#x27;Right Image&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line"><span class="comment">#%% feature matching</span></span><br><span class="line">matcher = cv2.DescriptorMatcher_create(<span class="string">&quot;BruteForce&quot;</span>)</span><br><span class="line">matches = <span class="built_in">list</span>(matcher.match(des1, des2, <span class="literal">None</span>))</span><br><span class="line">matches.sort(key=<span class="keyword">lambda</span> x: x.distance, reverse=<span class="literal">False</span>)</span><br><span class="line">matches_all = matches.copy()</span><br><span class="line">matches = matches[:<span class="number">100</span>]</span><br><span class="line">imMatches = cv2.drawMatches(left_img, kp1, right_img, kp2, matches, <span class="literal">None</span>)</span><br><span class="line">fig, ax = plt.subplots(<span class="number">1</span>, <span class="number">1</span>, figsize=(<span class="number">10</span>, <span class="number">5</span>))</span><br><span class="line">ax.imshow(imMatches)</span><br><span class="line">ax.set_title(<span class="string">&#x27;Matches&#x27;</span>)</span><br><span class="line">ax.axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line"><span class="comment">#%% RANSAC to find homography H</span></span><br><span class="line">match_kp_left = np.array([kp1[m.queryIdx].pt <span class="keyword">for</span> m <span class="keyword">in</span> matches])</span><br><span class="line">match_kp_right = np.array([kp2[m.trainIdx].pt <span class="keyword">for</span> m <span class="keyword">in</span> matches])</span><br><span class="line"><span class="comment"># (H, status) = cv2.findHomography(match_kp_left, match_kp_right, cv2.RANSAC, 4.0)</span></span><br><span class="line">(H2, status2) = cv2.findHomography(match_kp_left, match_kp_right, <span class="literal">None</span>, <span class="number">4.0</span>)</span><br><span class="line"></span><br><span class="line">match_kp_left_all = np.array([kp1[m.queryIdx].pt <span class="keyword">for</span> m <span class="keyword">in</span> matches_all])</span><br><span class="line">match_kp_right_all = np.array([kp2[m.trainIdx].pt <span class="keyword">for</span> m <span class="keyword">in</span> matches_all])</span><br><span class="line">(H, status) = cv2.findHomography(match_kp_left_all, match_kp_right_all, cv2.RANSAC, <span class="number">4.0</span>)</span><br><span class="line">(H3, status3) = cv2.findHomography(match_kp_left_all, match_kp_right_all, <span class="literal">None</span>, <span class="number">4.0</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;H = <span class="subst">&#123;H&#125;</span>&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;H2 = <span class="subst">&#123;H2&#125;</span>&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;H3 = <span class="subst">&#123;H3&#125;</span>&#x27;</span>)</span><br><span class="line"><span class="comment"># H =&gt; 使用 RANSAC 算法计算的单应性矩阵，保留特征点前 100 个</span></span><br><span class="line"><span class="comment"># H2 =&gt; 不使用 RANSAC 算法计算的单应性矩阵，保留特征点前 100 个</span></span><br><span class="line"><span class="comment"># H3 =&gt; 不使用 RANSAC 算法计算的单应性矩阵，保留特征点前 1000 个</span></span><br><span class="line"><span class="comment">#%% warp image</span></span><br><span class="line">warp_left = cv2.warpPerspective(left_img, H, (left_img.shape[<span class="number">1</span>] + right_img.shape[<span class="number">1</span>], left_img.shape[<span class="number">0</span>]))</span><br><span class="line">warp_all = warp_left.copy()</span><br><span class="line">warp_all[<span class="number">0</span>:right_img.shape[<span class="number">0</span>], <span class="number">0</span>:right_img.shape[<span class="number">1</span>]] = right_img</span><br><span class="line">fig, ax = plt.subplots(<span class="number">2</span>, <span class="number">1</span>, figsize=(<span class="number">10</span>, <span class="number">5</span>))</span><br><span class="line">ax[<span class="number">0</span>].imshow(warp_left)</span><br><span class="line">ax[<span class="number">0</span>].set_title(<span class="string">&#x27;Warp Left Image&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>].imshow(warp_all)</span><br><span class="line">ax[<span class="number">1</span>].set_title(<span class="string">&#x27;Warp All Image&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line"><span class="comment">#%% warp image w/o RANSAC in 100 matches</span></span><br><span class="line">warp_left_none = cv2.warpPerspective(left_img, H2, (left_img.shape[<span class="number">1</span>] + right_img.shape[<span class="number">1</span>], left_img.shape[<span class="number">0</span>]))</span><br><span class="line">warp_all_none = warp_left_none.copy()</span><br><span class="line">warp_all_none[<span class="number">0</span>:right_img.shape[<span class="number">0</span>], <span class="number">0</span>:right_img.shape[<span class="number">1</span>]] = right_img</span><br><span class="line">fig, ax = plt.subplots(<span class="number">2</span>, <span class="number">2</span>, figsize=(<span class="number">10</span>, <span class="number">5</span>))</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">0</span>].imshow(warp_left_none)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">0</span>].set_title(<span class="string">&#x27;Warp Left Image none&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">1</span>].imshow(warp_all_none)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">1</span>].set_title(<span class="string">&#x27;Warp All Image none&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">0</span>].imshow(warp_left)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">0</span>].set_title(<span class="string">&#x27;Warp Left Image RANSAC&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">1</span>].imshow(warp_all)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">1</span>].set_title(<span class="string">&#x27;Warp All Image RANSAC&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line"><span class="comment">#%% warp image w/o RANSAC in 1000 matches</span></span><br><span class="line">warp_left_all = cv2.warpPerspective(left_img, H3, (left_img.shape[<span class="number">1</span>] + right_img.shape[<span class="number">1</span>], left_img.shape[<span class="number">0</span>]))</span><br><span class="line">warp_all_all = warp_left_all.copy()</span><br><span class="line">warp_all_all[<span class="number">0</span>:right_img.shape[<span class="number">0</span>], <span class="number">0</span>:right_img.shape[<span class="number">1</span>]] = right_img</span><br><span class="line">fig, ax = plt.subplots(<span class="number">2</span>, <span class="number">2</span>, figsize=(<span class="number">10</span>, <span class="number">5</span>))</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">0</span>].imshow(warp_left_all)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">0</span>].set_title(<span class="string">&#x27;Warp Left Image None 1000&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">1</span>].imshow(warp_all_all)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">1</span>].set_title(<span class="string">&#x27;Warp All Image None 1000&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">0</span>].imshow(warp_left)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">0</span>].set_title(<span class="string">&#x27;Warp Left Image RANSAC 1000&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">1</span>].imshow(warp_all)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">1</span>].set_title(<span class="string">&#x27;Warp All Image RANSAC 1000&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br></pre></td></tr></table></figure>
 ]]></content>
+      <categories>
+        <category>methods</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>空间解析几何</title>
+    <url>/%E7%A9%BA%E9%97%B4%E8%A7%A3%E6%9E%90%E5%87%A0%E4%BD%95/</url>
+    <content><![CDATA[<h2 id="空间解析几何"><a href="#空间解析几何" class="headerlink" title="空间解析几何"></a>空间解析几何</h2><span id="more"></span>
+<p><img src="/%E7%A9%BA%E9%97%B4%E8%A7%A3%E6%9E%90%E5%87%A0%E4%BD%95/image-20221029104845216.png" alt="image-20221029104845216"></p>
+<p>求解步骤：</p>
+<ul>
+<li>:pensive:写坐标（建立空间直角坐标系 $o-xyz$，并写出各个点的空间坐标）</li>
+<li>:smile:写向量（根据写出的坐标求出一些向量的坐标）</li>
+<li>:pensive:求法向量（根据同一个平面上两个向量坐标求出平面法向量）</li>
+<li>:pensive:求解（解 二面角 / 线面角 的 正弦 / 余弦 / 角度）</li>
+</ul>
+<h3 id="建系-写坐标"><a href="#建系-写坐标" class="headerlink" title="建系+写坐标"></a>建系+写坐标</h3><ul>
+<li>右手坐标系</li>
+</ul>
+<p><img src="/%E7%A9%BA%E9%97%B4%E8%A7%A3%E6%9E%90%E5%87%A0%E4%BD%95/image-20221029110717885.png" alt="image-20221029110717885"></p>
+<h3 id="写向量"><a href="#写向量" class="headerlink" title="写向量"></a>写向量</h3>]]></content>
       <categories>
         <category>math_high_school</category>
       </categories>
@@ -3923,82 +3927,78 @@ g(x)=W_g\times x</script><p>&emsp;&emsp;显然，对于 方程 $(2)$ 的前半�
 ]]></content>
   </entry>
   <entry>
-    <title>空间解析几何</title>
-    <url>/%E7%A9%BA%E9%97%B4%E8%A7%A3%E6%9E%90%E5%87%A0%E4%BD%95/</url>
-    <content><![CDATA[<h2 id="空间解析几何"><a href="#空间解析几何" class="headerlink" title="空间解析几何"></a>空间解析几何</h2><span id="more"></span>
-<p><img src="/%E7%A9%BA%E9%97%B4%E8%A7%A3%E6%9E%90%E5%87%A0%E4%BD%95/image-20221029104845216.png" alt="image-20221029104845216"></p>
-<p>求解步骤：</p>
+    <title>复数</title>
+    <url>/%E5%A4%8D%E6%95%B0/</url>
+    <content><![CDATA[<h3 id="分母有理化"><a href="#分母有理化" class="headerlink" title="分母有理化"></a>分母有理化</h3><span id="more"></span>
+<p>定义：将分母中含有根式的分数通过变化使得分母中仅含有有理数</p>
+<p>:warning:平方差公式：$(a+b)(a-b)=a^2-b^2$</p>
 <ul>
-<li>:pensive:写坐标（建立空间直角坐标系 $o-xyz$，并写出各个点的空间坐标）</li>
-<li>:smile:写向量（根据写出的坐标求出一些向量的坐标）</li>
-<li>:pensive:求法向量（根据同一个平面上两个向量坐标求出平面法向量）</li>
-<li>:pensive:求解（解 二面角 / 线面角 的 正弦 / 余弦 / 角度）</li>
+<li>分母中仅含有根式</li>
 </ul>
-<h3 id="建系-写坐标"><a href="#建系-写坐标" class="headerlink" title="建系+写坐标"></a>建系+写坐标</h3><ul>
-<li>右手坐标系</li>
+<script type="math/tex; mode=display">
+\frac {1+\sqrt 2}{\sqrt 3}\to(上下同\times分母)\to\frac {(1+\sqrt2)\sqrt3}{\sqrt3\times\sqrt3}\to\frac{\sqrt3+\sqrt6}{3}</script><ul>
+<li>分母中含有根式和整式</li>
 </ul>
-<p><img src="/%E7%A9%BA%E9%97%B4%E8%A7%A3%E6%9E%90%E5%87%A0%E4%BD%95/image-20221029110717885.png" alt="image-20221029110717885"></p>
-<h3 id="写向量"><a href="#写向量" class="headerlink" title="写向量"></a>写向量</h3>]]></content>
-      <categories>
-        <category>math_high_school</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>图像对齐和图像拼接</title>
-    <url>/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/</url>
-    <content><![CDATA[<p>👉👉👉👉👉👉本次实验选取来自 <a href="http://www.liushuaicheng.org/TIP/VideoStitching2016/index.html">论文</a> 的数据集  video2 的视频帧，通过 SIFT 特征点检测进行图像对齐，其第一帧的左，右视图如下：</p>
-<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127210155800.png" alt="image-20221127210155800" style="zoom: 150%;"></p>
-<span id="more"></span>
-<h3 id="图像的-SIFT-特征检测原理"><a href="#图像的-SIFT-特征检测原理" class="headerlink" title="图像的 SIFT 特征检测原理"></a>图像的 SIFT 特征检测原理</h3><p>&emsp;&emsp;SIFT 特征全称 Scale Invariant Feature Transform（尺度不变特征变换），通过 SIFT 生成的特征点具备对旋转、尺度缩放、平移、亮度变化、视角变化、仿射变换、噪声的鲁棒性。</p>
-<p>&emsp;&emsp;为了寻找视觉不变性的特征，需要对图像使用尺度空间方法，即在图像模型中引入尺度参数。常见的尺度空间由 LoG 产生，但是 LoG 较难计算，后面发现 DoG 能够近似代替 LoG，因此 SIFT 使用 DoG 空间作为尺度空间获取关键点。</p>
-<h4 id="DoG-空间的计算"><a href="#DoG-空间的计算" class="headerlink" title="DoG 空间的计算"></a>DoG 空间的计算</h4><p>&emsp;&emsp;对 DoG 空间的有效性可以这样理解：使用高 $\sigma$ 和低 $\sigma$ 分别产生的模糊与不模糊的图像作差即可得到边缘。这也解释了 DoG 空间检测出的极值点实际上对边缘具备更强的响应。</p>
-<p>&emsp;&emsp;在计算 DoG 空间之前需要先计算 SIFT 高斯金字塔，区别于普通的高斯金字塔，SIFT 高斯金字塔每一层具有多个图像，每一层最低端的图像单独拿出来就是普通的高斯金字塔。在金字塔的每一层内，从下往上的 $\sigma$ 逐渐增大，即在每一层内越向上的图像越模糊。</p>
-<p>&emsp;&emsp;对于构建好的 SIFT 金字塔中每个层的图像做上下差分，即可得到 DoG 空间。</p>
-<h4 id="使用-DoG-空间获取极值点"><a href="#使用-DoG-空间获取极值点" class="headerlink" title="使用 DoG 空间获取极值点"></a>使用 DoG 空间获取极值点</h4><p>&emsp;&emsp;这里采用的判断逻辑是斑点的判断方式，但是和斑点不同的是 DoG 的极值点需要额外对比上下两层的点，类似于使用 3Dconv 进行卷积。 </p>
-<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127203341901.png" alt="image-20221127203341901"></p>
-<h4 id="关键点处理"><a href="#关键点处理" class="headerlink" title="关键点处理"></a>关键点处理</h4><p>&emsp;&emsp;对于上一步中获得的极值点，其具备一些缺点：1. 对边缘响应太大，2. 同一个特征检测出的特征点较多，3. 特征点是离散像素，位置不够精确。而对于这些缺点，接下来需要进一步处理这些特征点。</p>
-<p>&emsp;&emsp;对于边缘响应问题，需要计算特征点处的 Hessian 矩阵 H，这个矩阵的特征值代表了 x, y 方向的梯度，接下来需要利用两个特征值的比计算出一个阈值，将横边缘相比垂直边缘具备较大主曲率的特征点剔除；对于特征点多的问题，采用 NMS 过一遍即可；对于离散像素位置不精确问题，需要对尺度空间进行曲线拟合，利用 DoG 函数的泰勒展开计算出插值中心的偏移量，针对偏移量的大小判断是否需要改变关键点位置并逐次迭代，最终插值中心就是原位置加上基于尺度的偏移量。</p>
-<h4 id="估计关键点方向"><a href="#估计关键点方向" class="headerlink" title="估计关键点方向"></a>估计关键点方向</h4><p>&emsp;&emsp;由于关键点同时应当具备旋转不变形，因此需要确定关键点的方向，其做法如下：</p>
+<script type="math/tex; mode=display">
+\frac{1+\sqrt2}{\sqrt3+1}\to(上下同\times分母的平方差公式)\to\frac{(1+\sqrt2)(\sqrt3-1)}{(\sqrt3+1)(\sqrt3-1)}\to\frac{\sqrt3-1+\sqrt6-\sqrt2}{2}</script><hr>
+<h3 id="虚数-复数"><a href="#虚数-复数" class="headerlink" title="虚数 / 复数"></a>虚数 / 复数</h3><p><img src="/%E5%A4%8D%E6%95%B0/image-20221029094307137.png" alt="image-20221029094307137"></p>
 <ul>
-<li>在不同的尺度上计算图像的梯度，计算范围是特征点的邻域，然后统计成直方图</li>
-<li>将直方图中最大值的梯度定为主方向，超过最大值80%的方向定为辅方向【将所有的梯度归到八个正交方向上】</li>
+<li>虚数即在实数轴之外的部分，基本单位是 $i$ ，并且 $i^2=-1$<ul>
+<li>虚数的运算除了 $i^2=-1$ 之外，其余和实数完全一致</li>
+<li>$i^3=i^2\times i=-1\times i=-i$，更复杂的计算如下：</li>
 </ul>
-<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127204838014.png" alt="image-20221127204838014" style="zoom:50%;"></p>
-<h4 id="生成关键点的描述子"><a href="#生成关键点的描述子" class="headerlink" title="生成关键点的描述子"></a>生成关键点的描述子</h4><p>&emsp;&emsp;为了保证旋转不变性，需要将特征点邻域内的图像旋转一个方向角 $\theta$，然后重新栅格化图像，更新梯度。接着对每个特征点的邻域分成十六个子邻域，每个子邻域的梯度分到八个方向，统计各个方向的梯度信息最终形成一个 128 维度的向量作为特征描述。</p>
-<p>&emsp;&emsp;为了去除光照产生的影响，对特征向量进行归一化处理，然后为了去除相机饱和度等因素的影响，对梯度较大的值进行截断（0.2），然后再进行一次归一化，最终根据特征点的尺度对特征向量进行排序即可得到最终的描述子。</p>
-<p>👉👉👉👉👉👉经过 SIFT 特征检测得到的特征如下图所示</p>
-<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127210417139.png" alt="image-20221127210417139" style="zoom:150%;"></p>
-<h3 id="特征描述子的距离匹配和-RANSAC-方法"><a href="#特征描述子的距离匹配和-RANSAC-方法" class="headerlink" title="特征描述子的距离匹配和 RANSAC 方法"></a>特征描述子的距离匹配和 RANSAC 方法</h3><p>&emsp;&emsp;为了描述特征的距离，可以使用简单的 L2 距离，但是这样对于比较接近的特征点会出现错误匹配的情况。</p>
-<p>&emsp;&emsp;因此更多的选用 ratio distance，即 $ d=\frac{||f_1-f_2||}{||f_1-f_2’||}$，这种方式计算了第一相似的点和第二相似的点之间的相似度差距，这种差距比较大是符合我们期望的，因为比较大就代表了我们得到的特征混淆可能性低，反之则代表相似的特征点比较多，这个特征不太合适用作对齐。</p>
-<p>&emsp;&emsp;而对于 RANSAC 方法，其本身是一个从误匹配或离群点较多的数据中正确估计数学模型的方法。该方法是基于迭代的概率性算法，其假设为：内点表示正常的数据点，而外点表示误匹配和离群点，整个数据集由内点和外点组成。</p>
+</li>
+</ul>
+<script type="math/tex; mode=display">
+(3i^3+2)(i-1)\\=3i^4-3i^3+2i-2\\=3+3i+2i-2\\=1+5i</script><ul>
+<li><strong>复数</strong>即虚数与实数的组合，基本表示形式为 $z=a+bi$，其中 $a,b\in R$<ul>
+<li>实部/虚部<ul>
+<li>其中 $a$ 叫做复数 $z$ 实部，$bi$ 叫做复数 $z$ 的虚部</li>
+<li>:warning: $a,b$ 均可以为 0，也就是说 <strong>所有的 纯实数/纯虚数 本身就是复数</strong></li>
+</ul>
+</li>
+<li>复平面<ul>
+<li>复数 $a+bi$ 在复平面对应点 $(a,b)$</li>
+</ul>
+</li>
+<li>复数的模<ul>
+<li>对于 $z=a+bi$，$z$ 的模 $|z|=\sqrt{a^2+b^2}$</li>
+</ul>
+</li>
+<li>共轭复数<ul>
+<li>对于 $z=a+bi$，$z$ 的共轭(复数) $\bar z=a-bi$ </li>
+</ul>
+</li>
+</ul>
+</li>
+<li>复数的例子：<ul>
+<li>对于 $z=1+2i$<ul>
+<li>$z$ 的实部为 $1$，虚部为 $2i$</li>
+<li>$z$ 在复平面对应的点为 $(1,2)$</li>
+<li>$z$ 的模 $|z|=\sqrt{1^2+2^2}=\sqrt 5$</li>
+<li>$z$ 的共轭 $\bar z=1-2i$</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="复数分母实数化"><a href="#复数分母实数化" class="headerlink" title="复数分母实数化"></a>复数分母实数化</h3><p>定义：将分母中含有虚部的分数通过变化使得分母中仅含有实数</p>
 <ul>
-<li>选择出可以估计出模型的最小数据集（对于 H 矩阵随机选择 4 个点即可）</li>
-<li>使用这个数据集计算出模型 H</li>
-<li>将所有数据代入 H，计算内点的数目，比较当前的内点数目和之前最好的内点数，并且选择是否更新模型</li>
-<li>重复前三步，直到目前的内点数目大于给定的阈值或超过迭代次数</li>
+<li>分母中仅含有虚部</li>
 </ul>
-<p>&emsp;&emsp;这里的迭代次数是可以计算的，假设总数据中内点的概率为 $t$，预期能够获取的模型 H 的正确概率为 $P$，每次模型采样 $N$ 个点，（H 矩阵为 4）则迭代次数 $k=\frac{\log (1-P)}{\log (1-t^N)}$。</p>
-<p>👉👉👉👉👉👉对 SIFT 特征子的距离匹配（仅匹配概率最大的前 100 个点）</p>
-<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127211847840.png" alt="image-20221127211847840" style="zoom:150%;"></p>
-<p>👉👉👉👉👉👉使用 RANSAC 方法找到在上述匹配中的内点，并且构造出模型 H，结果为：</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">H = [[ <span class="number">9.03698224e-01</span> -<span class="number">3.28876988e-02</span>  <span class="number">1.58813667e+02</span>]</span><br><span class="line"> [-<span class="number">2.37023637e-02</span>  <span class="number">9.45220683e-01</span>  <span class="number">5.04870429e+01</span>]</span><br><span class="line"> [-<span class="number">7.30423646e-05</span> -<span class="number">2.73295440e-05</span>  <span class="number">1.00000000e+00</span>]]</span><br></pre></td></tr></table></figure>
-<h3 id="基于单应矩阵-H-的图像变换与拼接"><a href="#基于单应矩阵-H-的图像变换与拼接" class="headerlink" title="基于单应矩阵 H 的图像变换与拼接"></a>基于单应矩阵 H 的图像变换与拼接</h3><p>&emsp;&emsp;基于已经求出的单应矩阵 H，使用 warp 方法对左图进行 Perspective 变换得到 warp 之后的图像以及合成之后的总图像：</p>
-<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127212531760.png" alt="image-20221127212531760" style="zoom:150%;"></p>
-<p>&emsp;&emsp;其中图像融合的方法为：</p>
-<ul>
-<li>对左图进行 warp</li>
-<li>将右图填充到左图的左侧</li>
+<script type="math/tex; mode=display">
+\frac{1+2i}{3i}\to(上下同\times i)\to \frac{(1+2i)i}{3i^2}\to\frac{i+2i^2}{3i^2}\to\frac{i-2}{-3}\to\frac{2-i}{3}\\=\frac2 3-\frac1 3i</script><ul>
+<li>分母中实部虚部都不为零</li>
 </ul>
-<p>&emsp;&emsp;这里无论是计算 left 映射到 right 的 H 矩阵还是计算 right 到 left 的 H 矩阵都可以得到同样的结果，从效果上看，右面似乎更好一些，但是这是和图像质量密切相关的：</p>
-<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127213833895.png" alt="image-20221127213833895" style="zoom:150%;"></p>
-<h3 id="实验总结"><a href="#实验总结" class="headerlink" title="实验总结"></a>实验总结</h3><p>&emsp;&emsp;实验的关键在于是否使用 RANSAC 方法，也就是对于不同特征点的匹配性，消融实验如下：</p>
-<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127214148342.png" alt="image-20221127214148342" style="zoom:150%;"></p>
-<p>&emsp;&emsp;这里尽管没有使用 RANSAC 方法，warp 之后的图像看上去也没有失真，这是因为之前 match 的特征点仅保留了最接近的 100 个，可见尽管如此仍然由不少的离群点，而如果保留 1000 个match 特征点，不使用 RANSAC 方法则会完全失真，实验结果如下。</p>
-<p><img src="/%E5%9B%BE%E5%83%8F%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%92%8C%E5%AF%B9%E9%BD%90/image-20221127214843068.png" alt="image-20221127214843068" style="zoom:150%;"></p>
-<h3 id="demo"><a href="#demo" class="headerlink" title="demo"></a>demo</h3><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#%% import</span></span><br><span class="line"><span class="keyword">import</span> cv2</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="comment">#%% read image</span></span><br><span class="line">left_img = cv2.imread(<span class="string">&#x27;left.png&#x27;</span>)</span><br><span class="line">right_img = cv2.imread(<span class="string">&#x27;right.png&#x27;</span>)</span><br><span class="line">fig, ax = plt.subplots(<span class="number">1</span>, <span class="number">2</span>, figsize=(<span class="number">10</span>, <span class="number">5</span>))</span><br><span class="line">ax[<span class="number">0</span>].imshow(left_img)</span><br><span class="line">ax[<span class="number">0</span>].set_title(<span class="string">&#x27;Left Image&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>].imshow(right_img)</span><br><span class="line">ax[<span class="number">1</span>].set_title(<span class="string">&#x27;Right Image&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line"><span class="comment">#%% SIFT feature detection</span></span><br><span class="line">li_gray = cv2.cvtColor(left_img, cv2.COLOR_BGR2GRAY)</span><br><span class="line">ri_gray = cv2.cvtColor(right_img, cv2.COLOR_BGR2GRAY)</span><br><span class="line">sift = cv2.SIFT_create()</span><br><span class="line">kp1, des1 = sift.detectAndCompute(li_gray, <span class="literal">None</span>)</span><br><span class="line">kp2, des2 = sift.detectAndCompute(ri_gray, <span class="literal">None</span>)</span><br><span class="line">li, ri = left_img.copy(), right_img.copy()</span><br><span class="line">cv2.drawKeypoints(li, kp1, li, (<span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>))</span><br><span class="line">cv2.drawKeypoints(ri, kp2, ri, (<span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>))</span><br><span class="line">fig, ax = plt.subplots(<span class="number">1</span>, <span class="number">2</span>, figsize=(<span class="number">10</span>, <span class="number">5</span>))</span><br><span class="line">ax[<span class="number">0</span>].imshow(li)</span><br><span class="line">ax[<span class="number">0</span>].set_title(<span class="string">&#x27;Left Image&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>].imshow(ri)</span><br><span class="line">ax[<span class="number">1</span>].set_title(<span class="string">&#x27;Right Image&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line"><span class="comment">#%% feature matching</span></span><br><span class="line">matcher = cv2.DescriptorMatcher_create(<span class="string">&quot;BruteForce&quot;</span>)</span><br><span class="line">matches = <span class="built_in">list</span>(matcher.match(des1, des2, <span class="literal">None</span>))</span><br><span class="line">matches.sort(key=<span class="keyword">lambda</span> x: x.distance, reverse=<span class="literal">False</span>)</span><br><span class="line">matches_all = matches.copy()</span><br><span class="line">matches = matches[:<span class="number">100</span>]</span><br><span class="line">imMatches = cv2.drawMatches(left_img, kp1, right_img, kp2, matches, <span class="literal">None</span>)</span><br><span class="line">fig, ax = plt.subplots(<span class="number">1</span>, <span class="number">1</span>, figsize=(<span class="number">10</span>, <span class="number">5</span>))</span><br><span class="line">ax.imshow(imMatches)</span><br><span class="line">ax.set_title(<span class="string">&#x27;Matches&#x27;</span>)</span><br><span class="line">ax.axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line"><span class="comment">#%% RANSAC to find homography H</span></span><br><span class="line">match_kp_left = np.array([kp1[m.queryIdx].pt <span class="keyword">for</span> m <span class="keyword">in</span> matches])</span><br><span class="line">match_kp_right = np.array([kp2[m.trainIdx].pt <span class="keyword">for</span> m <span class="keyword">in</span> matches])</span><br><span class="line"><span class="comment"># (H, status) = cv2.findHomography(match_kp_left, match_kp_right, cv2.RANSAC, 4.0)</span></span><br><span class="line">(H2, status2) = cv2.findHomography(match_kp_left, match_kp_right, <span class="literal">None</span>, <span class="number">4.0</span>)</span><br><span class="line"></span><br><span class="line">match_kp_left_all = np.array([kp1[m.queryIdx].pt <span class="keyword">for</span> m <span class="keyword">in</span> matches_all])</span><br><span class="line">match_kp_right_all = np.array([kp2[m.trainIdx].pt <span class="keyword">for</span> m <span class="keyword">in</span> matches_all])</span><br><span class="line">(H, status) = cv2.findHomography(match_kp_left_all, match_kp_right_all, cv2.RANSAC, <span class="number">4.0</span>)</span><br><span class="line">(H3, status3) = cv2.findHomography(match_kp_left_all, match_kp_right_all, <span class="literal">None</span>, <span class="number">4.0</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;H = <span class="subst">&#123;H&#125;</span>&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;H2 = <span class="subst">&#123;H2&#125;</span>&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&#x27;H3 = <span class="subst">&#123;H3&#125;</span>&#x27;</span>)</span><br><span class="line"><span class="comment"># H =&gt; 使用 RANSAC 算法计算的单应性矩阵，保留特征点前 100 个</span></span><br><span class="line"><span class="comment"># H2 =&gt; 不使用 RANSAC 算法计算的单应性矩阵，保留特征点前 100 个</span></span><br><span class="line"><span class="comment"># H3 =&gt; 不使用 RANSAC 算法计算的单应性矩阵，保留特征点前 1000 个</span></span><br><span class="line"><span class="comment">#%% warp image</span></span><br><span class="line">warp_left = cv2.warpPerspective(left_img, H, (left_img.shape[<span class="number">1</span>] + right_img.shape[<span class="number">1</span>], left_img.shape[<span class="number">0</span>]))</span><br><span class="line">warp_all = warp_left.copy()</span><br><span class="line">warp_all[<span class="number">0</span>:right_img.shape[<span class="number">0</span>], <span class="number">0</span>:right_img.shape[<span class="number">1</span>]] = right_img</span><br><span class="line">fig, ax = plt.subplots(<span class="number">2</span>, <span class="number">1</span>, figsize=(<span class="number">10</span>, <span class="number">5</span>))</span><br><span class="line">ax[<span class="number">0</span>].imshow(warp_left)</span><br><span class="line">ax[<span class="number">0</span>].set_title(<span class="string">&#x27;Warp Left Image&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>].imshow(warp_all)</span><br><span class="line">ax[<span class="number">1</span>].set_title(<span class="string">&#x27;Warp All Image&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line"><span class="comment">#%% warp image w/o RANSAC in 100 matches</span></span><br><span class="line">warp_left_none = cv2.warpPerspective(left_img, H2, (left_img.shape[<span class="number">1</span>] + right_img.shape[<span class="number">1</span>], left_img.shape[<span class="number">0</span>]))</span><br><span class="line">warp_all_none = warp_left_none.copy()</span><br><span class="line">warp_all_none[<span class="number">0</span>:right_img.shape[<span class="number">0</span>], <span class="number">0</span>:right_img.shape[<span class="number">1</span>]] = right_img</span><br><span class="line">fig, ax = plt.subplots(<span class="number">2</span>, <span class="number">2</span>, figsize=(<span class="number">10</span>, <span class="number">5</span>))</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">0</span>].imshow(warp_left_none)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">0</span>].set_title(<span class="string">&#x27;Warp Left Image none&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">1</span>].imshow(warp_all_none)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">1</span>].set_title(<span class="string">&#x27;Warp All Image none&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">0</span>].imshow(warp_left)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">0</span>].set_title(<span class="string">&#x27;Warp Left Image RANSAC&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">1</span>].imshow(warp_all)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">1</span>].set_title(<span class="string">&#x27;Warp All Image RANSAC&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line"><span class="comment">#%% warp image w/o RANSAC in 1000 matches</span></span><br><span class="line">warp_left_all = cv2.warpPerspective(left_img, H3, (left_img.shape[<span class="number">1</span>] + right_img.shape[<span class="number">1</span>], left_img.shape[<span class="number">0</span>]))</span><br><span class="line">warp_all_all = warp_left_all.copy()</span><br><span class="line">warp_all_all[<span class="number">0</span>:right_img.shape[<span class="number">0</span>], <span class="number">0</span>:right_img.shape[<span class="number">1</span>]] = right_img</span><br><span class="line">fig, ax = plt.subplots(<span class="number">2</span>, <span class="number">2</span>, figsize=(<span class="number">10</span>, <span class="number">5</span>))</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">0</span>].imshow(warp_left_all)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">0</span>].set_title(<span class="string">&#x27;Warp Left Image None 1000&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">1</span>].imshow(warp_all_all)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">1</span>].set_title(<span class="string">&#x27;Warp All Image None 1000&#x27;</span>)</span><br><span class="line">ax[<span class="number">0</span>, <span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">0</span>].imshow(warp_left)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">0</span>].set_title(<span class="string">&#x27;Warp Left Image RANSAC 1000&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">0</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">1</span>].imshow(warp_all)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">1</span>].set_title(<span class="string">&#x27;Warp All Image RANSAC 1000&#x27;</span>)</span><br><span class="line">ax[<span class="number">1</span>, <span class="number">1</span>].axis(<span class="string">&#x27;off&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<script type="math/tex; mode=display">
+\frac{1+2i}{3i+1}\to(上下同\times分母的平方差公式)\to\frac{(1+2i)(3i-1)}{(3i+1)(3i-1)}\to\frac{3i-1+6i^2-2i}{9i^2-1}\to\frac{i-7}{-10}\\=\frac7 {10}-\frac1{10}i</script><p>例题1：</p>
+<p><img src="/%E5%A4%8D%E6%95%B0/image-20221029100826673.png" alt="image-20221029100826673"></p>
+<script type="math/tex; mode=display">
+解：\frac{i(1+i)}{(1-i)(1+i)}=\frac{i+i^2}{1-i^2}\to\frac{i-1}{2}\\=-\frac1 2+\frac1 2i</script><p>因此对应点坐标为 $(-\frac1 2,\frac1 2)$ 即第二象限，选 $B$</p>
 ]]></content>
       <categories>
-        <category>methods</category>
+        <category>math_high_school</category>
       </categories>
   </entry>
 </search>
