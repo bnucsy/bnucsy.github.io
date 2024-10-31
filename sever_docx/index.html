@@ -20,15 +20,15 @@
     var CONFIG = {"hostname":"bnucsy.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="📌home目录下只放代码源程序；训练日志、模型权重文件、数据集放在data目录下每个服务器可能有data，data1，data2目录，使用df -h查询剩余空间大的目录，创建自己的“姓名”目录使用。 📌自行安装使用miniconda管理自己的python环境 📌pip install gpustat，使用gpustat查看无人使用的卡进行使用，每个人最多使用两张卡，投稿期间和特殊情况除外；">
+  <meta name="description" content="📌home目录下只放代码源程序；训练日志、模型权重文件、数据集放在data目录下每个服务器可能有data，data1，data2目录，使用df -h查询空间占用 📌自行安装使用miniconda管理自己的python环境 📌pip install gpustat，使用gpustat查看无人使用的卡进行使用尽量避免在别人使用中，但是没有占满显存的卡上跑实验，会严重影响速度如果使用jupyte">
 <meta property="og:type" content="article">
 <meta property="og:title" content="实验室服务器使用指南">
 <meta property="og:url" content="http://bnucsy.github.io/sever_docx/index.html">
 <meta property="og:site_name" content="CSY&#39;s blog">
-<meta property="og:description" content="📌home目录下只放代码源程序；训练日志、模型权重文件、数据集放在data目录下每个服务器可能有data，data1，data2目录，使用df -h查询剩余空间大的目录，创建自己的“姓名”目录使用。 📌自行安装使用miniconda管理自己的python环境 📌pip install gpustat，使用gpustat查看无人使用的卡进行使用，每个人最多使用两张卡，投稿期间和特殊情况除外；">
+<meta property="og:description" content="📌home目录下只放代码源程序；训练日志、模型权重文件、数据集放在data目录下每个服务器可能有data，data1，data2目录，使用df -h查询空间占用 📌自行安装使用miniconda管理自己的python环境 📌pip install gpustat，使用gpustat查看无人使用的卡进行使用尽量避免在别人使用中，但是没有占满显存的卡上跑实验，会严重影响速度如果使用jupyte">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2023-11-15T01:31:37.000Z">
-<meta property="article:modified_time" content="2023-11-15T08:04:52.364Z">
+<meta property="article:published_time" content="2024-10-31T01:31:37.000Z">
+<meta property="article:modified_time" content="2024-10-31T09:13:35.648Z">
 <meta property="article:author" content="ShuYang Chu">
 <meta name="twitter:card" content="summary">
 
@@ -210,7 +210,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2023-11-15 09:31:37 / 修改时间：16:04:52" itemprop="dateCreated datePublished" datetime="2023-11-15T09:31:37+08:00">2023-11-15</time>
+              <time title="创建时间：2024-10-31 09:31:37 / 修改时间：17:13:35" itemprop="dateCreated datePublished" datetime="2024-10-31T09:31:37+08:00">2024-10-31</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -249,7 +249,7 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>1.1k</span>
+              <span>1.4k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -269,11 +269,10 @@
 
       
         <blockquote>
-<p>📌home目录下只放代码源程序；训练日志、模型权重文件、数据集放在data目录下<br>每个服务器可能有data，data1，data2目录，使用<code>df -h</code>查询剩余空间大的目录，创建自己的“姓名”目录使用。</p>
+<p>📌home目录下只放代码源程序；训练日志、模型权重文件、数据集放在data目录下<br>每个服务器可能有data，data1，data2目录，使用<code>df -h</code>查询空间占用</p>
 <p>📌自行安装使用miniconda管理自己的python环境</p>
-<p>📌<code>pip install gpustat</code>，使用gpustat查看无人使用的卡进行使用，每个人最多使用两张卡，投稿期间和特殊情况除外；<br>尽量避免别人在使用，但是在显存没有占满的卡上跑实验，会严重影响速度。</p>
-<p>📌使用vscode登录使用服务器，参考：<a target="_blank" rel="noopener" href="https://blog.csdn.net/zhuwenyan1234567/article/details/126928074" title="https://blog.csdn.net/zhuwenyan1234567/article/details/126928074">https://blog.csdn.net/zhuwenyan1234567/article/details/126928074</a></p>
-<p>自己下载的研究方向内原始数据集联系吴瑞泽更新此页面。</p>
+<p>📌<code>pip install gpustat</code>，使用gpustat查看无人使用的卡进行使用<br>尽量避免在别人使用中，但是没有占满显存的卡上跑实验，会严重影响速度<br>如果使用jupyter服务器运行程序，在程序结束后记得手动释放内存</p>
+<p>自己下载的新数据集 / 使用新方法处理的数据集 可以联系楚舒扬更新此页面。</p>
 </blockquote>
 <span id="more"></span>
 <hr>
@@ -281,12 +280,15 @@
 <li><a href="#1018417160服务器数据集">10.184.17.160服务器数据集</a><ul>
 <li><a href="#超分">超分</a></li>
 <li><a href="#rPPG">rPPG</a></li>
-<li><a href="#滑坡分割">滑坡分割</a></li>
-<li><a href="#语义实例分割">语义/实例分割</a></li>
+<li><a href="#分割">分割</a></li>
 </ul>
 </li>
 <li><a href="#1018417161服务器数据集">10.184.17.161服务器数据集</a><ul>
 <li><a href="#超分">超分</a></li>
+<li><a href="#rPPG">rPPG</a></li>
+</ul>
+</li>
+<li><a href="#2021172158服务器数据集">202.117.21.58服务器数据集</a><ul>
 <li><a href="#rPPG">rPPG</a></li>
 </ul>
 </li>
@@ -296,24 +298,25 @@
 <thead>
 <tr>
 <th>数据集名称</th>
-<th>原始路径</th>
-<th>预处理路径</th>
+<th>路径</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>FFHQ</td>
-<td></td>
-<td></td>
+<td>/data2/lihaifeng/Face/train/FFHQ1024</td>
 </tr>
 <tr>
-<td>VFHQ</td>
-<td>/data2/chushuyang/VFHQ</td>
-<td>平滑预处理之后：/data2/chushuyang/VFHQ_preprocessed</td>
+<td>FFHW-512</td>
+<td>/data2/lihaifeng/Face/train/FFHQ512</td>
 </tr>
 <tr>
-<td></td>
-<td></td>
+<td>CelebA</td>
+<td>/data2/lihaifeng/CelebA</td>
+</tr>
+<tr>
+<td>CelebA-512</td>
+<td>/data2/lihaifeng/CelebA-512</td>
 </tr>
 </tbody>
 </table>
@@ -323,70 +326,52 @@
 <thead>
 <tr>
 <th>数据集名称</th>
-<th>原始路径</th>
-<th>预处理路径</th>
+<th>路径</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>VIPL</td>
 <td>/data2/chushuyang/VIPL</td>
-<td></td>
 </tr>
 <tr>
 <td>UBFC</td>
 <td>/data/chushuyang/UBFC_RAW</td>
-<td></td>
 </tr>
 <tr>
 <td>PURE</td>
 <td>/data/chushuyang/pure</td>
-<td></td>
 </tr>
 <tr>
 <td>COHFACE</td>
 <td>/data/chushuyang/COHFACE/cohface</td>
-<td></td>
 </tr>
 <tr>
-<td>MMSE-HR</td>
-<td>/data3/wuruize/MMSE-HR/MMSE_HR</td>
+<td>BUAA</td>
+<td>/data3/wuruize/BUAA</td>
+</tr>
+<tr>
+<td>MMSE</td>
 <td>/data3/wuruize/MMSE-HR_process</td>
 </tr>
-</tbody>
-</table>
-</div>
-<h2 id="滑坡分割"><a href="#滑坡分割" class="headerlink" title="滑坡分割"></a>滑坡分割</h2><div class="table-container">
-<table>
-<thead>
 <tr>
-<th>数据集名称</th>
-<th>原始路径</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Gansu滑坡</td>
-<td>/data1/wanyuming/papers/landslideGansu</td>
-</tr>
-<tr>
-<td>HR-GLDD</td>
-<td>/data1/wanyuming/HR_GLDD</td>
+<td>MR-NIRP</td>
+<td>/data3/wuruize/MR-NIRP_Car_Process</td>
 </tr>
 </tbody>
 </table>
 </div>
-<h2 id="语义-实例分割"><a href="#语义-实例分割" class="headerlink" title="语义/实例分割"></a>语义/实例分割</h2><div class="table-container">
+<h2 id="分割"><a href="#分割" class="headerlink" title="分割"></a>分割</h2><div class="table-container">
 <table>
 <thead>
 <tr>
 <th>数据集名称</th>
-<th>原始路径</th>
+<th>路径</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>CoCo数据集</td>
+<td>CoCo</td>
 <td>/data2/chushuyang/CoCo_stuff</td>
 </tr>
 </tbody>
@@ -397,14 +382,37 @@
 <thead>
 <tr>
 <th>数据集名称</th>
-<th>原始路径</th>
-<th>预处理路径</th>
+<th>路径</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>FFHQ</td>
-<td>/data/fangbochen/datasets/FFHQ/imgs1024</td>
+<td>/data/lihaifeng/Face/train/FFHQ</td>
+</tr>
+<tr>
+<td>FFHW-512</td>
+<td>/data/lihaifeng/Face/train/FFHQ_512</td>
+</tr>
+<tr>
+<td>CelebA</td>
+<td>/data/lihaifeng/CelebA/celeba_1024</td>
+</tr>
+<tr>
+<td>CelebA-512</td>
+<td>/data/lihaifeng/CelebA/celeba_512</td>
+</tr>
+<tr>
+<td>LFW</td>
+<td>/data/lihaifeng/Face/test/LFW</td>
+</tr>
+<tr>
+<td>WebPhoto</td>
+<td>/data/lihaifeng/Face/test/WebPhoto</td>
+</tr>
+<tr>
+<td>Helen</td>
+<td>/data/liguanxin/Helen_test</td>
 </tr>
 </tbody>
 </table>
@@ -414,34 +422,60 @@
 <thead>
 <tr>
 <th>数据集名称</th>
-<th>原始路径</th>
-<th>预处理路径</th>
+<th>路径</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>VIPL</td>
-<td>/data/public_dataset/VIPL/</td>
-<td></td>
+<td>/data/wuruize/VIPL</td>
 </tr>
 <tr>
 <td>UBFC</td>
-<td>/data/public_dataset/UBFC_PIC/</td>
-<td></td>
+<td>/data/zhangyizhu/UBFC_RAW</td>
 </tr>
 <tr>
 <td>PURE</td>
-<td>/data/public_dataset/PURE_PIC/</td>
-<td></td>
+<td>/data/wuruize/pure_process</td>
 </tr>
 <tr>
-<td>BUAA</td>
-<td>/data/public_dataset/BUAA-MIHR/</td>
-<td></td>
+<td>COHFACE</td>
+<td>/data/wuruize/cohface</td>
 </tr>
 <tr>
 <td></td>
-<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+<h1 id="202-117-21-58服务器数据集"><a href="#202-117-21-58服务器数据集" class="headerlink" title="202.117.21.58服务器数据集"></a>202.117.21.58服务器数据集</h1><h2 id="rPPG-2"><a href="#rPPG-2" class="headerlink" title="rPPG"></a>rPPG</h2><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>数据集名称</th>
+<th>路径</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>VIPL</td>
+<td>/data/wuruize/VIPL</td>
+</tr>
+<tr>
+<td>UBFC</td>
+<td>/data/chushuyang/UBFC_PIC</td>
+</tr>
+<tr>
+<td>PURE</td>
+<td>/data/wuruize/pure_process</td>
+</tr>
+<tr>
+<td>COHFACE</td>
+<td>/data/wuruize/cohface</td>
+</tr>
+<tr>
+<td>STMap-related Datasets</td>
+<td>/data/wuruize/STMap</td>
 </tr>
 </tbody>
 </table>
@@ -478,8 +512,8 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/SSPD/" rel="prev" title="SSPD">
-      <i class="fa fa-chevron-left"></i> SSPD
+    <a href="/CFAT/" rel="prev" title="CFAT">
+      <i class="fa fa-chevron-left"></i> CFAT
     </a></div>
       <div class="post-nav-item"></div>
     </div>
@@ -541,7 +575,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%AE%E5%BD%95"><span class="nav-text">目录</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-184-17-160%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%95%B0%E6%8D%AE%E9%9B%86"><span class="nav-text">10.184.17.160服务器数据集</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B6%85%E5%88%86"><span class="nav-text">超分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rPPG"><span class="nav-text">rPPG</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BB%91%E5%9D%A1%E5%88%86%E5%89%B2"><span class="nav-text">滑坡分割</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%AD%E4%B9%89-%E5%AE%9E%E4%BE%8B%E5%88%86%E5%89%B2"><span class="nav-text">语义&#x2F;实例分割</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-184-17-161%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%95%B0%E6%8D%AE%E9%9B%86"><span class="nav-text">10.184.17.161服务器数据集</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B6%85%E5%88%86-1"><span class="nav-text">超分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rPPG-1"><span class="nav-text">rPPG</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%AE%E5%BD%95"><span class="nav-text">目录</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-184-17-160%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%95%B0%E6%8D%AE%E9%9B%86"><span class="nav-text">10.184.17.160服务器数据集</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B6%85%E5%88%86"><span class="nav-text">超分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rPPG"><span class="nav-text">rPPG</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E5%89%B2"><span class="nav-text">分割</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#10-184-17-161%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%95%B0%E6%8D%AE%E9%9B%86"><span class="nav-text">10.184.17.161服务器数据集</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B6%85%E5%88%86-1"><span class="nav-text">超分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rPPG-1"><span class="nav-text">rPPG</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#202-117-21-58%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%95%B0%E6%8D%AE%E9%9B%86"><span class="nav-text">202.117.21.58服务器数据集</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#rPPG-2"><span class="nav-text">rPPG</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -555,14 +589,14 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">61</span>
+          <span class="site-state-item-count">64</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-count">15</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
   </nav>
@@ -589,7 +623,7 @@
 <div class="copyright">
   
   &copy; 
-  <span itemprop="copyrightYear">2023</span>
+  <span itemprop="copyrightYear">2024</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
